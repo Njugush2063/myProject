@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Maasai Mara National Reserve — Discover the Magic of Kenya</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="attraction-details.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     NAVBAR
+════════════════════════════════════════ -->
+<nav id="navbar">
+  <a class="logo" href="Index.html">
+    <div class="logo-icon">
+      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36z"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <span>Discover the</span>
+      <span>Magic of Kenya</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="Index.html">Home</a></li>
+    <li><a href="destinations.html" class="active">Destinations</a></li>
+    <li><a href="#">Events</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <a href="login.html" class="btn-plan">Plan Your Trip</a>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     HERO
+════════════════════════════════════════ -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+
+  <div class="breadcrumb">
+    <a href="Index.html">Home</a>
+    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    <a href="destinations.html">Destinations</a>
+    <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    <span>Loading...</span>
+  </div>
+
+  <div class="hero-content">
+    <div class="hero-badges">
+      <span class="badge-difficulty moderate">Moderate</span>
+      <span class="badge-category">🌍 Big Five Safari</span>
+    </div>
+    <h1>Loading...</h1>
+    <div class="hero-meta">
+      <span class="meta-location">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+        ...
+      </span>
+      <span class="meta-rating">
+        <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        ...
+      </span>
+      <span class="meta-time">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        ...
+      </span>
+    </div>
+    <div class="hero-actions">
+      <a href="#booking" class="btn-book">Book Now →</a>
+      <button class="btn-gallery" id="openGallery">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        View Photos
+      </button>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     PHOTO GALLERY STRIP
+════════════════════════════════════════ -->
+<section id="gallery-strip">
+  <div class="gallery-grid">
+    <div class="gal-main gal-img-1">
+      <button class="gal-overlay-btn" id="openGallery2">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        View All Photos
+      </button>
+    </div>
+    <div class="gal-grid-right">
+      <div class="gal-thumb gal-img-2"></div>
+      <div class="gal-thumb gal-img-3"></div>
+      <div class="gal-thumb gal-img-4"></div>
+      <div class="gal-thumb gal-more gal-img-5">
+        <div class="gal-more-overlay">+12 more</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     QUICK INFO BAR
+════════════════════════════════════════ -->
+<section id="quick-info">
+  <div class="info-bar">
+    <div class="info-item">
+      <div class="info-icon">📅</div>
+      <div>
+        <div class="info-label">Best Time</div>
+        <div class="info-val" id="info-best-time">—</div>
+      </div>
+    </div>
+    <div class="info-divider"></div>
+    <div class="info-item">
+      <div class="info-icon">⏱️</div>
+      <div>
+        <div class="info-label">Duration</div>
+        <div class="info-val" id="info-duration">—</div>
+      </div>
+    </div>
+    <div class="info-divider"></div>
+    <div class="info-item">
+      <div class="info-icon">🎯</div>
+      <div>
+        <div class="info-label">Difficulty</div>
+        <div class="info-val" id="info-difficulty">—</div>
+      </div>
+    </div>
+    <div class="info-divider"></div>
+    <div class="info-item">
+      <div class="info-icon">💰</div>
+      <div>
+        <div class="info-label">Price Range</div>
+        <div class="info-val" id="info-price">—</div>
+      </div>
+    </div>
+    <div class="info-divider"></div>
+    <div class="info-item">
+      <div class="info-icon">👥</div>
+      <div>
+        <div class="info-label">Group Size</div>
+        <div class="info-val" id="info-group">—</div>
+      </div>
+    </div>
+    <div class="info-divider"></div>
+    <div class="info-item">
+      <div class="info-icon">🌡️</div>
+      <div>
+        <div class="info-label">Climate</div>
+        <div class="info-val" id="info-climate">—</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     MAIN CONTENT + BOOKING SIDEBAR
+════════════════════════════════════════ -->
+<section id="content-wrap">
+  <div class="content-layout">
+
+    <!-- LEFT: Main Content -->
+    <div class="main-content">
+
+      <!-- Overview -->
+      <div class="content-card fade-in" id="overview">
+        <h2 class="card-title">Overview</h2>
+        <div class="divider-line"><span></span><span></span></div>
+        <p class="overview-text" id="overview-text">Loading attraction details...</p>
+        <div class="highlights-list" id="highlights-list"></div>
+      </div>
+
+      <!-- What You'll Experience -->
+      <div class="content-card fade-in">
+        <h2 class="card-title">What You'll Experience</h2>
+        <div class="divider-line"><span></span><span></span></div>
+        <div class="experience-grid">
+          <div class="exp-item">
+            <div class="exp-icon-wrap exp-orange">🦁</div>
+            <div class="exp-name">Wildlife Viewing</div>
+            <div class="exp-desc">Daily game drives morning & evening with expert guides</div>
+          </div>
+          <div class="exp-item">
+            <div class="exp-icon-wrap exp-green">🎈</div>
+            <div class="exp-name">Balloon Safari</div>
+            <div class="exp-desc">Optional sunrise hot air balloon ride over the Mara</div>
+          </div>
+          <div class="exp-item">
+            <div class="exp-icon-wrap exp-pink">🏕️</div>
+            <div class="exp-name">Bush Camping</div>
+            <div class="exp-desc">Luxury tented camps deep in the reserve</div>
+          </div>
+          <div class="exp-item">
+            <div class="exp-icon-wrap exp-blue">🎭</div>
+            <div class="exp-name">Cultural Tours</div>
+            <div class="exp-desc">Maasai village visits, traditional dances & crafts</div>
+          </div>
+          <div class="exp-item">
+            <div class="exp-icon-wrap exp-orange">🍽️</div>
+            <div class="exp-name">Meals Included</div>
+            <div class="exp-desc">Full board — breakfast, lunch & dinner daily</div>
+          </div>
+          <div class="exp-item">
+            <div class="exp-icon-wrap exp-green">📸</div>
+            <div class="exp-name">Photography</div>
+            <div class="exp-desc">Guided photography sessions at prime wildlife spots</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Itinerary -->
+      <div class="content-card fade-in" id="itinerary">
+        <h2 class="card-title">Sample Itinerary</h2>
+        <div class="divider-line"><span></span><span></span></div>
+        <div class="itinerary-list">
+
+          <div class="itin-item">
+            <div class="itin-day">
+              <div class="itin-day-num">Day 1</div>
+              <div class="itin-line"></div>
+            </div>
+            <div class="itin-body">
+              <div class="itin-title">Arrival & Welcome</div>
+              <p class="itin-desc">Fly or drive from Nairobi to the destination. Check into your camp, enjoy a welcome briefing, and take an afternoon game drive to spot resident wildlife.</p>
+              <div class="itin-tags">
+                <span>Transfer</span><span>Orientation Drive</span><span>Welcome Dinner</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="itin-item">
+            <div class="itin-day">
+              <div class="itin-day-num">Day 2</div>
+              <div class="itin-line"></div>
+            </div>
+            <div class="itin-body">
+              <div class="itin-title">Full Day Game Drives</div>
+              <p class="itin-desc">Early morning game drive at sunrise — the best time for predator sightings. Return for breakfast, rest, then an afternoon drive tracking the Big Five.</p>
+              <div class="itin-tags">
+                <span>Morning Drive</span><span>Big Five Tracking</span><span>Sundowner</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="itin-item">
+            <div class="itin-day">
+              <div class="itin-day-num">Day 3</div>
+              <div class="itin-line"></div>
+            </div>
+            <div class="itin-body">
+              <div class="itin-title">Deep Exploration</div>
+              <p class="itin-desc">Full day exploring deeper sections of the reserve. Optional activities such as balloon safaris, cultural village visits, or river crossings depending on the season.</p>
+              <div class="itin-tags">
+                <span>Balloon Safari</span><span>Cultural Visit</span><span>Photography</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="itin-item">
+            <div class="itin-day">
+              <div class="itin-day-num">Day 4</div>
+              <div class="itin-line"></div>
+            </div>
+            <div class="itin-body">
+              <div class="itin-title">Departure Day</div>
+              <p class="itin-desc">Final morning drive before checkout. Transfer back to Nairobi by road or chartered flight. Depart with lifelong memories.</p>
+              <div class="itin-tags">
+                <span>Morning Drive</span><span>Checkout</span><span>Transfer</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Included / Not Included -->
+      <div class="content-card fade-in">
+        <h2 class="card-title">What's Included</h2>
+        <div class="divider-line"><span></span><span></span></div>
+        <div class="included-grid">
+          <div class="included-col">
+            <div class="included-head included-yes">✅ Included</div>
+            <ul class="included-list">
+              <li>All game drives in 4x4 safari vehicles</li>
+              <li>Professional licensed safari guide</li>
+              <li>Full board accommodation (3 nights)</li>
+              <li>All park entry & conservation fees</li>
+              <li>Airport/Nairobi transfers</li>
+              <li>Bottled water during drives</li>
+              <li>Cultural village visit</li>
+              <li>Emergency medical evacuation cover</li>
+            </ul>
+          </div>
+          <div class="included-col">
+            <div class="included-head included-no">❌ Not Included</div>
+            <ul class="included-list not">
+              <li>International flights</li>
+              <li>Hot air balloon safari ($450/person)</li>
+              <li>Personal travel insurance</li>
+              <li>Alcoholic beverages</li>
+              <li>Gratuities & tips for guides</li>
+              <li>Souvenirs & personal purchases</li>
+              <li>Optional night game drives</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Map -->
+      <div class="content-card fade-in" id="location">
+        <h2 class="card-title">Location</h2>
+        <div class="divider-line"><span></span><span></span></div>
+        <p class="location-note" id="location-note">Loading location details...</p>
+        <div class="map-wrap">
+          <div class="map-pin-card">
+            <div class="map-pin-icon">
+              <svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2.2" viewBox="0 0 24 24">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                <circle cx="12" cy="9" r="2.5"/>
+              </svg>
+            </div>
+            <div>
+              <div class="map-pin-title" id="map-pin-title">Loading...</div>
+              <div class="map-pin-sub">Our attraction location</div>
+            </div>
+          </div>
+          <iframe id="map-iframe"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d255282!2d35.14!3d-1.5!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182b9a5c30b3e0e5%3A0x6b71ffbc1673f47!2sMaasai+Mara+National+Reserve!5e0!3m2!1sen!2ske!4v1"
+            width="100%" height="320" frameborder="0" allowfullscreen="" loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade" title="Attraction map">
+          </iframe>
+        </div>
+        <a href="#" class="btn-maps" id="maps-link" target="_blank">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+          Open in Google Maps →
+        </a>
+      </div>
+
+      <!-- Reviews -->
+      <div class="content-card fade-in" id="reviews">
+        <h2 class="card-title">Traveler Reviews</h2>
+        <div class="divider-line"><span></span><span></span></div>
+
+        <div class="rating-summary">
+          <div class="rating-big">
+            <div class="rating-score" id="rating-score">—</div>
+            <div class="rating-stars">★★★★★</div>
+            <div class="rating-count" id="rating-count">— reviews</div>
+          </div>
+          <div class="rating-bars">
+            <div class="rbar-row"><span>5★</span><div class="rbar"><div class="rbar-fill rbar-85"></div></div><span>85%</span></div>
+            <div class="rbar-row"><span>4★</span><div class="rbar"><div class="rbar-fill rbar-11"></div></div><span>11%</span></div>
+            <div class="rbar-row"><span>3★</span><div class="rbar"><div class="rbar-fill rbar-3"></div></div><span>3%</span></div>
+            <div class="rbar-row"><span>2★</span><div class="rbar"><div class="rbar-fill rbar-1"></div></div><span>1%</span></div>
+            <div class="rbar-row"><span>1★</span><div class="rbar"><div class="rbar-fill rbar-0"></div></div><span>0%</span></div>
+          </div>
+        </div>
+
+        <div class="reviews-grid">
+          <div class="review-card">
+            <div class="review-head">
+              <div class="review-avatar avatar-orange">A</div>
+              <div>
+                <div class="review-name">Amara Ochieng</div>
+                <div class="review-date">February 2026</div>
+              </div>
+              <div class="review-stars">★★★★★</div>
+            </div>
+            <p class="review-text">"Absolutely life-changing experience. Watched a cheetah hunt at sunrise on our second morning. The guides knew exactly where to find the action — we never came back to camp empty handed."</p>
+            <div class="review-tags"><span>Wildlife</span><span>Guide Quality</span></div>
+          </div>
+
+          <div class="review-card">
+            <div class="review-head">
+              <div class="review-avatar avatar-green">M</div>
+              <div>
+                <div class="review-name">Michael Kamau</div>
+                <div class="review-date">January 2026</div>
+              </div>
+              <div class="review-stars">★★★★★</div>
+            </div>
+            <p class="review-text">"The wildebeest crossing was something I'll never forget. We waited at the river for 2 hours and when it happened — chaos, crocodiles, thunder of hooves — I was in tears. Worth every shilling."</p>
+            <div class="review-tags"><span>Migration</span><span>Photography</span></div>
+          </div>
+
+          <div class="review-card">
+            <div class="review-head">
+              <div class="review-avatar avatar-blue">S</div>
+              <div>
+                <div class="review-name">Sarah Njoroge</div>
+                <div class="review-date">December 2025</div>
+              </div>
+              <div class="review-stars">★★★★☆</div>
+            </div>
+            <p class="review-text">"Fantastic 4-day safari. The tented camp was luxurious and the food was incredible. Only minor issue was the road from Nairobi which is long and bumpy — fly if you can afford it!"</p>
+            <div class="review-tags"><span>Accommodation</span><span>Food</span></div>
+          </div>
+        </div>
+
+        <button class="btn-all-reviews">View All Reviews →</button>
+      </div>
+
+    </div><!-- end main-content -->
+
+    <!-- RIGHT: Sticky Booking Sidebar -->
+    <aside class="booking-sidebar" id="booking">
+      <div class="booking-card" id="bookingCard">
+        <div class="booking-price">
+          <span class="price-from">From</span>
+          <span class="price-val" id="sidebar-price">$—</span>
+          <span class="price-per">/ person</span>
+        </div>
+        <div class="booking-rating">
+          <span class="b-stars">★★★★★</span>
+          <span class="b-count" id="sidebar-rating">— reviews</span>
+        </div>
+
+        <div class="booking-form">
+          <div class="bform-row">
+            <div class="bform-field">
+              <label>CHECK-IN</label>
+              <div class="bform-input">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <input type="date" id="checkIn"/>
+              </div>
+            </div>
+            <div class="bform-field">
+              <label>CHECK-OUT</label>
+              <div class="bform-input">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <input type="date" id="checkOut"/>
+              </div>
+            </div>
+          </div>
+
+          <div class="bform-field">
+            <label>TRAVELERS</label>
+            <div class="bform-input">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <div class="traveler-control">
+                <button class="trav-btn" id="travMinus">−</button>
+                <span id="travCount">2</span>
+                <button class="trav-btn" id="travPlus">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="bform-field">
+            <label>PACKAGE TYPE</label>
+            <div class="bform-input select-wrap">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+              <select id="packageType">
+                <option value="standard">Standard Safari (3 nights)</option>
+                <option value="premium">Premium Safari (5 nights)</option>
+                <option value="luxury">Luxury Safari (7 nights)</option>
+                <option value="budget">Budget Safari (2 nights)</option>
+              </select>
+              <svg class="chev" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="price-breakdown" id="priceBreakdown">
+          <div class="pb-row">
+            <span id="pb-label">$— × 2 travelers</span>
+            <span id="pbBase">$—</span>
+          </div>
+          <div class="pb-row">
+            <span>Park fees & taxes</span>
+            <span id="pb-tax">$—</span>
+          </div>
+          <div class="pb-row pb-total">
+            <span>Total</span>
+            <span id="pbTotal">$—</span>
+          </div>
+        </div>
+
+        <button class="btn-book-now" id="bookNowBtn">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+          Book Now
+        </button>
+
+        <div class="booking-note">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Free cancellation up to 7 days before
+        </div>
+
+        <div class="booking-actions">
+          <button class="btn-wishlist" id="wishlistBtn">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            Save to Wishlist
+          </button>
+          <button class="btn-share">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Share
+          </button>
+        </div>
+
+        <div class="trust-badges">
+          <div class="trust-item">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Verified attraction
+          </div>
+          <div class="trust-item">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Instant confirmation
+          </div>
+          <div class="trust-item">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            24/7 support included
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     SIMILAR DESTINATIONS
+════════════════════════════════════════ -->
+<section id="similar">
+  <div class="section-header fade-in">
+    <h2>Similar Destinations</h2>
+    <div class="divider-line"><span></span><span></span></div>
+    <p>Explore more incredible Kenya safari experiences</p>
+  </div>
+  <div class="similar-grid" id="similar-grid">
+    <!-- Populated by JS from Supabase -->
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     FOOTER
+════════════════════════════════════════ -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <a class="logo" href="Index.html">
+        <div class="logo-icon">
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36z"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span>Discover the</span>
+          <span>Magic of Kenya</span>
+        </div>
+      </a>
+      <p>Your trusted digital gateway to Kenya's most breathtaking destinations, events, and experiences.</p>
+      <div class="footer-socials">
+        <button class="fsoc">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
+        </button>
+        <button class="fsoc">
+          <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+        </button>
+        <button class="fsoc">
+          <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <ul class="footer-links">
+        <li><a href="destinations.html">Destinations</a></li>
+        <li><a href="#">Events</a></li>
+        <li><a href="#">Accommodations</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Stay Updated</h4>
+      <p class="fnl-text">Get the latest destinations and travel tips in your inbox.</p>
+      <div class="newsletter-form">
+        <input class="newsletter-input" type="email" placeholder="Your email address"/>
+        <button class="newsletter-btn">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Discover the Magic of Kenya. All rights reserved.</span>
+    <div class="footer-legal"><a href="#">Privacy Policy</a><a href="#">Terms of Service</a></div>
+  </div>
+</footer>
+
+<!-- Scroll to top -->
+<button id="scrollTop" aria-label="Scroll to top">
+  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" id="lbClose">
+    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <button class="lb-nav lb-prev" id="lbPrev">
+    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <div class="lb-img-wrap">
+    <img id="lbImg" src="" alt="Gallery image"/>
+  </div>
+  <button class="lb-nav lb-next" id="lbNext">
+    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+  <div class="lb-dots" id="lbDots"></div>
+</div>
+
+<script src="supabase-config.js"></script>
+<script src="attraction-details.js"></script>
+</body>
+</html>
