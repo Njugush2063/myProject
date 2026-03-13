@@ -21,9 +21,11 @@ document.addEventListener('DOMContentLoaded', function () {
      AUTHORISED CREDENTIALS
      Add or edit entries here as needed.
   ════════════════════════════════════════ */
-  const VALID_USERS = [
-    { email: 'samuelkamande997@gmail.com', password: '12345678' }
-  ];
+  loginBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    // Direct login without checking credentials
+    window.location.href = "dashboard.html";
+});
 
   /* ═══════════════════════════════════════
      PASSWORD VISIBILITY TOGGLE
