@@ -113,7 +113,7 @@ function renderDestinationGrid(container, attractions, isFavorites = false) {
           <span class="tag tag-more">+${a.highlights.length - 2} more</span>
         </div>
         <div class="dest-footer">
-          <span class="dest-price">$${a.price_min.toLocaleString()} – $${a.price_max.toLocaleString()}</span>
+          <span class="dest-price">KSh ${Math.round(a.price_min * 129.38).toLocaleString()} – KSh ${Math.round(a.price_max * 129.38).toLocaleString()}</span>
           <a href="attraction-details.html?id=${a.slug}" class="explore-link">⚡ Explore →</a>
         </div>
       </div>
