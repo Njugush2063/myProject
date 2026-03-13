@@ -1,73 +1,122 @@
-// ── SCROLL TO TOP BUTTON ──
-window.addEventListener('scroll', () => {
-  const btn = document.getElementById('scrollTop');
-  btn.classList.toggle('visible', window.scrollY > 400);
-});
+/* ============================================================
+   DESTINATIONS PAGE — destinations.js
+   Fetches all attractions from Supabase and renders them
+   ============================================================ */
 
-// ── SCROLL-TRIGGERED FADE-IN ANIMATIONS ──
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((e, i) => {
-    if (e.isIntersecting) {
-      e.target.style.transitionDelay = `${i * 0.05}s`;
-      e.target.classList.add('visible');
-    }
-  });
-}, { threshold: 0.1 });
+document.addEventListener('DOMContentLoaded', async function () {
 
-document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
-
-// ── TYPE IMAGE BUTTON FILTER ──
-function filterType(btn, type) {
-  document.querySelectorAll('.type-img-btn').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-// ── EXPERIENCE CARD ACTIVE STATE ──
-document.querySelectorAll('.exp-card').forEach(card => {
-  card.addEventListener('click', () => {
-    document.querySelectorAll('.exp-card').forEach(c => c.classList.remove('active'));
-    card.classList.add('active');
-  });
-});
-
-// ── LOAD MORE DESTINATIONS ──
-let loaded = false;
-
-function loadMore() {
-  if (!loaded) {
-    ['extra-dest-1', 'extra-dest-2', 'extra-dest-3', 'extra-dest-4'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.style.display = 'block';
-        el.style.animation = 'fadeUp .5s ease';
-      }
+  /* ── Scroll animations ── */
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
     });
-    const btn = document.querySelector('.btn-load-more');
-    btn.textContent = 'Showing All Destinations';
-    btn.disabled = true;
-    loaded = true;
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  /* ── Scroll to top ── */
+  window.addEventListener('scroll', () => {
+    const btn = document.getElementById('scrollTop');
+    if (btn) btn.style.opacity = window.scrollY > 400 ? '1' : '0';
+  });
+  document.getElementById('scrollTop')?.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  /* ── Load More (static) ── */
+  window.loadMore = function () {
+    ['extra-dest-1','extra-dest-2','extra-dest-3','extra-dest-4'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'block';
+    });
+    document.querySelector('.btn-load-more').style.display = 'none';
+  };
+
+  /* ── Filter by type ── */
+  window.filterType = function (btn, type) {
+    document.querySelectorAll('.type-img-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  };
+
+  /* ── FETCH & RENDER from Supabase ── */
+  await loadAttractions();
+  await loadFeaturedDestinations();
+
+});
+
+/* ────────────────────────────────────────
+   FETCH ALL ATTRACTIONS → destinations grid
+──────────────────────────────────────── */
+async function loadAttractions() {
+  const grid = document.getElementById('dest-grid');
+  if (!grid) return;
+
+  // Show loading skeleton
+  grid.innerHTML = `
+    <div class="loading-skeleton"></div>
+    <div class="loading-skeleton"></div>
+    <div class="loading-skeleton"></div>
+  `;
+
+  try {
+    const attractions = await db.getAttractions();
+    renderDestinationGrid(grid, attractions);
+  } catch (err) {
+    console.error('Error loading attractions:', err);
+    grid.innerHTML = `<div class="fetch-error">⚠️ Could not load destinations. Please try again.</div>`;
   }
 }
 
-// ── NEWSLETTER SIGNUP ──
-document.querySelector('.btn-signup').addEventListener('click', () => {
-  const input = document.querySelector('.cta-input');
-  if (input.value.includes('@')) {
-    input.value = '';
-    input.placeholder = '✓ Thanks! You\'re subscribed.';
-    setTimeout(() => { input.placeholder = 'Enter your email'; }, 3000);
-  } else {
-    input.style.outline = '2px solid red';
-    setTimeout(() => { input.style.outline = 'none'; }, 1500);
+/* ────────────────────────────────────────
+   FETCH TOP 4 → Traveler Favorites section
+──────────────────────────────────────── */
+async function loadFeaturedDestinations() {
+  const favGrid = document.querySelector('.favorites-section .destinations-grid');
+  if (!favGrid) return;
+
+  try {
+    const attractions = await db.getAttractions();
+    const top4 = attractions.slice(0, 4);
+    renderDestinationGrid(favGrid, top4, true);
+  } catch (err) {
+    console.error('Error loading favorites:', err);
   }
-});
+}
 
-// ── HERO CTA SCROLL ──
-document.querySelector('.btn-hero-primary').addEventListener('click', () => {
-  document.getElementById('destinations').scrollIntoView({ behavior: 'smooth' });
-});
+/* ────────────────────────────────────────
+   RENDER: destination cards
+──────────────────────────────────────── */
+function renderDestinationGrid(container, attractions, isFavorites = false) {
+  if (!attractions || attractions.length === 0) {
+    container.innerHTML = `<div class="fetch-error">No destinations found.</div>`;
+    return;
+  }
 
-// ── SCROLL TOP CLICK ──
-document.getElementById('scrollTop').addEventListener('click', () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-});
+  container.innerHTML = attractions.map(a => `
+    <div class="dest-card">
+      <div class="dest-img-wrap">
+        <div class="dest-img" style="background-image:url('${a.image_hero}'); background-size:cover; background-position:center;"></div>
+        <span class="difficulty-badge diff-${a.difficulty.toLowerCase()}">${a.difficulty}</span>
+      </div>
+      <div class="dest-body">
+        <div class="dest-header">
+          <div class="dest-name" ${isFavorites ? 'style="color:var(--orange)"' : ''}>${a.name}</div>
+          <div class="dest-rating">⭐ ${a.rating}</div>
+        </div>
+        <div class="dest-desc">${a.description.substring(0, 120)}...</div>
+        <div class="dest-meta">
+          <div class="dest-meta-item">📍 ${a.county} County</div>
+          <div class="dest-meta-item">🕐 Best: ${a.best_time}</div>
+        </div>
+        <div class="dest-tags">
+          ${a.highlights.slice(0, 2).map(h => `<span class="tag">${h.split(' ').slice(0,2).join(' ')}</span>`).join('')}
+          <span class="tag tag-more">+${a.highlights.length - 2} more</span>
+        </div>
+        <div class="dest-footer">
+          <span class="dest-price">$${a.price_min.toLocaleString()} – $${a.price_max.toLocaleString()}</span>
+          <a href="attraction-details.html?id=${a.slug}" class="explore-link">⚡ Explore →</a>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
