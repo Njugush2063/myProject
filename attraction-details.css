@@ -288,12 +288,12 @@ nav {
 .trip-details {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  background: var(--light-bg);
+  gap: 14px;
+  background: rgba(255,255,255,.07);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 20px;
-  border: 1.5px solid var(--border);
+  border: 1px solid rgba(255,255,255,.1);
 }
 .trip-detail-item {
   display: flex;
@@ -306,59 +306,59 @@ nav {
   font-weight: 800;
   letter-spacing: .08em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: rgba(255,255,255,.45);
   margin-bottom: 2px;
 }
 .trip-detail-val {
   font-size: .9rem;
   font-weight: 700;
-  color: var(--dark);
+  color: #fff;
 }
 
 /* ── BOOKING SIDEBAR ── */
 .booking-sidebar { position: relative; }
 .booking-card {
-  background: var(--white); border-radius: 20px;
-  padding: 28px; box-shadow: var(--shadow);
-  border: 1.5px solid var(--border);
+  background: var(--dark); border-radius: 20px;
+  padding: 28px; box-shadow: 0 8px 40px rgba(0,0,0,.25);
+  border: 1.5px solid rgba(255,255,255,.08);
   position: sticky; top: 140px;
-  color: var(--text);
+  color: #fff;
 }
 .booking-price { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
-.price-from { font-size: .82rem; color: var(--muted); }
-.price-val { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; color: var(--dark); }
-.price-per { font-size: .82rem; color: var(--muted); }
-.booking-rating { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
+.price-from { font-size: .82rem; color: rgba(255,255,255,.5); }
+.price-val { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; color: #fff; }
+.price-per { font-size: .82rem; color: rgba(255,255,255,.5); }
+.booking-rating { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
 .b-stars { color: var(--orange); font-size: .9rem; }
-.b-count { font-size: .82rem; color: var(--muted); }
+.b-count { font-size: .82rem; color: rgba(255,255,255,.6); }
 .booking-form { display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
 .bform-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.bform-field label { display: block; font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.bform-field label { display: block; font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 6px; }
 .bform-input {
   display: flex; align-items: center; gap: 10px;
-  border: 1.5px solid var(--border); border-radius: 10px;
-  background: var(--light-bg); padding: 10px 14px;
+  border: 1.5px solid rgba(255,255,255,.15); border-radius: 10px;
+  background: rgba(255,255,255,.08); padding: 10px 14px;
   transition: border-color .2s;
 }
-.bform-input:focus-within { border-color: var(--orange); background: #fff; }
-.bform-input svg { color: var(--muted); flex-shrink: 0; }
+.bform-input:focus-within { border-color: var(--orange); background: rgba(255,255,255,.12); }
+.bform-input svg { color: rgba(255,255,255,.4); flex-shrink: 0; }
 .bform-input input, .bform-input select {
   flex: 1; border: none; outline: none; background: transparent;
   font-family: 'DM Sans', sans-serif; font-size: .88rem;
-  color: var(--dark); -webkit-appearance: none;
+  color: #fff; -webkit-appearance: none;
 }
+.bform-input input::-webkit-calendar-picker-indicator { filter: invert(1); opacity: .5; }
 .bform-input select option { color: var(--dark); background: #fff; }
 .select-wrap { position: relative; }
-.chev { position: absolute; right: 12px; color: var(--muted); pointer-events: none; }
+.chev { position: absolute; right: 12px; color: rgba(255,255,255,.4); pointer-events: none; }
 .traveler-control { display: flex; align-items: center; gap: 12px; flex: 1; justify-content: center; }
-.trav-btn { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--border); background: #fff; color: var(--dark); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; transition: border-color .2s; }
+.trav-btn { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.25); background: transparent; color: #fff; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; transition: border-color .2s, color .2s; }
 .trav-btn:hover { border-color: var(--orange); color: var(--orange); }
-#travCount { font-weight: 800; font-size: 1rem; color: var(--dark); min-width: 20px; text-align: center; }
-.price-breakdown { background: var(--light-bg); border-radius: 10px; padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; border: 1.5px solid var(--border); }
-.pb-row { display: flex; justify-content: space-between; font-size: .88rem; color: var(--muted); }
-.pb-total { border-top: 1.5px solid var(--border); padding-top: 10px; font-weight: 800; font-size: 1rem; color: var(--dark); }
-/* Nights badge shown in price breakdown */
+#travCount { font-weight: 800; font-size: 1rem; color: #fff; min-width: 20px; text-align: center; }
+.price-breakdown { background: rgba(255,255,255,.07); border-radius: 10px; padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; border: 1px solid rgba(255,255,255,.1); }
 .pb-nights { font-size: .78rem; color: var(--orange); font-weight: 700; margin-bottom: 4px; }
+.pb-row { display: flex; justify-content: space-between; font-size: .88rem; color: rgba(255,255,255,.6); }
+.pb-total { border-top: 1px solid rgba(255,255,255,.15); padding-top: 10px; font-weight: 800; font-size: 1rem; color: #fff; }
 .btn-book-now {
   width: 100%; padding: 16px;
   background: var(--orange); color: #fff;
@@ -373,13 +373,13 @@ nav {
 .booking-note { display: flex; align-items: center; gap: 8px; font-size: .8rem; color: var(--green); font-weight: 600; justify-content: center; margin-bottom: 16px; }
 .booking-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
 .btn-wishlist, .btn-share {
-  padding: 10px; border: 1.5px solid var(--border); border-radius: 8px;
-  background: #fff; font-family: 'DM Sans', sans-serif; font-size: .82rem; font-weight: 700;
-  color: var(--dark); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px; border: 1.5px solid rgba(255,255,255,.2); border-radius: 8px;
+  background: transparent; font-family: 'DM Sans', sans-serif; font-size: .82rem; font-weight: 700;
+  color: rgba(255,255,255,.8); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
   transition: border-color .2s, color .2s;
 }
 .btn-wishlist:hover, .btn-share:hover { border-color: var(--orange); color: var(--orange); }
-.btn-wishlist.saved { background: #fff5ec; border-color: var(--orange); color: var(--orange); }
+.btn-wishlist.saved { border-color: var(--orange); color: var(--orange); }
 .trust-badges { border-top: 1.5px solid var(--border); padding-top: 16px; display: flex; flex-direction: column; gap: 8px; }
 .trust-item { display: flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--muted); }
 .trust-item svg { stroke: var(--green); }
