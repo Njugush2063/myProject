@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   /* ── Scroll to top ── */
   window.addEventListener('scroll', () => {
     const btn = document.getElementById('scrollTop');
-    if (btn) btn.style.opacity = window.scrollY > 400 ? '1' : '0';
+    if (btn) btn.classList.toggle('visible', window.scrollY > 400);
   });
   document.getElementById('scrollTop')?.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -29,7 +29,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       const el = document.getElementById(id);
       if (el) el.style.display = 'block';
     });
-    document.querySelector('.btn-load-more').style.display = 'none';
+    const btn = document.querySelector('.btn-load-more');
+    if (btn) btn.style.display = 'none';
   };
 
   /* ── Filter by type ── */
@@ -51,7 +52,6 @@ async function loadAttractions() {
   const grid = document.getElementById('dest-grid');
   if (!grid) return;
 
-  // Show loading skeleton
   grid.innerHTML = `
     <div class="loading-skeleton"></div>
     <div class="loading-skeleton"></div>
@@ -93,7 +93,7 @@ function renderDestinationGrid(container, attractions, isFavorites = false) {
   }
 
   container.innerHTML = attractions.map(a => `
-    <div class="dest-card">
+    <div class="dest-card" onclick="window.location.href='attraction-details.html?id=${a.slug}'">
       <div class="dest-img-wrap">
         <div class="dest-img" style="background-image:url('${a.image_hero}'); background-size:cover; background-position:center;"></div>
         <span class="difficulty-badge diff-${a.difficulty.toLowerCase()}">${a.difficulty}</span>
@@ -113,8 +113,7 @@ function renderDestinationGrid(container, attractions, isFavorites = false) {
           <span class="tag tag-more">+${a.highlights.length - 2} more</span>
         </div>
         <div class="dest-footer">
-          <span class="dest-price">KSh ${Math.round(a.price_min * 129.38).toLocaleString()} – KSh ${Math.round(a.price_max * 129.38).toLocaleString()}</span>
-          <a href="attraction-details.html?id=${a.slug}" class="explore-link">⚡ Explore →</a>
+          <a href="attraction-details.html?id=${a.slug}" class="explore-link" onclick="event.stopPropagation()">⚡ Explore →</a>
         </div>
       </div>
     </div>
