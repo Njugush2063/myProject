@@ -206,53 +206,96 @@ function renderSimilar(similar) {
    BOOKING SIDEBAR
 ──────────────────────────────────────── */
 function initBooking(a, toast) {
-  let count     = 2;
-  let basePrice = a.price_min;
+  let count        = 2;
+  let basePrice    = a.price_min; // price per person per night
+  let nights       = 3;          // default nights
 
   const packages = {
-    standard: a.price_min,
-    premium:  Math.round(a.price_min * 1.5),
-    luxury:   a.price_max,
-    budget:   Math.round(a.price_min * 0.7)
+    standard: { price: a.price_min,                    nights: 3 },
+    premium:  { price: Math.round(a.price_min * 1.5),  nights: 5 },
+    luxury:   { price: a.price_max,                    nights: 7 },
+    budget:   { price: Math.round(a.price_min * 0.7),  nights: 2 }
   };
 
-  function updatePrice() {
-    const base  = basePrice * count;
-    const tax   = Math.round(a.price_min * 0.1) * count;
-    const total = base + tax;
-    const countEl = document.getElementById('travCount');
-    const labelEl = document.getElementById('pb-label');
-    const baseEl  = document.getElementById('pbBase');
-    const taxEl   = document.getElementById('pb-tax');
-    const totalEl = document.getElementById('pbTotal');
-    if (countEl) countEl.textContent = count;
-    if (labelEl) labelEl.textContent = `KSh ${basePrice.toLocaleString('en-KE')} × ${count} travelers`;
-    if (baseEl)  baseEl.textContent  = `KSh ${base.toLocaleString('en-KE')}`;
-    if (taxEl)   taxEl.textContent   = `KSh ${tax.toLocaleString('en-KE')}`;
-    if (totalEl) totalEl.textContent = `KSh ${total.toLocaleString('en-KE')}`;
-  }
-
-  document.getElementById('travMinus')?.addEventListener('click', () => { if (count > 1)  { count--; updatePrice(); } });
-  document.getElementById('travPlus')?.addEventListener('click',  () => { if (count < 12) { count++; updatePrice(); } });
-  document.getElementById('packageType')?.addEventListener('change', function () {
-    basePrice = packages[this.value] || a.price_min;
-    updatePrice();
-  });
-
-  // Default dates
   const fmt   = d => d.toISOString().split('T')[0];
   const today = new Date();
   const w1    = new Date(today); w1.setDate(today.getDate() + 7);
   const w2    = new Date(today); w2.setDate(today.getDate() + 10);
   const ci    = document.getElementById('checkIn');
   const co    = document.getElementById('checkOut');
+
   if (ci) { ci.value = fmt(w1); ci.min = fmt(today); }
   if (co)   co.value = fmt(w2);
-  ci?.addEventListener('change', function () {
-    const d = new Date(this.value); d.setDate(d.getDate() + 3);
-    if (co) { co.min = this.value; co.value = fmt(d); }
+
+  // Calculate nights from date inputs
+  function getNights() {
+    if (ci?.value && co?.value) {
+      const diff = (new Date(co.value) - new Date(ci.value)) / (1000 * 60 * 60 * 24);
+      return diff > 0 ? diff : nights;
+    }
+    return nights;
+  }
+
+  function updatePrice() {
+    const n     = getNights();
+    const base  = basePrice * count * n;
+    const tax   = Math.round(a.price_min * 0.1) * count;
+    const total = base + tax;
+
+    const countEl  = document.getElementById('travCount');
+    const labelEl  = document.getElementById('pb-label');
+    const nightsEl = document.getElementById('pb-nights');
+    const baseEl   = document.getElementById('pbBase');
+    const taxEl    = document.getElementById('pb-tax');
+    const totalEl  = document.getElementById('pbTotal');
+    const priceVal = document.getElementById('sidebar-price');
+
+    if (countEl)  countEl.textContent  = count;
+    if (priceVal) priceVal.textContent = `KSh ${(basePrice * n).toLocaleString('en-KE')}`;
+    if (nightsEl) nightsEl.textContent = `${n} night${n !== 1 ? 's' : ''} × ${count} traveler${count !== 1 ? 's' : ''}`;
+    if (labelEl)  labelEl.textContent  = `KSh ${basePrice.toLocaleString('en-KE')} × ${n} nights × ${count}`;
+    if (baseEl)   baseEl.textContent   = `KSh ${base.toLocaleString('en-KE')}`;
+    if (taxEl)    taxEl.textContent    = `KSh ${tax.toLocaleString('en-KE')}`;
+    if (totalEl)  totalEl.textContent  = `KSh ${total.toLocaleString('en-KE')}`;
+  }
+
+  // Traveler buttons
+  document.getElementById('travMinus')?.addEventListener('click', () => {
+    if (count > 1) { count--; updatePrice(); }
+  });
+  document.getElementById('travPlus')?.addEventListener('click', () => {
+    if (count < 20) { count++; updatePrice(); }
   });
 
+  // Package change
+  document.getElementById('packageType')?.addEventListener('change', function () {
+    const pkg = packages[this.value];
+    if (pkg) {
+      basePrice = pkg.price;
+      nights    = pkg.nights;
+      // Update checkout date to match package nights
+      if (ci?.value) {
+        const d = new Date(ci.value);
+        d.setDate(d.getDate() + pkg.nights);
+        if (co) { co.min = ci.value; co.value = fmt(d); }
+      }
+    }
+    updatePrice();
+  });
+
+  // Date changes
+  ci?.addEventListener('change', function () {
+    const d = new Date(this.value);
+    d.setDate(d.getDate() + nights);
+    if (co) { co.min = this.value; co.value = fmt(d); }
+    updatePrice();
+  });
+
+  co?.addEventListener('change', function () {
+    updatePrice();
+  });
+
+  // Book Now
   document.getElementById('bookNowBtn')?.addEventListener('click', function () {
     if (!ci?.value || !co?.value) { toast('Please select your travel dates', 'info'); return; }
     toast('🎉 Redirecting to checkout...', 'success');
