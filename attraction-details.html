@@ -392,142 +392,147 @@
 
     </div><!-- end main-content -->
 
-    <!-- RIGHT: Sticky Booking Sidebar -->
-    <aside class="booking-sidebar" id="booking">
-      <div class="booking-card">
-        <div class="booking-price">
-          <span class="price-from">From</span>
-          <span class="price-val" id="sidebar-price">KSh —</span>
-          <span class="price-per">/ person</span>
-        </div>
-        <div class="booking-rating">
-          <span class="b-stars">★★★★★</span>
-          <span class="b-count" id="sidebar-rating">— reviews</span>
-        </div>
+  </div>
+</section>
 
-        <!-- Trip Details -->
-        <div class="trip-details">
-          <div class="trip-detail-item">
-            <span class="trip-detail-icon">⏱️</span>
-            <div>
-              <div class="trip-detail-label">Duration</div>
-              <div class="trip-detail-val" id="sidebar-duration">—</div>
-            </div>
-          </div>
-          <div class="trip-detail-item">
-            <span class="trip-detail-icon">👥</span>
-            <div>
-              <div class="trip-detail-label">Group Size</div>
-              <div class="trip-detail-val" id="sidebar-group">—</div>
-            </div>
-          </div>
-          <div class="trip-detail-item">
-            <span class="trip-detail-icon">💰</span>
-            <div>
-              <div class="trip-detail-label">Price Range</div>
-              <div class="trip-detail-val" id="sidebar-price-range">—</div>
-            </div>
+<!-- ═══════════════════════════════════════
+     BOOKING PANEL — full width dark bottom
+════════════════════════════════════════ -->
+<section id="booking">
+  <div class="booking-panel-wrap">
+
+    <!-- Col 1: Price + Trip details -->
+    <div class="bp-summary">
+      <div class="booking-price">
+        <span class="price-from">From</span>
+        <span class="price-val" id="sidebar-price">KSh —</span>
+        <span class="price-per">/ person</span>
+      </div>
+      <div class="booking-rating">
+        <span class="b-stars">★★★★★</span>
+        <span class="b-count" id="sidebar-rating">— reviews</span>
+      </div>
+      <div class="trip-details">
+        <div class="trip-detail-item">
+          <span class="trip-detail-icon">⏱️</span>
+          <div>
+            <div class="trip-detail-label">Duration</div>
+            <div class="trip-detail-val" id="sidebar-duration">—</div>
           </div>
         </div>
-
-        <div class="booking-form">
-          <div class="bform-row">
-            <div class="bform-field">
-              <label>CHECK-IN</label>
-              <div class="bform-input">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                <input type="date" id="checkIn"/>
-              </div>
-            </div>
-            <div class="bform-field">
-              <label>CHECK-OUT</label>
-              <div class="bform-input">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                <input type="date" id="checkOut"/>
-              </div>
-            </div>
-          </div>
-
-          <div class="bform-field">
-            <label>TRAVELERS</label>
-            <div class="bform-input">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              <div class="traveler-control">
-                <button class="trav-btn" id="travMinus">−</button>
-                <span id="travCount">2</span>
-                <button class="trav-btn" id="travPlus">+</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="bform-field">
-            <label>PACKAGE TYPE</label>
-            <div class="bform-input select-wrap">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
-              <select id="packageType">
-                <option value="standard">Standard Safari (3 nights)</option>
-                <option value="premium">Premium Safari (5 nights)</option>
-                <option value="luxury">Luxury Safari (7 nights)</option>
-                <option value="budget">Budget Safari (2 nights)</option>
-              </select>
-              <svg class="chev" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-            </div>
+        <div class="trip-detail-item">
+          <span class="trip-detail-icon">👥</span>
+          <div>
+            <div class="trip-detail-label">Group Size</div>
+            <div class="trip-detail-val" id="sidebar-group">—</div>
           </div>
         </div>
-
-        <div class="price-breakdown" id="priceBreakdown">
-          <div class="pb-nights" id="pb-nights">3 nights × 2 travelers</div>
-          <div class="pb-row">
-            <span id="pb-label">KSh — × 2 travelers</span>
-            <span id="pbBase">KSh —</span>
-          </div>
-          <div class="pb-row">
-            <span>Park fees & taxes</span>
-            <span id="pb-tax">KSh —</span>
-          </div>
-          <div class="pb-row pb-total">
-            <span>Total</span>
-            <span id="pbTotal">KSh —</span>
-          </div>
-        </div>
-
-        <button class="btn-book-now" id="bookNowBtn">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-          Book Now
-        </button>
-
-        <div class="booking-note">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Free cancellation up to 7 days before
-        </div>
-
-        <div class="booking-actions">
-          <button class="btn-wishlist" id="wishlistBtn">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-            Save to Wishlist
-          </button>
-          <button class="btn-share">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-            Share
-          </button>
-        </div>
-
-        <div class="trust-badges">
-          <div class="trust-item">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-            Verified attraction
-          </div>
-          <div class="trust-item">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-            Instant confirmation
-          </div>
-          <div class="trust-item">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-            24/7 support included
+        <div class="trip-detail-item">
+          <span class="trip-detail-icon">💰</span>
+          <div>
+            <div class="trip-detail-label">Price Range</div>
+            <div class="trip-detail-val" id="sidebar-price-range">—</div>
           </div>
         </div>
       </div>
-    </aside>
+    </div>
+
+    <!-- Col 2: Form inputs -->
+    <div class="bp-form">
+      <div class="bform-row">
+        <div class="bform-field">
+          <label>CHECK-IN</label>
+          <div class="bform-input">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <input type="date" id="checkIn"/>
+          </div>
+        </div>
+        <div class="bform-field">
+          <label>CHECK-OUT</label>
+          <div class="bform-input">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <input type="date" id="checkOut"/>
+          </div>
+        </div>
+        <div class="bform-field">
+          <label>TRAVELERS</label>
+          <div class="bform-input">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <div class="traveler-control">
+              <button class="trav-btn" id="travMinus">−</button>
+              <span id="travCount">2</span>
+              <button class="trav-btn" id="travPlus">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="bform-field">
+          <label>PACKAGE TYPE</label>
+          <div class="bform-input select-wrap">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+            <select id="packageType">
+              <option value="standard">Standard Safari (3 nights)</option>
+              <option value="premium">Premium Safari (5 nights)</option>
+              <option value="luxury">Luxury Safari (7 nights)</option>
+              <option value="budget">Budget Safari (2 nights)</option>
+            </select>
+            <svg class="chev" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Price breakdown -->
+      <div class="price-breakdown" id="priceBreakdown">
+        <div class="pb-nights" id="pb-nights">3 nights × 2 travelers</div>
+        <div class="pb-row">
+          <span id="pb-label">KSh — × nights × travelers</span>
+          <span id="pbBase">KSh —</span>
+        </div>
+        <div class="pb-row">
+          <span>Park fees & taxes</span>
+          <span id="pb-tax">KSh —</span>
+        </div>
+        <div class="pb-row pb-total">
+          <span>Total</span>
+          <span id="pbTotal">KSh —</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Col 3: CTA -->
+    <div class="bp-cta">
+      <button class="btn-book-now" id="bookNowBtn">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        Book Now
+      </button>
+      <div class="booking-note">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Free cancellation up to 7 days before
+      </div>
+      <div class="booking-actions">
+        <button class="btn-wishlist" id="wishlistBtn">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          Save to Wishlist
+        </button>
+        <button class="btn-share">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share
+        </button>
+      </div>
+      <div class="trust-badges">
+        <div class="trust-item">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Verified attraction
+        </div>
+        <div class="trust-item">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          Instant confirmation
+        </div>
+        <div class="trust-item">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          24/7 support included
+        </div>
+      </div>
+    </div>
 
   </div>
 </section>
