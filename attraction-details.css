@@ -315,9 +315,9 @@ nav {
 }
 .booking-panel-wrap {
   display: grid;
-  grid-template-columns: 260px 1fr 220px;
-  gap: 48px;
-  max-width: 1200px;
+  grid-template-columns: 220px 1fr 200px;
+  gap: 32px;
+  max-width: 900px;
   margin: 0 auto;
   align-items: start;
 }
@@ -334,7 +334,7 @@ nav {
 
 /* Col 2 — form */
 .bp-form {}
-.bform-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.bform-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
 .bform-field label { display: block; font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.5); margin-bottom: 6px; }
 .bform-input {
   display: flex; align-items: center; gap: 10px;
