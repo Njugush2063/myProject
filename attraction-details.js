@@ -126,13 +126,15 @@ function populatePage(a) {
   const bc = document.querySelector('.breadcrumb span');
   if (bc) bc.textContent = a.name;
 
-  // Quick info bar
+  // Quick info bar — only 3 items now
   set('info-best-time', a.best_time);
-  set('info-duration',  a.duration);
   set('info-difficulty', a.difficulty);
-  set('info-price',     `KSh ${Math.round(a.price_min * 129.38).toLocaleString()} – KSh ${Math.round(a.price_max * 129.38).toLocaleString()}`);
-  set('info-group',     a.group_size);
   set('info-climate',   a.climate);
+
+  // Booking sidebar trip details
+  set('sidebar-duration',    a.duration);
+  set('sidebar-group',       a.group_size);
+  set('sidebar-price-range', `$${a.price_min.toLocaleString()} – $${a.price_max.toLocaleString()}`);
 
   // Overview
   const overviewEl = document.getElementById('overview-text');
@@ -168,7 +170,7 @@ function populatePage(a) {
   set('rating-count', `${a.review_count.toLocaleString()} reviews`);
 
   // Booking sidebar
-  set('sidebar-price',  `KSh ${Math.round(a.price_min * 129.38).toLocaleString()}`);
+  set('sidebar-price',  `$${a.price_min.toLocaleString()}`);
   set('sidebar-rating', `${a.rating} (${a.review_count.toLocaleString()} reviews)`);
 }
 
@@ -189,7 +191,7 @@ function renderSimilar(similar) {
         <div class="sim-loc">📍 ${a.county} County</div>
         <div class="sim-row">
           <span class="sim-stars">★★★★★ ${a.rating}</span>
-          <span class="sim-price">KSh ${Math.round(a.price_min * 129.38).toLocaleString()}–KSh ${Math.round(a.price_max * 129.38).toLocaleString()}</span>
+          <span class="sim-price">$${a.price_min.toLocaleString()}–$${a.price_max.toLocaleString()}</span>
         </div>
         <a href="attraction-details.html?id=${a.slug}" class="sim-link">Explore →</a>
       </div>
@@ -207,18 +209,18 @@ function renderSimilar(similar) {
 ──────────────────────────────────────── */
 function initBooking(a, toast) {
   let count     = 2;
-  let basePrice = Math.round(a.price_min * 129.38);
+  let basePrice = a.price_min;
 
   const packages = {
-    standard: Math.round(a.price_min * 129.38),
-    premium:  Math.round(a.price_min * 1.5 * 129.38),
-    luxury:   Math.round(a.price_max * 129.38),
-    budget:   Math.round(a.price_min * 0.7 * 129.38)
+    standard: a.price_min,
+    premium:  Math.round(a.price_min * 1.5),
+    luxury:   a.price_max,
+    budget:   Math.round(a.price_min * 0.7)
   };
 
   function updatePrice() {
     const base  = basePrice * count;
-    const tax   = Math.round(a.price_min * 129.38 * 0.1) * count;
+    const tax   = Math.round(a.price_min * 0.1) * count;
     const total = base + tax;
     const countEl = document.getElementById('travCount');
     const labelEl = document.getElementById('pb-label');
@@ -226,16 +228,16 @@ function initBooking(a, toast) {
     const taxEl   = document.getElementById('pb-tax');
     const totalEl = document.getElementById('pbTotal');
     if (countEl) countEl.textContent = count;
-    if (labelEl) labelEl.textContent = `KSh ${basePrice.toLocaleString()} × ${count} travelers`;
-    if (baseEl)  baseEl.textContent  = `KSh ${base.toLocaleString()}`;
-    if (taxEl)   taxEl.textContent   = `KSh ${tax.toLocaleString()}`;
-    if (totalEl) totalEl.textContent = `KSh ${total.toLocaleString()}`;
+    if (labelEl) labelEl.textContent = `$${basePrice.toLocaleString()} × ${count} travelers`;
+    if (baseEl)  baseEl.textContent  = `$${base.toLocaleString()}`;
+    if (taxEl)   taxEl.textContent   = `$${(tax).toLocaleString()}`;
+    if (totalEl) totalEl.textContent = `$${total.toLocaleString()}`;
   }
 
   document.getElementById('travMinus')?.addEventListener('click', () => { if (count > 1)  { count--; updatePrice(); } });
   document.getElementById('travPlus')?.addEventListener('click',  () => { if (count < 12) { count++; updatePrice(); } });
   document.getElementById('packageType')?.addEventListener('change', function () {
-    basePrice = packages[this.value] || Math.round(a.price_min * 129.38);
+    basePrice = packages[this.value] || a.price_min;
     updatePrice();
   });
 
