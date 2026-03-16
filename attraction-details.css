@@ -282,6 +282,35 @@ nav {
 .btn-all-reviews { background: none; border: 1.5px solid var(--orange); color: var(--orange); border-radius: 8px; padding: 11px 24px; font-family: 'DM Sans', sans-serif; font-size: .93rem; font-weight: 700; cursor: pointer; transition: background .2s, color .2s; }
 .btn-all-reviews:hover { background: var(--orange); color: #fff; }
 
+/* Trip details in booking sidebar */
+.trip-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--light-bg);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+.trip-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.trip-detail-icon { font-size: 1.1rem; }
+.trip-detail-label {
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.trip-detail-val {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--dark);
+}
+
 /* ── BOOKING SIDEBAR ── */
 .booking-sidebar { position: relative; }
 .booking-card {
