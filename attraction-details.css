@@ -293,6 +293,7 @@ nav {
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 20px;
+  border: 1.5px solid var(--border);
 }
 .trip-detail-item {
   display: flex;
@@ -306,6 +307,7 @@ nav {
   letter-spacing: .08em;
   text-transform: uppercase;
   color: var(--muted);
+  margin-bottom: 2px;
 }
 .trip-detail-val {
   font-size: .9rem;
@@ -320,6 +322,7 @@ nav {
   padding: 28px; box-shadow: var(--shadow);
   border: 1.5px solid var(--border);
   position: sticky; top: 140px;
+  color: var(--text);
 }
 .booking-price { display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px; }
 .price-from { font-size: .82rem; color: var(--muted); }
@@ -341,18 +344,21 @@ nav {
 .bform-input svg { color: var(--muted); flex-shrink: 0; }
 .bform-input input, .bform-input select {
   flex: 1; border: none; outline: none; background: transparent;
-  font-family: 'DM Sans', sans-serif; font-size: .88rem; color: var(--text);
-  -webkit-appearance: none;
+  font-family: 'DM Sans', sans-serif; font-size: .88rem;
+  color: var(--dark); -webkit-appearance: none;
 }
+.bform-input select option { color: var(--dark); background: #fff; }
 .select-wrap { position: relative; }
 .chev { position: absolute; right: 12px; color: var(--muted); pointer-events: none; }
 .traveler-control { display: flex; align-items: center; gap: 12px; flex: 1; justify-content: center; }
 .trav-btn { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--border); background: #fff; color: var(--dark); font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 700; transition: border-color .2s; }
 .trav-btn:hover { border-color: var(--orange); color: var(--orange); }
 #travCount { font-weight: 800; font-size: 1rem; color: var(--dark); min-width: 20px; text-align: center; }
-.price-breakdown { background: var(--light-bg); border-radius: 10px; padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
+.price-breakdown { background: var(--light-bg); border-radius: 10px; padding: 16px; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px; border: 1.5px solid var(--border); }
 .pb-row { display: flex; justify-content: space-between; font-size: .88rem; color: var(--muted); }
 .pb-total { border-top: 1.5px solid var(--border); padding-top: 10px; font-weight: 800; font-size: 1rem; color: var(--dark); }
+/* Nights badge shown in price breakdown */
+.pb-nights { font-size: .78rem; color: var(--orange); font-weight: 700; margin-bottom: 4px; }
 .btn-book-now {
   width: 100%; padding: 16px;
   background: var(--orange); color: #fff;
