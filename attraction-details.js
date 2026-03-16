@@ -134,9 +134,8 @@ function populatePage(a) {
   // Booking sidebar trip details
   set('sidebar-duration',    a.duration);
   set('sidebar-group',       a.group_size);
-  set('sidebar-price-range', `$${a.price_min.toLocaleString()} – $${a.price_max.toLocaleString()}`);
-
-  // Overview
+  set('sidebar-price-range', `KSh ${a.price_min.toLocaleString('en-KE')} – KSh ${a.price_max.toLocaleString('en-KE')}`);
+  set('sidebar-price',       `KSh ${a.price_min.toLocaleString('en-KE')}`);
   const overviewEl = document.getElementById('overview-text');
   if (overviewEl) overviewEl.innerHTML = `<strong>${a.name}</strong> — ${a.description}`;
 
@@ -170,7 +169,6 @@ function populatePage(a) {
   set('rating-count', `${a.review_count.toLocaleString()} reviews`);
 
   // Booking sidebar
-  set('sidebar-price',  `$${a.price_min.toLocaleString()}`);
   set('sidebar-rating', `${a.rating} (${a.review_count.toLocaleString()} reviews)`);
 }
 
@@ -191,7 +189,7 @@ function renderSimilar(similar) {
         <div class="sim-loc">📍 ${a.county} County</div>
         <div class="sim-row">
           <span class="sim-stars">★★★★★ ${a.rating}</span>
-          <span class="sim-price">$${a.price_min.toLocaleString()}–$${a.price_max.toLocaleString()}</span>
+          <span class="sim-price">KSh ${a.price_min.toLocaleString('en-KE')}–${a.price_max.toLocaleString('en-KE')}</span>
         </div>
         <a href="attraction-details.html?id=${a.slug}" class="sim-link">Explore →</a>
       </div>
@@ -228,10 +226,10 @@ function initBooking(a, toast) {
     const taxEl   = document.getElementById('pb-tax');
     const totalEl = document.getElementById('pbTotal');
     if (countEl) countEl.textContent = count;
-    if (labelEl) labelEl.textContent = `$${basePrice.toLocaleString()} × ${count} travelers`;
-    if (baseEl)  baseEl.textContent  = `$${base.toLocaleString()}`;
-    if (taxEl)   taxEl.textContent   = `$${(tax).toLocaleString()}`;
-    if (totalEl) totalEl.textContent = `$${total.toLocaleString()}`;
+    if (labelEl) labelEl.textContent = `KSh ${basePrice.toLocaleString('en-KE')} × ${count} travelers`;
+    if (baseEl)  baseEl.textContent  = `KSh ${base.toLocaleString('en-KE')}`;
+    if (taxEl)   taxEl.textContent   = `KSh ${tax.toLocaleString('en-KE')}`;
+    if (totalEl) totalEl.textContent = `KSh ${total.toLocaleString('en-KE')}`;
   }
 
   document.getElementById('travMinus')?.addEventListener('click', () => { if (count > 1)  { count--; updatePrice(); } });
