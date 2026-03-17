@@ -131,11 +131,15 @@ function populatePage(a) {
   set('info-difficulty', a.difficulty);
   set('info-climate',   a.climate);
 
-  // Booking sidebar trip details
-  set('sidebar-duration',    a.duration);
-  set('sidebar-group',       a.group_size);
-  set('sidebar-price-range', `KSh ${a.price_min.toLocaleString('en-KE')} – KSh ${a.price_max.toLocaleString('en-KE')}`);
-  set('sidebar-price',       `KSh ${a.price_min.toLocaleString('en-KE')}`);
+  // Booking panel
+  set('sidebar-rating-score', a.rating);
+  set('sidebar-rating-count', `(${a.review_count.toLocaleString()} reviews)`);
+  set('sidebar-duration',     a.duration);
+  set('sidebar-group',        a.group_size);
+  set('sidebar-price-range',  `KSh ${a.price_min.toLocaleString('en-KE')} – KSh ${a.price_max.toLocaleString('en-KE')}`);
+  set('display-price',        a.price_min.toLocaleString('en-KE'));
+  const priceKsh = document.querySelector('.price-ksh');
+  if (priceKsh) priceKsh.textContent = `KSh ${a.price_min.toLocaleString('en-KE')}`;
   const overviewEl = document.getElementById('overview-text');
   if (overviewEl) overviewEl.innerHTML = `<strong>${a.name}</strong> — ${a.description}`;
 
@@ -203,106 +207,93 @@ function renderSimilar(similar) {
 }
 
 /* ────────────────────────────────────────
-   BOOKING SIDEBAR
+   BOOKING PANEL
 ──────────────────────────────────────── */
 function initBooking(a, toast) {
-  let count        = 2;
-  let basePrice    = a.price_min; // price per person per night
-  let nights       = 3;          // default nights
+  let count     = 2;
+  let basePrice = a.price_min;
+  let nights    = 3;
 
   const packages = {
-    standard: { price: a.price_min,                    nights: 3 },
-    premium:  { price: Math.round(a.price_min * 1.5),  nights: 5 },
-    luxury:   { price: a.price_max,                    nights: 7 },
-    budget:   { price: Math.round(a.price_min * 0.7),  nights: 2 }
+    standard: { price: a.price_min,                   nights: 3 },
+    premium:  { price: Math.round(a.price_min * 1.5), nights: 5 },
+    luxury:   { price: a.price_max,                   nights: 7 },
+    budget:   { price: Math.round(a.price_min * 0.7), nights: 2 }
   };
 
-  const fmt   = d => d.toISOString().split('T')[0];
+  const fmtK  = n => 'KSh ' + Math.round(n).toLocaleString('en-KE');
+  const fmtD  = d => d.toISOString().split('T')[0];
   const today = new Date();
   const w1    = new Date(today); w1.setDate(today.getDate() + 7);
   const w2    = new Date(today); w2.setDate(today.getDate() + 10);
   const ci    = document.getElementById('checkIn');
   const co    = document.getElementById('checkOut');
 
-  if (ci) { ci.value = fmt(w1); ci.min = fmt(today); }
-  if (co)   co.value = fmt(w2);
+  if (ci) { ci.value = fmtD(w1); ci.min = fmtD(today); }
+  if (co)   co.value = fmtD(w2);
 
-  // Calculate nights from date inputs
   function getNights() {
     if (ci?.value && co?.value) {
-      const diff = (new Date(co.value) - new Date(ci.value)) / (1000 * 60 * 60 * 24);
-      return diff > 0 ? diff : nights;
+      const diff = (new Date(co.value) - new Date(ci.value)) / 86400000;
+      return diff > 0 ? Math.round(diff) : nights;
     }
     return nights;
   }
 
-  function updatePrice() {
+  function update() {
     const n     = getNights();
-    const base  = basePrice * count * n;
-    const tax   = Math.round(a.price_min * 0.1) * count;
+    const base  = basePrice * n * count;
+    const tax   = Math.round(base * 0.0333);
     const total = base + tax;
 
-    const countEl  = document.getElementById('travCount');
-    const labelEl  = document.getElementById('pb-label');
-    const nightsEl = document.getElementById('pb-nights');
-    const baseEl   = document.getElementById('pbBase');
-    const taxEl    = document.getElementById('pb-tax');
-    const totalEl  = document.getElementById('pbTotal');
-    const priceVal = document.getElementById('sidebar-price');
+    const el = id => document.getElementById(id);
+    // Update the "From KSh XXXXX / person" display
+    const priceKsh = document.querySelector('.price-ksh');
+    if (priceKsh) priceKsh.textContent = `KSh ${Math.round(basePrice).toLocaleString('en-KE')}`;
+    if (el('display-price')) el('display-price').textContent = Math.round(basePrice).toLocaleString('en-KE');
+    if (el('travCount'))     el('travCount').textContent     = count;
+    if (el('pb-nights'))     el('pb-nights').textContent     = `${n} nights × ${count} traveler${count !== 1 ? 's' : ''}`;
+    if (el('pb-label'))      el('pb-label').textContent      = `${fmtK(basePrice)} × ${n} nights × ${count}`;
+    if (el('pbBase'))        el('pbBase').textContent        = fmtK(base);
+    if (el('pb-tax'))        el('pb-tax').textContent        = fmtK(tax);
+    if (el('pbTotal'))       el('pbTotal').textContent       = fmtK(total);
 
-    if (countEl)  countEl.textContent  = count;
-    if (priceVal) priceVal.textContent = `KSh ${(basePrice * n).toLocaleString('en-KE')}`;
-    if (nightsEl) nightsEl.textContent = `${n} night${n !== 1 ? 's' : ''} × ${count} traveler${count !== 1 ? 's' : ''}`;
-    if (labelEl)  labelEl.textContent  = `KSh ${basePrice.toLocaleString('en-KE')} × ${n} nights × ${count}`;
-    if (baseEl)   baseEl.textContent   = `KSh ${base.toLocaleString('en-KE')}`;
-    if (taxEl)    taxEl.textContent    = `KSh ${tax.toLocaleString('en-KE')}`;
-    if (totalEl)  totalEl.textContent  = `KSh ${total.toLocaleString('en-KE')}`;
+    const minus = el('travMinus'); const plus = el('travPlus');
+    if (minus) minus.disabled = count <= 1;
+    if (plus)  plus.disabled  = count >= 12;
   }
 
-  // Traveler buttons
-  document.getElementById('travMinus')?.addEventListener('click', () => {
-    if (count > 1) { count--; updatePrice(); }
-  });
-  document.getElementById('travPlus')?.addEventListener('click', () => {
-    if (count < 20) { count++; updatePrice(); }
-  });
+  document.getElementById('travMinus')?.addEventListener('click', () => { if (count > 1)  { count--; update(); } });
+  document.getElementById('travPlus')?.addEventListener('click',  () => { if (count < 12) { count++; update(); } });
 
-  // Package change
   document.getElementById('packageType')?.addEventListener('change', function () {
     const pkg = packages[this.value];
     if (pkg) {
-      basePrice = pkg.price;
-      nights    = pkg.nights;
-      // Update checkout date to match package nights
+      basePrice = pkg.price; nights = pkg.nights;
       if (ci?.value) {
-        const d = new Date(ci.value);
-        d.setDate(d.getDate() + pkg.nights);
-        if (co) { co.min = ci.value; co.value = fmt(d); }
+        const d = new Date(ci.value); d.setDate(d.getDate() + pkg.nights);
+        if (co) { co.min = ci.value; co.value = fmtD(d); }
       }
     }
-    updatePrice();
+    update();
   });
 
-  // Date changes
   ci?.addEventListener('change', function () {
-    const d = new Date(this.value);
-    d.setDate(d.getDate() + nights);
-    if (co) { co.min = this.value; co.value = fmt(d); }
-    updatePrice();
+    const d = new Date(this.value); d.setDate(d.getDate() + nights);
+    if (co) { co.min = this.value; co.value = fmtD(d); }
+    update();
   });
+  co?.addEventListener('change', () => update());
 
-  co?.addEventListener('change', function () {
-    updatePrice();
-  });
-
-  // Book Now
   document.getElementById('bookNowBtn')?.addEventListener('click', function () {
     if (!ci?.value || !co?.value) { toast('Please select your travel dates', 'info'); return; }
-    toast('🎉 Redirecting to checkout...', 'success');
-    setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+    const orig = this.innerHTML;
+    this.textContent = '🎉 Redirecting...';
+    this.style.background = '#1ec99a';
+    setTimeout(() => { this.innerHTML = orig; this.style.background = ''; window.location.href = 'login.html'; }, 1800);
   });
 
-  updatePrice();
+  update();
 }
 
 /* ────────────────────────────────────────
@@ -357,8 +348,8 @@ function initWishlist(toast) {
     saved = !saved;
     this.classList.toggle('saved', saved);
     this.innerHTML = saved
-      ? `<svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Saved!`
-      : `<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Save to Wishlist`;
+      ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Saved!`
+      : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Save to<br>Wishlist`;
     toast(saved ? '❤️ Added to your wishlist!' : 'Removed from wishlist', saved ? 'success' : 'info');
   });
 }
@@ -367,12 +358,15 @@ function initWishlist(toast) {
    SHARE
 ──────────────────────────────────────── */
 function initShare(a, toast) {
-  document.querySelector('.btn-share')?.addEventListener('click', () => {
+  document.querySelector('.btn-share')?.addEventListener('click', function () {
     if (navigator.share) {
       navigator.share({ title: a.name, url: window.location.href });
     } else {
-      navigator.clipboard.writeText(window.location.href)
-        .then(() => toast('🔗 Link copied!', 'info'));
+      navigator.clipboard?.writeText(window.location.href).then(() => {
+        const orig = this.innerHTML;
+        this.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+        setTimeout(() => { this.innerHTML = orig; }, 2000);
+      });
     }
   });
 }
