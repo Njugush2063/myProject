@@ -123,28 +123,161 @@ const ALL_DESTINATIONS = {
    STATE
 ──────────────────────────────────────── */
 let currentType        = 'big-five';
+let currentMainTab     = 'type';   // 'type' or 'region'
 let activeDiff         = 'all';
 let activeRegion       = 'all';
 let showComingSoon     = true;
+
+const REGION_CONFIG = {
+  'rift-valley': { label: 'Rift Valley',        icon: '🏔️', hero: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1800&q=90' },
+  'coast':       { label: 'Kenyan Coast',        icon: '🌊', hero: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1800&q=90' },
+  'central':     { label: 'Central Kenya',       icon: '⛰️', hero: 'https://images.unsplash.com/photo-1589825743638-54a8ee3b6d67?w=1800&q=90' },
+  'nyanza':      { label: 'Nyanza',              icon: '💧', hero: 'https://images.unsplash.com/photo-1504173010664-32509107de82?w=1800&q=90' },
+  'western':     { label: 'Western Kenya',       icon: '🌿', hero: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1800&q=90' },
+  'nairobi':     { label: 'Nairobi',             icon: '🏙️', hero: 'https://images.unsplash.com/photo-1612213938763-9ed26ab83a31?w=1800&q=90' },
+  'northern':    { label: 'North Eastern Kenya', icon: '🦒', hero: 'https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=1800&q=90' },
+  'eastern':     { label: 'Eastern Kenya',       icon: '🌅', hero: 'https://images.unsplash.com/photo-1551969014-7d2c4cddf0b6?w=1800&q=90' }
+};
+
+/* ────────────────────────────────────────
+   MAIN TAB SWITCH (Type vs Region)
+──────────────────────────────────────── */
+window.switchMainTab = function (tab, e) {
+  e?.preventDefault();
+  currentMainTab = tab;
+
+  /* Toggle active on main tabs */
+  document.getElementById('tabType')?.classList.toggle('active', tab === 'type');
+  document.getElementById('tabRegion')?.classList.toggle('active', tab === 'region');
+
+  /* Show correct sub-row */
+  document.getElementById('subnavType')?.classList.toggle('hidden', tab !== 'type');
+  document.getElementById('subnavRegion')?.classList.toggle('hidden', tab !== 'region');
+
+  if (tab === 'type') {
+    /* Restore last type */
+    applyTypeSelection(currentType);
+  } else {
+    /* Default to first region */
+    const firstRegionBtn = document.querySelector('#subnavRegion .subnav-pill');
+    if (firstRegionBtn) selectRegionSub(firstRegionBtn, firstRegionBtn.dataset.region);
+  }
+};
+
+/* ────────────────────────────────────────
+   TYPE SUB-TAB SELECTED
+──────────────────────────────────────── */
+window.selectTypeSub = function (btn, type) {
+  document.querySelectorAll('#subnavType .subnav-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyTypeSelection(type);
+};
+
+function applyTypeSelection(type) {
+  currentType  = type;
+  activeRegion = 'all';
+  activeDiff   = 'all';
+
+  /* Reset region filter dropdown */
+  const sel = document.getElementById('regionFilter');
+  if (sel) sel.value = 'all';
+
+  /* Reset difficulty pills */
+  document.querySelectorAll('#diffFilter .fpill').forEach(b => b.classList.toggle('active', b.dataset.diff === 'all'));
+
+  /* Update hero */
+  const cfg = CATEGORY_CONFIG[type];
+  if (cfg) {
+    document.getElementById('heroBg').style.backgroundImage = `url('${cfg.hero}')`;
+    document.getElementById('heroIcon').textContent         = cfg.icon;
+    document.getElementById('heroTitle').textContent        = cfg.label;
+    document.getElementById('heroDesc').textContent         = cfg.desc;
+    document.getElementById('mapFrame').src                 = cfg.mapSrc;
+    document.title = `${cfg.label} — Discover the Magic of Kenya`;
+  }
+
+  populateRegionFilter();
+  renderGrid();
+  document.getElementById('grid-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ────────────────────────────────────────
+   REGION SUB-TAB SELECTED
+──────────────────────────────────────── */
+window.selectRegionSub = function (btn, region) {
+  document.querySelectorAll('#subnavRegion .subnav-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  activeRegion = region;
+  activeDiff   = 'all';
+
+  /* Collect ALL destinations across all types that match this region */
+  const allDests = Object.values(ALL_DESTINATIONS).flat();
+  const filtered = allDests.filter(d => d.region === region);
+
+  /* Update hero with region config */
+  const rcfg = REGION_CONFIG[region];
+  if (rcfg) {
+    document.getElementById('heroBg').style.backgroundImage = `url('${rcfg.hero}')`;
+    document.getElementById('heroIcon').textContent         = rcfg.icon;
+    document.getElementById('heroTitle').textContent        = rcfg.label;
+    document.getElementById('heroDesc').textContent         = `Explore all destinations across ${rcfg.label} — Kenya's incredible ${region.replace('-',' ')} region.`;
+    document.title = `${rcfg.label} — Discover the Magic of Kenya`;
+  }
+
+  /* Reset difficulty pills */
+  document.querySelectorAll('#diffFilter .fpill').forEach(b => b.classList.toggle('active', b.dataset.diff === 'all'));
+
+  /* Render — pass custom destinations array */
+  renderGridWithData(filtered);
+  document.getElementById('grid-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
 
 /* ────────────────────────────────────────
    INIT
 ──────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', function () {
 
-  /* Read type from URL */
+  /* Read params from URL */
   const params = new URLSearchParams(window.location.search);
-  currentType  = params.get('type') || 'big-five';
+  const typeParam   = params.get('type');
+  const regionParam = params.get('region');
 
-  /* Setup hero */
-  const cfg = CATEGORY_CONFIG[currentType];
-  if (cfg) {
-    document.getElementById('heroBg').style.backgroundImage    = `url('${cfg.hero}')`;
-    document.getElementById('heroIcon').textContent            = cfg.icon;
-    document.getElementById('heroTitle').textContent           = cfg.label;
-    document.getElementById('heroDesc').textContent            = cfg.desc;
-    document.getElementById('mapFrame').src                    = cfg.mapSrc;
-    document.title = `${cfg.label} — Discover the Magic of Kenya`;
+  if (regionParam) {
+    /* Came in via region */
+    currentMainTab = 'region';
+    document.getElementById('tabType')?.classList.remove('active');
+    document.getElementById('tabRegion')?.classList.add('active');
+    document.getElementById('subnavType')?.classList.add('hidden');
+    document.getElementById('subnavRegion')?.classList.remove('hidden');
+    /* Activate the correct region pill */
+    const regionBtn = document.querySelector(`#subnavRegion .subnav-pill[data-region="${regionParam}"]`);
+    if (regionBtn) selectRegionSub(regionBtn, regionParam);
+    else {
+      const first = document.querySelector('#subnavRegion .subnav-pill');
+      if (first) selectRegionSub(first, first.dataset.region);
+    }
+  } else {
+    /* Came in via type (default) */
+    currentType = typeParam || 'big-five';
+    currentMainTab = 'type';
+    document.getElementById('tabType')?.classList.add('active');
+    document.getElementById('tabRegion')?.classList.remove('active');
+    /* Activate correct type pill */
+    const typeBtn = document.querySelector(`#subnavType .subnav-pill[data-type="${currentType}"]`);
+    if (typeBtn) typeBtn.classList.add('active');
+    /* Setup hero */
+    const cfg = CATEGORY_CONFIG[currentType];
+    if (cfg) {
+      document.getElementById('heroBg').style.backgroundImage = `url('${cfg.hero}')`;
+      document.getElementById('heroIcon').textContent         = cfg.icon;
+      document.getElementById('heroTitle').textContent        = cfg.label;
+      document.getElementById('heroDesc').textContent         = cfg.desc;
+      document.getElementById('mapFrame').src                 = cfg.mapSrc;
+      document.title = `${cfg.label} — Discover the Magic of Kenya`;
+    }
+    populateRegionFilter();
+    renderGrid();
   }
 
   /* Scroll to top */
@@ -168,7 +301,12 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('#diffFilter .fpill').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     activeDiff = btn.dataset.diff;
-    renderGrid();
+    if (currentMainTab === 'region') {
+      const activePill = document.querySelector('#subnavRegion .subnav-pill.active');
+      if (activePill) selectRegionSub(activePill, activePill.dataset.region);
+    } else {
+      renderGrid();
+    }
   });
 
   /* Region filter */
@@ -234,34 +372,31 @@ window.toggleShowComingSoon = function (show) {
 };
 
 /* ────────────────────────────────────────
-   RENDER GRID
+   RENDER GRID — type mode
 ──────────────────────────────────────── */
 function renderGrid() {
+  let destinations = ALL_DESTINATIONS[currentType] || [];
+  if (activeDiff !== 'all') destinations = destinations.filter(d => d.difficulty.toLowerCase() === activeDiff);
+  if (activeRegion !== 'all') destinations = destinations.filter(d => d.region === activeRegion);
+  if (!showComingSoon) destinations = destinations.filter(d => d.available);
+
+  const all = ALL_DESTINATIONS[currentType] || [];
+  updateStats(all, destinations);
+  renderGridWithData(destinations);
+}
+
+/* ────────────────────────────────────────
+   RENDER GRID — shared renderer
+──────────────────────────────────────── */
+function renderGridWithData(destinations) {
+  /* Apply difficulty filter when in region mode */
+  if (activeDiff !== 'all') destinations = destinations.filter(d => d.difficulty.toLowerCase() === activeDiff);
+  if (!showComingSoon) destinations = destinations.filter(d => d.available);
+
+  updateStats(destinations, destinations);
+
   const grid = document.getElementById('destGrid');
   if (!grid) return;
-
-  let destinations = ALL_DESTINATIONS[currentType] || [];
-
-  /* Apply filters */
-  if (activeDiff !== 'all') {
-    destinations = destinations.filter(d => d.difficulty.toLowerCase() === activeDiff);
-  }
-  if (activeRegion !== 'all') {
-    destinations = destinations.filter(d => d.region === activeRegion);
-  }
-  if (!showComingSoon) {
-    destinations = destinations.filter(d => d.available);
-  }
-
-  /* Update stats */
-  const all = ALL_DESTINATIONS[currentType] || [];
-  const counties = [...new Set(all.map(d => d.county))].length;
-  const avgRating = (all.reduce((s, d) => s + d.rating, 0) / all.length).toFixed(1);
-  document.getElementById('statCount').textContent   = all.length;
-  document.getElementById('statCounties').textContent = counties;
-  document.getElementById('statRating').textContent  = avgRating + '★';
-  document.getElementById('resultCount').textContent =
-    `${destinations.length} destination${destinations.length !== 1 ? 's' : ''}`;
 
   if (destinations.length === 0) {
     grid.innerHTML = `
@@ -273,13 +408,28 @@ function renderGrid() {
     return;
   }
 
-  grid.innerHTML = destinations.map(d => buildCard(d)).join('');
+  /* Deduplicate by slug */
+  const seen = new Set();
+  const unique = destinations.filter(d => {
+    if (seen.has(d.slug)) return false;
+    seen.add(d.slug); return true;
+  });
 
-  /* Re-observe fade-ins */
+  grid.innerHTML = unique.map(d => buildCard(d)).join('');
+
   const observer = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
   }, { threshold: 0.05 });
   grid.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+}
+
+function updateStats(all, filtered) {
+  const counties = [...new Set(all.map(d => d.county))].length;
+  const avgRating = all.length ? (all.reduce((s, d) => s + d.rating, 0) / all.length).toFixed(1) : '—';
+  document.getElementById('statCount').textContent    = all.length;
+  document.getElementById('statCounties').textContent = counties;
+  document.getElementById('statRating').textContent   = avgRating + '★';
+  document.getElementById('resultCount').textContent  = `${filtered.length} destination${filtered.length !== 1 ? 's' : ''}`;
 }
 
 /* ────────────────────────────────────────
