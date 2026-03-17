@@ -123,10 +123,9 @@ const ALL_DESTINATIONS = {
    STATE
 ──────────────────────────────────────── */
 let currentType        = 'big-five';
-let currentMainTab     = 'type';   // 'type' or 'region'
+let currentMainTab     = 'type';
 let activeDiff         = 'all';
 let activeRegion       = 'all';
-let showComingSoon     = true;
 
 const REGION_CONFIG = {
   'rift-valley': { label: 'Rift Valley',        icon: '🏔️', hero: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1800&q=90' },
@@ -362,23 +361,12 @@ function populateRegionFilter() {
 }
 
 /* ────────────────────────────────────────
-   TOGGLE COMING SOON
-──────────────────────────────────────── */
-window.toggleShowComingSoon = function (show) {
-  showComingSoon = show;
-  document.getElementById('showAll')?.classList.toggle('active', show);
-  document.getElementById('showAvail')?.classList.toggle('active', !show);
-  renderGrid();
-};
-
-/* ────────────────────────────────────────
    RENDER GRID — type mode
 ──────────────────────────────────────── */
 function renderGrid() {
   let destinations = ALL_DESTINATIONS[currentType] || [];
   if (activeDiff !== 'all') destinations = destinations.filter(d => d.difficulty.toLowerCase() === activeDiff);
   if (activeRegion !== 'all') destinations = destinations.filter(d => d.region === activeRegion);
-  if (!showComingSoon) destinations = destinations.filter(d => d.available);
 
   const all = ALL_DESTINATIONS[currentType] || [];
   updateStats(all, destinations);
@@ -389,9 +377,7 @@ function renderGrid() {
    RENDER GRID — shared renderer
 ──────────────────────────────────────── */
 function renderGridWithData(destinations) {
-  /* Apply difficulty filter when in region mode */
   if (activeDiff !== 'all') destinations = destinations.filter(d => d.difficulty.toLowerCase() === activeDiff);
-  if (!showComingSoon) destinations = destinations.filter(d => d.available);
 
   updateStats(destinations, destinations);
 
@@ -436,16 +422,13 @@ function updateStats(all, filtered) {
    BUILD CARD HTML
 ──────────────────────────────────────── */
 function buildCard(d) {
-  const clickAttr = d.available
-    ? `onclick="window.location.href='attraction-details.html?id=${d.slug}'"` : '';
-  const cardClass = d.available ? 'dest-card fade-in' : 'dest-card fade-in coming-soon';
+  const cardClass = 'dest-card fade-in';
 
   return `
-    <div class="${cardClass}" ${clickAttr}>
+    <div class="${cardClass}" onclick="window.location.href='attraction-details.html?id=${d.slug}'">
       <div class="card-img-wrap">
         <div class="card-img" style="background-image:url('${d.image}')"></div>
         <span class="diff-badge diff-${d.difficulty.toLowerCase()}">${d.difficulty}</span>
-        ${!d.available ? `<span class="coming-soon-badge">🕐 Coming Soon</span>` : ''}
       </div>
       <div class="card-body">
         <div class="card-header">
@@ -461,10 +444,7 @@ function buildCard(d) {
           ${d.highlights.map(h => `<span class="ctag">${h}</span>`).join('')}
         </div>
         <div class="card-footer">
-          ${d.available
-            ? `<a href="attraction-details.html?id=${d.slug}" class="explore-link" onclick="event.stopPropagation()">⚡ Explore →</a>`
-            : `<span class="coming-soon-link">Available soon</span>`
-          }
+          <a href="attraction-details.html?id=${d.slug}" class="explore-link" onclick="event.stopPropagation()">⚡ Explore →</a>
         </div>
       </div>
     </div>`;
