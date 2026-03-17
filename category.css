@@ -47,7 +47,7 @@ nav {
 #hero {
   position: relative; height: 72vh; min-height: 520px;
   display: flex; align-items: flex-end;
-  margin-top: 72px; overflow: hidden;
+  margin-top: 120px; overflow: hidden;
 }
 .hero-bg {
   position: absolute; inset: 0;
@@ -97,11 +97,59 @@ nav {
 }
 @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
 
+/* ── SECONDARY NAV ── */
+#secondary-nav {
+  position: fixed;
+  top: 72px; left: 0; right: 0;
+  z-index: 190;
+  background: var(--white);
+  border-bottom: 1.5px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,.05);
+}
+.subnav-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 48px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  height: 48px;
+}
+.subnav-row::-webkit-scrollbar { display: none; }
+.subnav-row.hidden { display: none; }
+
+.subnav-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 16px; border-radius: 50px;
+  border: 1.5px solid transparent;
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .83rem; font-weight: 600;
+  color: var(--muted); white-space: nowrap;
+  cursor: pointer; transition: all .2s;
+  flex-shrink: 0;
+}
+.subnav-pill:hover {
+  background: var(--light-bg);
+  color: var(--dark);
+}
+.subnav-pill.active {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #fff;
+}
+
+/* nav-tab active state */
+.nav-tab { display: flex; align-items: center; gap: 4px; }
+.nav-tab.active { color: var(--orange) !important; font-weight: 700; }
+.nav-tab svg { transition: transform .2s; }
+.nav-tab.active svg { transform: rotate(180deg); }
+
 /* ── FILTER BAR ── */
 #filter-bar {
   background: var(--white);
   border-bottom: 1.5px solid var(--border);
-  position: sticky; top: 72px; z-index: 100;
+  position: sticky; top: 120px; z-index: 100;
   box-shadow: 0 4px 16px rgba(0,0,0,.06);
 }
 .filter-wrap {
