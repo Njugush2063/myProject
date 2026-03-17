@@ -27,8 +27,19 @@
   </a>
   <ul class="nav-links">
     <li><a href="Index.html">Home</a></li>
-    <li><a href="destinations.html" class="active">Destinations</a></li>
-    <li><a href="#">Events</a></li>
+    <li><a href="destinations.html">Destinations</a></li>
+    <li>
+      <a href="#" class="nav-tab active" id="tabType" onclick="switchMainTab('type', event)">
+        Explore by Type
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </a>
+    </li>
+    <li>
+      <a href="#" class="nav-tab" id="tabRegion" onclick="switchMainTab('region', event)">
+        Explore by Region
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </a>
+    </li>
     <li><a href="about.html">About</a></li>
     <li><a href="contact.html">Contact</a></li>
   </ul>
@@ -37,6 +48,63 @@
     <span></span><span></span><span></span>
   </button>
 </nav>
+
+<!-- ═══════════════════════════════════════
+     SECONDARY NAV — sub-tabs
+════════════════════════════════════════ -->
+<div id="secondary-nav">
+
+  <!-- Type sub-tabs -->
+  <div class="subnav-row" id="subnavType">
+    <button class="subnav-pill" data-type="big-five" onclick="selectTypeSub(this,'big-five')">
+      🦁 Big 5 Safaris
+    </button>
+    <button class="subnav-pill" data-type="birds" onclick="selectTypeSub(this,'birds')">
+      🦅 Bird Watching
+    </button>
+    <button class="subnav-pill" data-type="mountain" onclick="selectTypeSub(this,'mountain')">
+      ⛰️ Mountain Treks
+    </button>
+    <button class="subnav-pill" data-type="cultural" onclick="selectTypeSub(this,'cultural')">
+      🎭 Cultural Tours
+    </button>
+    <button class="subnav-pill" data-type="beach" onclick="selectTypeSub(this,'beach')">
+      🏖️ Beach Escapes
+    </button>
+    <button class="subnav-pill" data-type="adventure" onclick="selectTypeSub(this,'adventure')">
+      🪂 Adventure Sports
+    </button>
+  </div>
+
+  <!-- Region sub-tabs -->
+  <div class="subnav-row hidden" id="subnavRegion">
+    <button class="subnav-pill" data-region="rift-valley" onclick="selectRegionSub(this,'rift-valley')">
+      📍 Rift Valley
+    </button>
+    <button class="subnav-pill" data-region="coast" onclick="selectRegionSub(this,'coast')">
+      📍 Kenyan Coast
+    </button>
+    <button class="subnav-pill" data-region="central" onclick="selectRegionSub(this,'central')">
+      📍 Central Kenya
+    </button>
+    <button class="subnav-pill" data-region="nyanza" onclick="selectRegionSub(this,'nyanza')">
+      📍 Nyanza
+    </button>
+    <button class="subnav-pill" data-region="western" onclick="selectRegionSub(this,'western')">
+      📍 Western Kenya
+    </button>
+    <button class="subnav-pill" data-region="nairobi" onclick="selectRegionSub(this,'nairobi')">
+      📍 Nairobi
+    </button>
+    <button class="subnav-pill" data-region="northern" onclick="selectRegionSub(this,'northern')">
+      📍 North Eastern Kenya
+    </button>
+    <button class="subnav-pill" data-region="eastern" onclick="selectRegionSub(this,'eastern')">
+      📍 Eastern Kenya
+    </button>
+  </div>
+
+</div>
 
 <!-- ═══════════════════════════════════════
      HERO
