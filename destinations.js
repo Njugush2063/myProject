@@ -1,650 +1,303 @@
-/* ============================================================
-   DESTINATIONS PAGE — destinations.js
-   Type filtering + site-specific destinations per category
-   ============================================================ */
+// ─────────────────────────────────────────────
+// CONFIGURATION
+// ─────────────────────────────────────────────
+const SUPABASE_URL      = 'https://hcalcyyzwtwbupkxpwkn.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhjYWxjeXl6d3R3YnVwa3hwd2tuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NzM2NjksImV4cCI6MjA4OTE0OTY2OX0.-VkzGML-CQIuWhH49iybrxwxnX1ClCeOSim_mjfZ4gM';
 
-/* ────────────────────────────────────────
-   STATIC DESTINATION DATA PER CATEGORY
-   (shown when user clicks a type button)
-──────────────────────────────────────── */
-const DESTINATIONS = {
-
-  'big-five': [
-    {
-      slug: 'maasai-mara',
-      name: 'Maasai Mara National Reserve',
-      county: 'Narok',
-      difficulty: 'Moderate',
-      rating: 4.9,
-      best_time: 'July – October',
-      description: 'Home to the Great Wildebeest Migration and all Big Five in breathtaking golden savanna landscapes.',
-      image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=85',
-      highlights: ['Great Migration', 'Lions & Cheetahs']
-    },
-    {
-      slug: 'amboseli',
-      name: 'Amboseli National Park',
-      county: 'Kajiado',
-      difficulty: 'Easy',
-      rating: 4.8,
-      best_time: 'June – October',
-      description: 'Iconic Kilimanjaro backdrop with the largest elephant herds in East Africa roaming freely.',
-      image: 'https://images.unsplash.com/photo-1535941339077-2dd1c7963098?w=800&q=85',
-      highlights: ['Elephants', 'Kilimanjaro Views']
-    },
-    {
-      slug: 'tsavo',
-      name: 'Tsavo National Park',
-      county: 'Taita-Taveta',
-      difficulty: 'Moderate',
-      rating: 4.7,
-      best_time: 'June – October',
-      description: 'Kenya\'s largest park — red-dusted elephants, Mzima Springs and vast untamed wilderness.',
-      image: 'https://images.unsplash.com/photo-1598886290734-c4dee49e29cc?w=800&q=85',
-      highlights: ['Red Elephants', 'Mzima Springs']
-    },
-    {
-      slug: 'nairobi-np',
-      name: 'Nairobi National Park',
-      county: 'Nairobi',
-      difficulty: 'Easy',
-      rating: 4.6,
-      best_time: 'July – March',
-      description: 'The world\'s only national park inside a capital city — lions and giraffes against a city skyline.',
-      image: 'https://images.unsplash.com/photo-1612213938763-9ed26ab83a31?w=800&q=85',
-      highlights: ['City + Wildlife', 'Lions & Rhinos']
-    },
-    {
-      slug: 'samburu',
-      name: 'Samburu National Reserve',
-      county: 'Samburu',
-      difficulty: 'Moderate',
-      rating: 4.7,
-      best_time: 'July – September',
-      description: 'Remote northern reserve home to the rare Samburu Special Five found nowhere else in Kenya.',
-      image: 'https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=800&q=85',
-      highlights: ['Special Five', 'Remote Wilderness']
-    },
-    {
-      slug: 'ol-pejeta',
-      name: 'Ol Pejeta Conservancy',
-      county: 'Laikipia',
-      difficulty: 'Easy',
-      rating: 4.8,
-      best_time: 'June – October',
-      description: 'Africa\'s largest black rhino sanctuary and home to the last northern white rhinos on earth.',
-      image: 'https://images.unsplash.com/photo-1551969014-7d2c4cddf0b6?w=800&q=85',
-      highlights: ['Last White Rhinos', 'Big Five']
-    },
-    {
-      slug: 'lake-nakuru',
-      name: 'Lake Nakuru National Park',
-      county: 'Nakuru',
-      difficulty: 'Easy',
-      rating: 4.7,
-      best_time: 'June – September',
-      description: 'Critical rhino sanctuary with Rothschild giraffes and millions of flamingos on a pink soda lake.',
-      image: 'https://images.unsplash.com/photo-1564760290292-23341e4df6ec?w=800&q=85',
-      highlights: ['Rhino Sanctuary', 'Flamingos']
-    },
-    {
-      slug: 'meru-np',
-      name: 'Meru National Park',
-      county: 'Meru',
-      difficulty: 'Moderate',
-      rating: 4.6,
-      best_time: 'June – October',
-      description: 'Where Elsa the lioness roamed — lush rivers, diverse wildlife and far fewer crowds than the Mara.',
-      image: 'https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=800&q=85',
-      highlights: ['Elsa\'s homeland', 'Rivers & Wildlife']
+// ─────────────────────────────────────────────
+// REST API HELPER
+// ─────────────────────────────────────────────
+async function dbGet(table, query) {
+  const url = query
+    ? `${SUPABASE_URL}/rest/v1/${table}?${query}`
+    : `${SUPABASE_URL}/rest/v1/${table}`;
+  const res = await fetch(url, {
+    headers: {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
     }
-  ],
+  });
+  if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
+  return res.json();
+}
 
-  'birds': [
-    {
-      slug: 'lake-nakuru',
-      name: 'Lake Nakuru National Park',
-      county: 'Nakuru',
-      difficulty: 'Easy',
-      rating: 4.7,
-      best_time: 'Year-round',
-      description: 'Famous for flamingo carpets that paint the entire lake shore pink — over 450 bird species recorded.',
-      image: 'https://images.unsplash.com/photo-1585389639821-a4c1c2886aab?w=800&q=85',
-      highlights: ['Flamingo Carpets', '450+ Species']
-    },
-    {
-      slug: 'lake-bogoria',
-      name: 'Lake Bogoria',
-      county: 'Baringo',
-      difficulty: 'Easy',
-      rating: 4.6,
-      best_time: 'November – April',
-      description: 'Dramatic combination of geothermal geysers and millions of flamingos — a truly otherworldly scene.',
-      image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=85',
-      highlights: ['Geysers + Flamingos', 'Hot Springs']
-    },
-    {
-      slug: 'lake-naivasha',
-      name: 'Lake Naivasha',
-      county: 'Nakuru',
-      difficulty: 'Easy',
-      rating: 4.5,
-      best_time: 'Year-round',
-      description: 'Tranquil freshwater lake with hippos, fish eagles and hundreds of waterbird species.',
-      image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=85',
-      highlights: ['Fish Eagles', 'Hippos + Birds']
-    },
-    {
-      slug: 'kakamega-forest',
-      name: 'Kakamega Forest',
-      county: 'Kakamega',
-      difficulty: 'Easy',
-      rating: 4.6,
-      best_time: 'December – March',
-      description: 'Kenya\'s only tropical rainforest — home to over 330 bird species including rare Central African endemics.',
-      image: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=85',
-      highlights: ['330+ Species', 'Rainforest Birding']
-    },
-    {
-      slug: 'arabuko-sokoke',
-      name: 'Arabuko Sokoke Forest',
-      county: 'Kilifi',
-      difficulty: 'Easy',
-      rating: 4.5,
-      best_time: 'November – April',
-      description: 'Africa\'s largest protected coastal forest and home to rare, globally threatened bird species.',
-      image: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=85',
-      highlights: ['Rare Endemic Birds', 'Coastal Forest']
-    },
-    {
-      slug: 'lake-baringo',
-      name: 'Lake Baringo',
-      county: 'Baringo',
-      difficulty: 'Easy',
-      rating: 4.5,
-      best_time: 'Year-round',
-      description: 'Fresh water Rift Valley lake with 470+ bird species, hippos and traditional fishermen in dugout canoes.',
-      image: 'https://images.unsplash.com/photo-1504173010664-32509107de82?w=800&q=85',
-      highlights: ['470+ Species', 'Local Culture']
-    },
-    {
-      slug: 'mida-creek',
-      name: 'Mida Creek',
-      county: 'Kilifi',
-      difficulty: 'Easy',
-      rating: 4.4,
-      best_time: 'October – March',
-      description: 'Pristine mangrove estuary with stunning migratory shorebirds and boardwalk trails over the creek.',
-      image: 'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&q=85',
-      highlights: ['Mangrove Boardwalk', 'Migratory Birds']
-    },
-    {
-      slug: 'shimba-hills',
-      name: 'Shimba Hills National Reserve',
-      county: 'Kwale',
-      difficulty: 'Easy',
-      rating: 4.4,
-      best_time: 'June – October',
-      description: 'Coastal forest reserve with sable antelopes and rare coastal birds above the Indian Ocean.',
-      image: 'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=800&q=85',
-      highlights: ['Sable Antelope', 'Ocean Views']
-    },
-    {
-      slug: 'tana-delta',
-      name: 'Tana River Delta',
-      county: 'Tana River',
-      difficulty: 'Moderate',
-      rating: 4.4,
-      best_time: 'November – April',
-      description: 'Vast river delta with spectacular aerial patterns of channels and massive flocks of waterbirds.',
-      image: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=85',
-      highlights: ['Delta Landscape', 'Waterbird Flocks']
-    },
-    {
-      slug: 'saiwa-swamp',
-      name: 'Saiwa Swamp National Park',
-      county: 'Trans-Nzoia',
-      difficulty: 'Easy',
-      rating: 4.3,
-      best_time: 'Year-round',
-      description: 'Kenya\'s smallest national park — a unique swampy habitat for rare sitatunga antelopes and waterbirds.',
-      image: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&q=85',
-      highlights: ['Sitatunga Antelope', 'Wetland Trails']
-    }
-  ],
-
-  'mountain': [
-    {
-      slug: 'mount-kenya',
-      name: 'Mount Kenya National Park',
-      county: 'Nyeri',
-      difficulty: 'Challenging',
-      rating: 4.8,
-      best_time: 'January – February',
-      description: 'Africa\'s second highest peak — glaciers, moorlands and diverse wildlife on a UNESCO World Heritage site.',
-      image: 'https://images.unsplash.com/photo-1589825743638-54a8ee3b6d67?w=800&q=85',
-      highlights: ['5,199m Summit', 'Glaciers & Tarns']
-    },
-    {
-      slug: 'mount-longonot',
-      name: 'Mount Longonot',
-      county: 'Nakuru',
-      difficulty: 'Moderate',
-      rating: 4.5,
-      best_time: 'June – October',
-      description: 'Dramatic volcanic crater with a stunning rim hike offering panoramic views of the Great Rift Valley.',
-      image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=85',
-      highlights: ['Crater Rim Trek', 'Rift Valley Views']
-    },
-    {
-      slug: 'aberdare',
-      name: 'Aberdare National Park',
-      county: 'Nyeri',
-      difficulty: 'Moderate',
-      rating: 4.6,
-      best_time: 'July – October',
-      description: 'Mist-shrouded highland forest with dramatic waterfalls, moorlands and nocturnal wildlife at tree lodges.',
-      image: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=85',
-      highlights: ['Gura Falls', 'Tree Lodges']
-    },
-    {
-      slug: 'ngong-hills',
-      name: 'Ngong Hills',
-      county: 'Kajiado',
-      difficulty: 'Easy',
-      rating: 4.4,
-      best_time: 'Year-round',
-      description: 'Rolling green ridges overlooking Nairobi — a popular day hike with sweeping views and wind turbines.',
-      image: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&q=85',
-      highlights: ['Nairobi Views', 'Day Hike']
-    }
-  ],
-
-  'beach': [
-    {
-      slug: 'diani-beach',
-      name: 'Diani Beach',
-      county: 'Kwale',
-      difficulty: 'Easy',
-      rating: 4.8,
-      best_time: 'January – March',
-      description: '17km of powdery white sand lapped by the warm turquoise Indian Ocean with world-class coral reefs.',
-      image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=85',
-      highlights: ['White Sand', 'Coral Reef Diving']
-    },
-    {
-      slug: 'watamu',
-      name: 'Watamu Beach',
-      county: 'Kilifi',
-      difficulty: 'Easy',
-      rating: 4.7,
-      best_time: 'October – March',
-      description: 'UNESCO Biosphere Reserve with stunning sandbars, marine national park and whale shark encounters.',
-      image: 'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&q=85',
-      highlights: ['Marine Park', 'Whale Sharks']
-    },
-    {
-      slug: 'lamu-island',
-      name: 'Lamu Island',
-      county: 'Lamu',
-      difficulty: 'Easy',
-      rating: 4.8,
-      best_time: 'October – March',
-      description: 'UNESCO World Heritage old town with Swahili architecture, dhow sailing and car-free cobbled streets.',
-      image: 'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=800&q=85',
-      highlights: ['UNESCO Old Town', 'Dhow Sailing']
-    },
-    {
-      slug: 'malindi',
-      name: 'Malindi Beach',
-      county: 'Kilifi',
-      difficulty: 'Easy',
-      rating: 4.5,
-      best_time: 'October – March',
-      description: 'Historic Swahili coast town with traditional dhow boats, ancient ruins and vibrant marine life.',
-      image: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=85',
-      highlights: ['Dhow Boats', 'Historic Ruins']
-    },
-    {
-      slug: 'nyali-beach',
-      name: 'Nyali Beach',
-      county: 'Mombasa',
-      difficulty: 'Easy',
-      rating: 4.5,
-      best_time: 'January – March',
-      description: 'Mombasa\'s most accessible beach — palm-fringed shoreline with gorgeous sunsets and vibrant nightlife.',
-      image: 'https://images.unsplash.com/photo-1507881466959-c6af49fc97fb?w=800&q=85',
-      highlights: ['Palm Sunsets', 'Beach Resorts']
-    },
-    {
-      slug: 'tiwi-beach',
-      name: 'Tiwi Beach',
-      county: 'Kwale',
-      difficulty: 'Easy',
-      rating: 4.5,
-      best_time: 'January – March',
-      description: 'Hidden secluded cove with natural rock pools, coral gardens and a peaceful off-the-beaten-path feel.',
-      image: 'https://images.unsplash.com/photo-1504173010664-32509107de82?w=800&q=85',
-      highlights: ['Secluded Cove', 'Natural Rock Pools']
-    }
-  ],
-
-  'cultural': [
-    {
-      slug: 'lamu-old-town',
-      name: 'Lamu Old Town',
-      county: 'Lamu',
-      difficulty: 'Easy',
-      rating: 4.8,
-      best_time: 'October – March',
-      description: 'The oldest living Swahili settlement in East Africa — narrow streets, ornate carved doors and no cars.',
-      image: 'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=800&q=85',
-      highlights: ['Swahili Architecture', 'UNESCO Heritage']
-    },
-    {
-      slug: 'maasai-village',
-      name: 'Maasai Village Experience',
-      county: 'Narok',
-      difficulty: 'Easy',
-      rating: 4.7,
-      best_time: 'Year-round',
-      description: 'Authentic Maasai warrior cultural encounters — traditional dances, bead crafts and village life immersion.',
-      image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=85',
-      highlights: ['Warrior Dances', 'Bead Crafts']
-    },
-    {
-      slug: 'fort-jesus',
-      name: 'Fort Jesus, Mombasa',
-      county: 'Mombasa',
-      difficulty: 'Easy',
-      rating: 4.6,
-      best_time: 'Year-round',
-      description: 'Portuguese 16th-century coastal fort and UNESCO World Heritage site overlooking the old port of Mombasa.',
-      image: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=85',
-      highlights: ['16th Century Fort', 'UNESCO Heritage']
-    },
-    {
-      slug: 'bomas-kenya',
-      name: 'Bomas of Kenya',
-      county: 'Nairobi',
-      difficulty: 'Easy',
-      rating: 4.5,
-      best_time: 'Year-round',
-      description: 'Kenya\'s premier cultural centre — traditional homesteads and daily performances of 40+ ethnic dances.',
-      image: 'https://images.unsplash.com/photo-1612213938763-9ed26ab83a31?w=800&q=85',
-      highlights: ['40+ Ethnic Dances', 'Cultural Village']
-    },
-    {
-      slug: 'karen-blixen',
-      name: 'Karen Blixen Museum',
-      county: 'Nairobi',
-      difficulty: 'Easy',
-      rating: 4.6,
-      best_time: 'Year-round',
-      description: 'The historic Danish farmhouse of Out of Africa author Karen Blixen, set among lush colonial gardens.',
-      image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=85',
-      highlights: ['Colonial History', 'Out of Africa']
-    },
-    {
-      slug: 'thimlich-ohinga',
-      name: 'Thimlich Ohinga',
-      county: 'Migori',
-      difficulty: 'Easy',
-      rating: 4.4,
-      best_time: 'Year-round',
-      description: 'The largest and best-preserved dry-stone walled enclosure in sub-Saharan Africa — a UNESCO World Heritage site.',
-      image: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&q=85',
-      highlights: ['Ancient Stone Walls', 'UNESCO Heritage']
-    },
-    {
-      slug: 'kit-mikayi',
-      name: 'Kit Mikayi Rock',
-      county: 'Kisumu',
-      difficulty: 'Easy',
-      rating: 4.4,
-      best_time: 'Year-round',
-      description: 'Sacred Luo rock formation rising 40 meters above the plains — a spiritual site of deep cultural significance.',
-      image: 'https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=800&q=85',
-      highlights: ['Sacred Rock', 'Luo Heritage']
-    },
-    {
-      slug: 'koobi-fora',
-      name: 'Koobi Fora',
-      county: 'Marsabit',
-      difficulty: 'Challenging',
-      rating: 4.5,
-      best_time: 'June – October',
-      description: 'One of the most important paleoanthropological sites on earth — human fossils dating back 4 million years.',
-      image: 'https://images.unsplash.com/photo-1557050543-4d5f4e07ef46?w=800&q=85',
-      highlights: ['4M Year Old Fossils', 'Anthropology Site']
-    }
-  ],
-
-  'adventure': [
-    {
-      slug: 'hells-gate',
-      name: 'Hell\'s Gate National Park',
-      county: 'Nakuru',
-      difficulty: 'Easy',
-      rating: 4.6,
-      best_time: 'June – October',
-      description: 'Kenya\'s only park where you walk and cycle freely among wildlife through dramatic volcanic gorges.',
-      image: 'https://images.unsplash.com/photo-1440342359743-84fcb8c21f21?w=800&q=85',
-      highlights: ['Cycling Safari', 'Gorge Walk']
-    },
-    {
-      slug: 'mount-longonot',
-      name: 'Mount Longonot',
-      county: 'Nakuru',
-      difficulty: 'Moderate',
-      rating: 4.5,
-      best_time: 'June – October',
-      description: 'Hike to the rim of an active volcanic crater for breathtaking 360° views of the Great Rift Valley.',
-      image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=85',
-      highlights: ['Crater Rim Trek', 'Rift Valley Views']
-    },
-    {
-      slug: 'mount-kenya',
-      name: 'Mount Kenya Trekking',
-      county: 'Nyeri',
-      difficulty: 'Challenging',
-      rating: 4.8,
-      best_time: 'January – February',
-      description: 'Summit Africa\'s second highest peak through dramatic ecological zones from rainforest to glacial moorland.',
-      image: 'https://images.unsplash.com/photo-1589825743638-54a8ee3b6d67?w=800&q=85',
-      highlights: ['Summit Trek', 'Glacier Zones']
-    },
-    {
-      slug: 'tana-rapids',
-      name: 'Tana River Rafting',
-      county: 'Tana River',
-      difficulty: 'Challenging',
-      rating: 4.7,
-      best_time: 'May – August',
-      description: 'Thrilling Grade 4–5 white water rafting through dramatic gorges on Kenya\'s longest and most powerful river.',
-      image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=85',
-      highlights: ['Grade 4–5 Rapids', 'River Gorges']
-    },
-    {
-      slug: 'diani-sports',
-      name: 'Diani Watersports',
-      county: 'Kwale',
-      difficulty: 'Easy',
-      rating: 4.7,
-      best_time: 'January – March',
-      description: 'East Africa\'s kitesurfing capital — world-class winds, kite schools, deep sea fishing and snorkelling trips.',
-      image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=85',
-      highlights: ['Kitesurfing', 'Deep Sea Fishing']
-    },
-    {
-      slug: 'aberdare',
-      name: 'Aberdare Forest Walks',
-      county: 'Nyeri',
-      difficulty: 'Moderate',
-      rating: 4.6,
-      best_time: 'July – October',
-      description: 'Night game walks and guided forest treks through misty highland wilderness teeming with black leopard.',
-      image: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&q=85',
-      highlights: ['Night Game Walks', 'Black Leopard']
-    },
-    {
-      slug: 'ngong-hills',
-      name: 'Ngong Hills Hiking',
-      county: 'Kajiado',
-      difficulty: 'Easy',
-      rating: 4.4,
-      best_time: 'Year-round',
-      description: 'Easy half-day ridge hike above Nairobi with sweeping views of the Rift Valley escarpment.',
-      image: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&q=85',
-      highlights: ['Ridge Hike', 'City Views']
-    }
-  ]
+// ─────────────────────────────────────────────
+// STATE — wrapped in object to avoid global conflicts
+// ─────────────────────────────────────────────
+const destState = {
+  galleryImages: [],
+  lightboxIndex: 0
 };
 
-/* ────────────────────────────────────────
-   ACTIVE TYPE STATE
-──────────────────────────────────────── */
-let activeType = 'big-five';
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get('id');
+  if (!slug) { showError(); return; }
 
-/* ────────────────────────────────────────
-   DOM READY
-──────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', async function () {
+  try {
+    const expArr = await dbGet('experiences', `slug=eq.${slug}`);
+    if (!expArr || expArr.length === 0) { showError(); return; }
+    const exp = expArr[0];
 
-  /* Fade-in observer */
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-  }, { threshold: 0.1 });
-  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    const [itinerary, gallery, related] = await Promise.all([
+      dbGet('itinerary_items', `experience_id=eq.${exp.id}&order=step_order.asc`),
+      dbGet('gallery_images',  `experience_id=eq.${exp.id}&order=sort_order.asc`),
+      dbGet('experiences',     `category=eq.${encodeURIComponent(exp.category)}&slug=neq.${slug}&limit=3`)
+    ]);
 
-  /* Scroll to top */
-  window.addEventListener('scroll', () => {
-    document.getElementById('scrollTop')?.classList.toggle('visible', window.scrollY > 400);
+    renderPage(exp, itinerary || [], gallery || [], related || []);
+
+  } catch (err) {
+    console.error('Destinations init error:', err);
+    showError();
+  }
+}
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function renderPage(exp, itinerary, gallery, related) {
+  document.title = `${exp.title} — Crislynn Ventures`;
+
+  // Hero
+  const bg = document.getElementById('heroBg');
+  bg.style.backgroundImage = `url('${exp.hero_image}')`;
+  setTimeout(() => bg.classList.add('loaded'), 100);
+  document.getElementById('heroCategoryText').textContent = exp.category;
+  document.getElementById('heroDurationTag').textContent  = exp.duration_tag;
+  document.getElementById('heroTitle').textContent        = exp.title;
+  document.getElementById('heroTagline').textContent      = exp.tagline || '';
+
+  // Description
+  const descEl = document.getElementById('destDescription');
+  (exp.description || '').split('\n\n').forEach(paragraph => {
+    if (!paragraph.trim()) return;
+    const p = document.createElement('p');
+    p.textContent = paragraph.trim();
+    descEl.appendChild(p);
   });
-  document.getElementById('scrollTop')?.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
 
-  /* Load More (static fallback) */
-  window.loadMore = function () {
-    ['extra-dest-1','extra-dest-2','extra-dest-3','extra-dest-4'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.style.display = 'block';
-    });
-    const btn = document.querySelector('.btn-load-more');
-    if (btn) btn.style.display = 'none';
-  };
+  // Meta card
+  document.getElementById('metaDuration').textContent = exp.duration_tag;
+  document.getElementById('metaCategory').textContent  = exp.category;
 
-  /* Filter handler — navigates to category listing page */
-  window.filterType = function (btn, type) {
-    document.querySelectorAll('.type-img-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    window.location.href = `category.html?type=${type}`;
-  };
+  // Sections
+  renderItinerary(itinerary);
+  renderGallery(gallery);
+  renderMap(exp);
+  renderRelated(related);
 
-  /* Initial render — show Big Five on load */
-  renderTypeGrid('big-five');
+  // WhatsApp CTA
+  const msg = encodeURIComponent(
+    `Hi Crislynn Ventures! I'm interested in the *${exp.title}* experience. Could you share more details?`
+  );
+  document.getElementById('ctaWhatsApp').href = `https://wa.me/254794464898?text=${msg}`;
 
-  /* Traveler Favorites — fetch from Supabase */
-  await loadFeaturedDestinations();
+  // Show page, hide loader
+  document.getElementById('dest-content').classList.add('visible');
+  document.getElementById('cta-band').style.display = 'block';
+  document.getElementById('loading').classList.add('hidden');
 
-});
+  setupRevealObserver();
+  setupItineraryObserver();
+}
 
-/* ────────────────────────────────────────
-   RENDER TYPE GRID
-──────────────────────────────────────── */
-function renderTypeGrid(type) {
-  const grid = document.getElementById('dest-grid');
-  if (!grid) return;
-
-  const destinations = DESTINATIONS[type];
-  if (!destinations || destinations.length === 0) {
-    grid.innerHTML = `<div class="fetch-error">No destinations found for this category.</div>`;
+// ─────────────────────────────────────────────
+// ITINERARY
+// ─────────────────────────────────────────────
+function renderItinerary(items) {
+  const container = document.getElementById('itineraryList');
+  if (!items.length) {
+    document.getElementById('itinerary-section').style.display = 'none';
     return;
   }
 
-  /* Update section heading */
-  const typeLabels = {
-    'big-five':  '🦁 Big Five Safari',
-    'birds':     '🦅 Bird Watching',
-    'mountain':  '⛰️ Mountain Treks',
-    'beach':     '🏖️ Beach Escapes',
-    'cultural':  '🎭 Cultural Tours',
-    'adventure': '🪂 Adventure Sports'
-  };
+  const days = {};
+  items.forEach(item => {
+    const key = item.day_label || '__single__';
+    if (!days[key]) days[key] = [];
+    days[key].push(item);
+  });
 
-  const sectionTitle = document.querySelector('.destinations-section .section-title');
-  const sectionSub   = document.querySelector('.destinations-section .section-sub');
-  if (sectionTitle) sectionTitle.textContent = typeLabels[type] || 'Featured Destinations';
-  if (sectionSub)   sectionSub.textContent   = `Showing all ${destinations.length} destinations in this category`;
+  let globalStep = 0;
+  Object.entries(days).forEach(([dayKey, steps]) => {
+    const group = document.createElement('div');
+    group.className = 'day-group';
 
-  /* Hide load more btn — not needed for filtered view */
-  const loadMoreWrap = document.querySelector('.load-more-wrap');
-  if (loadMoreWrap) loadMoreWrap.style.display = 'none';
+    if (dayKey !== '__single__') {
+      const label = document.createElement('span');
+      label.className = 'day-label';
+      label.textContent = dayKey;
+      group.appendChild(label);
+    }
 
-  grid.innerHTML = destinations.map(d => `
-    <div class="dest-card" onclick="window.location.href='attraction-details.html?id=${d.slug}'">
-      <div class="dest-img-wrap">
-        <div class="dest-img" style="background-image:url('${d.image}'); background-size:cover; background-position:center;"></div>
-        <span class="difficulty-badge diff-${d.difficulty.toLowerCase()}">${d.difficulty}</span>
-      </div>
-      <div class="dest-body">
-        <div class="dest-header">
-          <div class="dest-name">${d.name}</div>
-          <div class="dest-rating">⭐ ${d.rating}</div>
-        </div>
-        <div class="dest-desc">${d.description}</div>
-        <div class="dest-meta">
-          <div class="dest-meta-item">📍 ${d.county} County</div>
-          <div class="dest-meta-item">🕐 Best: ${d.best_time}</div>
-        </div>
-        <div class="dest-tags">
-          ${d.highlights.map(h => `<span class="tag">${h}</span>`).join('')}
-        </div>
-        <div class="dest-footer">
-          <a href="attraction-details.html?id=${d.slug}" class="explore-link" onclick="event.stopPropagation()">⚡ Explore →</a>
-        </div>
-      </div>
-    </div>
-  `).join('');
+    steps.forEach(step => {
+      globalStep++;
+      const el = document.createElement('div');
+      el.className = 'itinerary-step';
+      el.innerHTML = `
+        <div class="step-dot">${globalStep}</div>
+        <div class="step-text">${step.description}</div>
+      `;
+      group.appendChild(el);
+    });
+
+    container.appendChild(group);
+  });
 }
 
-/* ────────────────────────────────────────
-   TRAVELER FAVORITES — from Supabase
-──────────────────────────────────────── */
-async function loadFeaturedDestinations() {
-  const favGrid = document.querySelector('.favorites-section .destinations-grid');
-  if (!favGrid) return;
-
-  try {
-    const attractions = await db.getAttractions();
-    const top4 = attractions.slice(0, 4);
-    favGrid.innerHTML = top4.map(a => `
-      <div class="dest-card" onclick="window.location.href='attraction-details.html?id=${a.slug}'">
-        <div class="dest-img-wrap">
-          <div class="dest-img" style="background-image:url('${a.image_hero}'); background-size:cover; background-position:center;"></div>
-          <span class="difficulty-badge diff-${a.difficulty.toLowerCase()}">${a.difficulty}</span>
-        </div>
-        <div class="dest-body">
-          <div class="dest-header">
-            <div class="dest-name" style="color:var(--orange)">${a.name}</div>
-            <div class="dest-rating">⭐ ${a.rating}</div>
-          </div>
-          <div class="dest-desc">${a.description.substring(0, 110)}...</div>
-          <div class="dest-meta">
-            <div class="dest-meta-item">📍 ${a.county} County</div>
-            <div class="dest-meta-item">🕐 Best: ${a.best_time}</div>
-          </div>
-          <div class="dest-tags">
-            ${a.highlights.slice(0, 2).map(h => `<span class="tag">${h.split(' ').slice(0,3).join(' ')}</span>`).join('')}
-          </div>
-          <div class="dest-footer">
-            <a href="attraction-details.html?id=${a.slug}" class="explore-link" onclick="event.stopPropagation()">⚡ Explore →</a>
-          </div>
-        </div>
-      </div>
-    `).join('');
-  } catch (err) {
-    console.error('Error loading favorites:', err);
+// ─────────────────────────────────────────────
+// GALLERY
+// ─────────────────────────────────────────────
+function renderGallery(images) {
+  if (!images.length) {
+    document.getElementById('gallery-section').style.display = 'none';
+    return;
   }
+
+  destState.galleryImages = images;
+  const grid = document.getElementById('galleryGrid');
+
+  images.slice(0, 4).forEach((img, i) => {
+    const item = document.createElement('div');
+    item.className = 'gallery-item';
+    item.innerHTML = `
+      <img src="${img.url}" alt="${img.alt_text || ''}" loading="lazy">
+      <div class="gallery-item-overlay">
+        <div class="gallery-zoom">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35M11 8v6M8 11h6"/>
+          </svg>
+        </div>
+      </div>
+    `;
+    item.addEventListener('click', () => openLightbox(i));
+    grid.appendChild(item);
+  });
 }
+
+// ─────────────────────────────────────────────
+// MAP
+// ─────────────────────────────────────────────
+function renderMap(exp) {
+  if (!exp.map_embed) {
+    document.getElementById('map-section').style.display = 'none';
+    return;
+  }
+  document.getElementById('mapFrame').src = exp.map_embed;
+  document.getElementById('mapLabel').textContent = exp.title;
+}
+
+// ─────────────────────────────────────────────
+// RELATED
+// ─────────────────────────────────────────────
+function renderRelated(items) {
+  if (!items.length) {
+    document.getElementById('related-section').style.display = 'none';
+    return;
+  }
+
+  const grid = document.getElementById('relatedGrid');
+  items.forEach((exp, i) => {
+    const card = document.createElement('a');
+    card.href      = `destinations.html?id=${exp.slug}`;
+    card.className = `related-card reveal-up delay-${i + 1}`;
+    card.innerHTML = `
+      <div class="related-card-img" style="background-image:url('${exp.hero_image}')"></div>
+      <div class="related-card-body">
+        <div class="related-card-tag">${exp.duration_tag}</div>
+        <h3 class="related-card-title">${exp.title}</h3>
+        <p class="related-card-desc">${exp.tagline || ''}</p>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ─────────────────────────────────────────────
+// LIGHTBOX
+// ─────────────────────────────────────────────
+function openLightbox(index) {
+  destState.lightboxIndex = index;
+  updateLightbox();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function shiftLightbox(dir) {
+  destState.lightboxIndex = (destState.lightboxIndex + dir + destState.galleryImages.length) % destState.galleryImages.length;
+  updateLightbox();
+}
+
+function updateLightbox() {
+  const img = destState.galleryImages[destState.lightboxIndex];
+  const el  = document.getElementById('lightboxImg');
+  el.style.opacity = '0';
+  el.src = img.url;
+  el.alt = img.alt_text || '';
+  el.onload = () => {
+    el.style.transition = 'opacity 0.3s';
+    el.style.opacity    = '1';
+  };
+  document.getElementById('lightboxCounter').textContent =
+    `${destState.lightboxIndex + 1} / ${destState.galleryImages.length}`;
+}
+
+document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+document.getElementById('lightboxPrev').addEventListener('click', () => shiftLightbox(-1));
+document.getElementById('lightboxNext').addEventListener('click', () => shiftLightbox(1));
+
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'ArrowLeft')  shiftLightbox(-1);
+  if (e.key === 'ArrowRight') shiftLightbox(1);
+  if (e.key === 'Escape')     closeLightbox();
+});
+
+// ─────────────────────────────────────────────
+// SCROLL REVEAL
+// ─────────────────────────────────────────────
+function setupRevealObserver() {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal-up').forEach(el => observer.observe(el));
+}
+
+function setupItineraryObserver() {
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.itinerary-step').forEach(el => observer.observe(el));
+}
+
+// ─────────────────────────────────────────────
+// ERROR
+// ─────────────────────────────────────────────
+function showError() {
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('error-state').classList.add('visible');
+}
+
+// ─────────────────────────────────────────────
+// RUN
+// ─────────────────────────────────────────────
+init();

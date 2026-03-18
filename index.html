@@ -1,321 +1,608 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Travel & Tourism Portal</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crislynn Ventures — Turning Getaways into Great Stories</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════
-     NAVBAR
-════════════════════════════════════════ -->
-<nav>
-  <a class="logo" href="#">
-    <div class="logo-icon">
-      <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-      </svg>
-    </div>
-    <span class="logo-text">Travel &amp; Tourism Portal</span>
-  </a>
+<!-- ── NAVBAR ── -->
+<nav id="navbar">
+  <div class="nav-logo">
+  <img src="images/Crislynn-logo.png" alt="Crislynn Ventures Logo">
+  </div>
   <ul class="nav-links">
-    <li><a href="#hero">Home</a></li>
-    <li><a href="#destinations">Destinations</a></li>
-    <li><a href="about.html">About Us</a></li>
-    <li><a href="#why">Hotels</a></li>
-    <li><a href="#why">Restaurants</a></li>
-    <li><a href="#events">Events</a></li>
-    <li><a href="contact.html">Contact</a></li>
+    <li><a href="#home">Home</a></li>
+    <li><a href="#experiences">Experiences</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#why-us">Why Crislynn</a></li>
+    <li><a href="#stories">Stories</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#contact" class="nav-cta">Design Your Journey</a></li>
   </ul>
-  <div class="nav-actions">
-    <a href="login.html" class="btn-solid">Login</a>
-    <a href="register.html" class="btn-solid">Register</a>
-   
+  <div class="nav-burger" id="navBurger">
+    <span></span><span></span><span></span>
   </div>
 </nav>
 
-<!-- ═══════════════════════════════════════
-     HERO — IMAGE SLIDESHOW
-════════════════════════════════════════ -->
+<!-- ── HERO ── -->
 <section id="hero">
-  <!-- Slideshow background layers -->
-  <div class="hero-slides">
-    <div class="hero-slide active" style="background-image: url('https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1600&q=80')"></div>
-    <div class="hero-slide"        style="background-image: url('https://images.unsplash.com/photo-1547970810-dc1eac37d174?w=1600&q=80')"></div>
-    <div class="hero-slide"        style="background-image: url('https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=1600&q=80')"></div>
-    <div class="hero-slide"        style="background-image: url('https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1600&q=80')"></div>
-    <div class="hero-slide"        style="background-image: url('https://images.unsplash.com/photo-1571564977040-a4b72a65f5b2?w=1600&q=80')"></div>
+  <div class="hero-bg">
+    <video class="hero-video" autoplay muted loop playsinline>
+      <source src="https://www.pexels.com/download/video/11025434/" type="video/mp4">
+    </video>
+    <div class="hero-video-overlay"></div>
   </div>
-
-  <!-- Dark gradient overlay -->
-  <div class="hero-overlay"></div>
-
-  <!-- Prev / Next arrows -->
-  <button class="slide-arrow slide-prev" aria-label="Previous slide">
-    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-      <polyline points="15 18 9 12 15 6"/>
-    </svg>
-  </button>
-  <button class="slide-arrow slide-next" aria-label="Next slide">
-    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-      <polyline points="9 18 15 12 9 6"/>
-    </svg>
-  </button>
-
-  <!-- Dot indicators (populated by JS) -->
-  <div class="slide-dots" id="slideDots"></div>
-
-  <!-- Hero text + search bar -->
   <div class="hero-content">
-    <h1>Discover the Magic of Kenya</h1>
-    <p>Explore attractions, book stays, find events &mdash; all in one place</p>
-    <div class="search-box">
-      <div class="search-field">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-        </svg>
-        <input type="text" placeholder="Where to?" />
-      </div>
-      <div class="search-field">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <rect x="3" y="4" width="18" height="18" rx="2"/>
-          <line x1="16" y1="2" x2="16" y2="6"/>
-          <line x1="8"  y1="2" x2="8"  y2="6"/>
-          <line x1="3"  y1="10" x2="21" y2="10"/>
-        </svg>
-        <input type="date" />
-      </div>
-      <div class="search-field">
-        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-        <select>
-          <option>1 Guest</option>
-          <option>2 Guests</option>
-          <option>3 Guests</option>
-          <option>4+ Guests</option>
-        </select>
-      </div>
-      <button class="btn-search">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-        </svg>
-        Search
-      </button>
+    <p class="hero-eyebrow">Coast &nbsp;·&nbsp; Culture &nbsp;·&nbsp; Wilderness</p>
+    <h1 class="hero-title">Turning Getaways<br>into <em>Great Stories.</em></h1>
+    <p class="hero-sub">From the tranquil shores of Malindi to Kenya's vast wildlife landscapes — journeys designed to be felt deeply, lived fully, and remembered long after you return.</p>
+    <div class="hero-btns">
+      <a href="#contact" class="btn-primary">Design Your Journey</a>
+      <a href="#experiences" class="btn-outline">Explore Experiences</a>
     </div>
   </div>
-
-  <!-- Scroll-down chevron -->
-  <div class="chevron-down">
-    <svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-      <polyline points="6 9 12 15 18 9"/>
-    </svg>
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════
-     POPULAR DESTINATIONS
-════════════════════════════════════════ -->
-<section id="destinations">
-  <h2 class="section-title">Popular Destinations</h2>
-  <div class="section-divider divider-orange"></div>
-  <div class="destinations-grid" id="destGrid"></div>
-    <div class="dest-cta">
-    <button class="dest-btn-view-all"> <a href="destinations.html">View All Destinations </a></button>
+<!-- ── VISUAL STORYTELLING STRIP ── -->
+<section id="visual-strip">
+  <div class="strip-header">
+    <p class="section-eyebrow">Every Journey, A Different Story</p>
+    
   </div>
-</section>
-
-<!-- ═══════════════════════════════════════
-     WHY TRAVEL WITH US
-════════════════════════════════════════ -->
-<section id="why">
-  <h2 class="section-title">Why Travel With Us</h2>
-  <div class="section-divider divider-green"></div>
-  <div class="why-grid">
-    <div class="why-card">
-      <div class="why-icon-wrap">
-        <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>
-      </div>
-      <h3>Verified Destinations</h3>
-      <p>All our destinations and accommodations are carefully verified for quality and authenticity.</p>
+  <div class="strip-grid">
+    <div class="strip-card">
+      <div class="strip-img" style="background-image:url('images/Sail.jpeg')"></div>
+      <div class="strip-overlay"></div>
+      <div class="strip-label">Sail</div>
     </div>
-    <div class="why-card">
-      <div class="why-icon-wrap">
-        <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 6v6l4 2"/>
-          <path d="M9 8.5h-.5a2 2 0 0 0 0 4H9"/>
-          <path d="M15.5 8.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5H15"/>
-        </svg>
-      </div>
-      <h3>Best Price Guarantee</h3>
-      <p>We guarantee the lowest prices. If you find a better deal, we'll match it.</p>
+    <div class="strip-card">
+      <div class="strip-img" style="background-image:url('images/Discover.jpeg')"></div>
+      <div class="strip-overlay"></div>
+      <div class="strip-label">Discover</div>
     </div>
-    <div class="why-card">
-      <div class="why-icon-wrap">
-        <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-          <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
-          <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/>
-          <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/>
-        </svg>
-      </div>
-      <h3>24/7 Customer Support</h3>
-      <p>Our dedicated support team is available round the clock to assist you.</p>
+    <div class="strip-card">
+      <div class="strip-img" style="background-image:url('images/Wander.jpg')"></div>
+      <div class="strip-overlay"></div>
+      <div class="strip-label">Wander</div>
+    </div>
+    <div class="strip-card">
+      <div class="strip-img" style="background-image:url('images/Pause.jpeg')"></div>
+      <div class="strip-overlay"></div>
+      <div class="strip-label">Pause</div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════
-     UPCOMING EVENTS & FESTIVALS
-════════════════════════════════════════ -->
-<section id="events">
-  <h2 class="section-title">Upcoming Events &amp; Festivals</h2>
-  <div class="section-divider divider-orange"></div>
-  <div class="events-grid" id="eventsGrid"></div>
-  <div class="events-cta">
-    <button class="btn-view-all">View All Events</button>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════
-     TESTIMONIALS
-════════════════════════════════════════ -->
-<section id="testimonials">
-  <h2 class="section-title">What Travellers Say</h2>
-  <div class="section-divider divider-orange"></div>
-  <div class="testi-grid">
-    <div class="testi-card">
-      <p class="testi-quote">"An incredible journey through Kenya! The service was exceptional, and every moment was unforgettable. Highly recommended to anyone seeking adventure."</p>
-      <div class="testi-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-      <div class="testi-author">
-        <div class="avatar">
-          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-        </div>
-        <div class="author-info">
-          <strong>Hussein Abdalla</strong>
-          <span>Dodoma, Tanzania</span>
-        </div>
+<!-- ── ABOUT ── -->
+<section id="about">
+  <div class="about-inner">
+    <div class="about-img-wrap reveal">
+      <img class="about-img" src="images/Ourstory.jpeg" alt="Kenya coast" loading="lazy">
+      <div class="about-badge">
+        <span class="badge-num">500+</span>
+        <span class="badge-label">Stories Crafted</span>
       </div>
     </div>
-    <div class="testi-card">
-      <p class="testi-quote">"I booked my wedding trip through this portal. The attention to detail and customer service made our honeymoon absolutely perfect. Thank you!"</p>
-      <div class="testi-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-      <div class="testi-author">
-        <div class="avatar">
-          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
+    <div class="about-text">
+      <p class="section-eyebrow reveal">Our Story</p>
+      <h2 class="about-title reveal reveal-delay-1">Rooted in the Coast.<br>Expansive in Reach.</h2>
+      <div class="story-divider reveal reveal-delay-1"></div>
+      <p class="about-p reveal reveal-delay-2">Rooted in Malindi on the Kenyan Coast, Crislynn Ventures is a boutique travel and lifestyle company dedicated to creating seamless, authentic, and unforgettable journeys. Our expertise along the coast gives us a unique perspective on the rhythms, colours, and experiences that make Kenya extraordinary.</p>
+      <p class="about-p reveal reveal-delay-2">From this foundation, we have grown to offer travel solutions across Kenya and beyond — blending premium mobility, handpicked accommodations, and immersive experiences to craft journeys that go far beyond the ordinary.</p>
+      <div class="about-stats reveal reveal-delay-3">
+        <div class="stat">
+          <span class="stat-num">8+</span>
+          <span class="stat-label">Years</span>
         </div>
-        <div class="author-info">
-          <strong>Amara Vutage</strong>
-          <span>Vihiga, Kenya</span>
+        <div class="stat">
+          <span class="stat-num">12</span>
+          <span class="stat-label">Destinations</span>
         </div>
-      </div>
-    </div>
-    <div class="testi-card">
-      <p class="testi-quote">"Great selection of destinations and accommodations. The booking process was smooth, and I discovered hidden gems I would never have found otherwise."</p>
-      <div class="testi-stars">&#9733;&#9733;&#9733;&#9733;<span class="star-empty">&#9733;</span></div>
-      <div class="testi-author">
-        <div class="avatar">
-          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-        </div>
-        <div class="author-info">
-          <strong>Michael Kirunyu</strong>
-          <span>Nairobi, Kenya</span>
+        <div class="stat">
+          <span class="stat-num">98%</span>
+          <span class="stat-label">Return Rate</span>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════
-     FOOTER
-════════════════════════════════════════ -->
+<!-- ── CUSTOM JOURNEYS BANNER ── -->
+<section id="custom-banner">
+  <div class="custom-inner">
+    <p class="section-eyebrow reveal">Designed Around You</p>
+    <h2 class="custom-title reveal reveal-delay-1">Not every journey fits inside a template —<br><em>and it shouldn't.</em></h2>
+    <p class="custom-sub reveal reveal-delay-2">Whether you are planning a romantic escape, family holiday, private celebration, corporate retreat, or multi-destination safari, we design travel shaped entirely around you.</p>
+    <a href="#contact" class="btn-primary reveal reveal-delay-3">Start Planning Your Custom Journey</a>
+  </div>
+</section>
+
+<!-- ── EXPERIENCES ── -->
+<section id="experiences">
+  <div class="experiences-header">
+    <p class="section-eyebrow reveal">Our Experiences</p>
+    <h2 class="section-title reveal reveal-delay-1">Journeys That Stay With You</h2>
+    <p class="experiences-intro reveal reveal-delay-2">Curated coastal escapes, cultural encounters, island hideaways, and signature safaris — each professionally designed to balance discovery with comfort.</p>
+  </div>
+
+  <!-- COAST & ISLANDS -->
+  <div class="exp-category reveal">
+    <div class="exp-cat-label">
+      <span class="exp-cat-eyebrow">01</span>
+      <h3 class="exp-cat-title">Coast &amp; Islands</h3>
+      <p class="exp-cat-desc">Salt air. Slow time. Endless horizons.</p>
+    </div>
+    <div class="exp-cards">
+
+      <div class="exp-card" data-slug="dhow-cruise">
+        <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1666778439853-540bae64fa9f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8ZGhvdyUyMGJvYXR8ZW58MHx8MHx8fDA%3D')"></div>
+        <div class="exp-card-body">
+          <div class="exp-card-tag">Full Day</div>
+          <h4 class="exp-card-title">Dhow Cruise Experience</h4>
+          <p class="exp-card-desc">Sail the Indian Ocean the timeless Swahili way. Swimming, sunset views, and moments the ocean keeps for you.</p>
+          <button class="exp-toggle" onclick="toggleItinerary(this)">View Itinerary ›</button>
+          <div class="exp-itinerary">
+            <ul>
+              <li>Afternoon pick-up and transfer to departure point</li>
+              <li>Welcome aboard followed by a relaxed coastal sail</li>
+              <li>Opportunities for swimming and photography</li>
+              <li>Spectacular sunset views across the water</li>
+              <li>Evening return transfer</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp-card" data-slug="island-escapades">
+        <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1672841828271-54340a6fbcd3?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8dHJvcGljYWwlMjBpc2xhbmR8ZW58MHx8MHx8fDA%3D')"></div>
+        <div class="exp-card-body">
+          <div class="exp-card-tag">Full Day</div>
+          <h4 class="exp-card-title">Island Escapades</h4>
+          <p class="exp-card-desc">Secluded shores, gentle tides, island time at its finest. Robinson or Sardenya Island — your choice.</p>
+          <button class="exp-toggle" onclick="toggleItinerary(this)">View Itinerary ›</button>
+          <div class="exp-itinerary">
+            <ul>
+              <li>Morning pick-up and transfer to departure point</li>
+              <li>Boat ride to Robinson or Sardenya Island</li>
+              <li>Time to swim, snorkel, beachcomb, or unwind</li>
+              <li>Fresh coastal lunch</li>
+              <li>Afternoon leisure before return transfer</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp-card" data-slug="watamu-marine-explorer">
+        <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1627981584479-9605e4e7d1d0?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8d2F0YW11fGVufDB8fDB8fHww')"></div>
+        <div class="exp-card-body">
+          <div class="exp-card-tag">Full Day</div>
+          <h4 class="exp-card-title">Watamu Marine Explorer</h4>
+          <p class="exp-card-desc">Coral gardens, turquoise waters, and the quiet rhythm of the ocean.</p>
+          <button class="exp-toggle" onclick="toggleItinerary(this)">View Itinerary ›</button>
+          <div class="exp-itinerary">
+            <ul>
+              <li>Morning pick-up and transfer to Watamu</li>
+              <li>Traditional dhow cruise across the marine park</li>
+              <li>Guided snorkeling with vibrant marine life</li>
+              <li>Explore scenic tidal creeks with birdwatching</li>
+              <li>Lunch at a renowned seafood restaurant</li>
+              <li>Optional kayaking or beach relaxation</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CULTURE & HERITAGE -->
+  <div class="exp-category reveal">
+    <div class="exp-cat-label">
+      <span class="exp-cat-eyebrow">02</span>
+      <h3 class="exp-cat-title">Culture &amp; Heritage</h3>
+      <p class="exp-cat-desc">Stories written in stone, spice, and tradition.</p>
+    </div>
+    <div class="exp-cards">
+
+      <div class="exp-card" data-slug="ancient-stones-mangrove">
+        <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1612103183244-7598b792bb05?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8bWFuZ3JvdmUlMjBmb3Jlc3R8ZW58MHx8MHx8fDA%3D')"></div>
+        <div class="exp-card-body">
+          <div class="exp-card-tag">Full Day</div>
+          <h4 class="exp-card-title">Ancient Stones to Mangrove Forest</h4>
+          <p class="exp-card-desc">From ancient ruins to whispering mangroves — a journey through time and nature.</p>
+          <button class="exp-toggle" onclick="toggleItinerary(this)">View Itinerary ›</button>
+          <div class="exp-itinerary">
+            <ul>
+              <li>Morning pick-up and scenic coastal drive</li>
+              <li>Guided tour of the ancient Gedi Ruins</li>
+              <li>Lunch at a nearby restaurant</li>
+              <li>Guided walk along the Mida Creek boardwalk</li>
+              <li>Learn about mangrove ecosystems and conservation</li>
+              <li>Return transfer</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp-card" data-slug="swahili-bites-henna">
+        <div class="exp-card-img" style="background-image:url('https://swahilifood.com/wp-content/uploads/JPEG-image-4E04-9EAB-62-0-1.webp')"></div>
+        <div class="exp-card-body">
+          <div class="exp-card-tag">Half / Full Day</div>
+          <h4 class="exp-card-title">Swahili Bites &amp; Henna Delight</h4>
+          <p class="exp-card-desc">Taste, create, and connect with the vibrant spirit of the Swahili coast.</p>
+          <button class="exp-toggle" onclick="toggleItinerary(this)">View Itinerary ›</button>
+          <div class="exp-itinerary">
+            <ul>
+              <li>Pick-up and introduction to Swahili culture</li>
+              <li>Guided visit to local markets</li>
+              <li>Henna artistry with optional hair braiding</li>
+              <li>Hands-on cooking session and tasting experience</li>
+              <li>Cultural storytelling and shopping time</li>
+              <li>Return transfer</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp-card" data-slug="golden-sands-marafa">
+        <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=600&auto=format&fit=crop&q=60')"></div>
+        <div class="exp-card-body">
+          <div class="exp-card-tag">Full Day</div>
+          <h4 class="exp-card-title">Golden Sands &amp; Marafa Adventure</h4>
+          <p class="exp-card-desc">Sculpted canyons, golden dunes, and island calm — one unforgettable coastal journey.</p>
+          <button class="exp-toggle" onclick="toggleItinerary(this)">View Itinerary ›</button>
+          <div class="exp-itinerary">
+            <ul>
+              <li>Morning pick-up with brief tour orientation</li>
+              <li>Scenic drive to Marafa Canyon ("Hell's Kitchen")</li>
+              <li>Continue to the Mambrui Sand Dunes</li>
+              <li>Lunch at a beachside or local restaurant</li>
+              <li>Afternoon relaxation at Robinson Island</li>
+              <li>Late afternoon return transfer</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- SAFARIS -->
+  <div class="exp-category reveal">
+    <div class="exp-cat-label">
+      <span class="exp-cat-eyebrow">03</span>
+      <h3 class="exp-cat-title">Safaris</h3>
+      <p class="exp-cat-desc">Where the land still leads.</p>
+    </div>
+    <div class="exp-cards">
+
+      <div class="exp-card" data-slug="tsavo-east-one-day">
+        <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=80')"></div>
+        <div class="exp-card-body">
+          <div class="exp-card-tag">Full Day</div>
+          <h4 class="exp-card-title">Tsavo East One-Day Safari</h4>
+          <p class="exp-card-desc">A single day. Africa's wilderness. Endless possibility.</p>
+          <button class="exp-toggle" onclick="toggleItinerary(this)">View Itinerary ›</button>
+          <div class="exp-itinerary">
+            <ul>
+              <li>Pick-up from Malindi; scenic drive to Tsavo East</li>
+              <li>Morning game drive through the park</li>
+              <li>Lunch at a safari lodge or tented camp</li>
+              <li>Afternoon game drive</li>
+              <li>Return to Malindi</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp-card" data-slug="tsavo-east-west">
+        <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&q=80')"></div>
+        <div class="exp-card-body">
+          <div class="exp-card-tag">3 Days · 2 Nights</div>
+          <h4 class="exp-card-title">Tsavo East &amp; West Safari</h4>
+          <p class="exp-card-desc">Two legendary parks. One unforgettable safari.</p>
+          <button class="exp-toggle" onclick="toggleItinerary(this)">View Itinerary ›</button>
+          <div class="exp-itinerary">
+            <ul>
+              <li>Day 1: Pick-up from Malindi; Tsavo East game drive; overnight</li>
+              <li>Day 2: Morning game drive; transfer to Tsavo West; afternoon game drive; overnight</li>
+              <li>Day 3: Morning game drive; breakfast; return to Malindi</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="exp-card" data-slug="bush-to-beach">
+        <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1623743424601-12be3807f99b?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8YWZyaWNhbiUyMHNhZmFyaXxlbnwwfHwwfHx8MA%3D%3D')"></div>
+        <div class="exp-card-body">
+          <div class="exp-card-tag">7 Days · 6 Nights</div>
+          <h4 class="exp-card-title">Bush to Beach — Maasai Mara &amp; Malindi</h4>
+          <p class="exp-card-desc">From the drama of the savannah to the calm of the ocean.</p>
+          <button class="exp-toggle" onclick="toggleItinerary(this)">View Itinerary ›</button>
+          <div class="exp-itinerary">
+            <ul>
+              <li>Day 1: Arrival in Nairobi; transfer to hotel; overnight</li>
+              <li>Day 2: Transfer to Maasai Mara; afternoon game drive; overnight</li>
+              <li>Day 3: Full day Maasai Mara game drives; overnight</li>
+              <li>Day 4: Optional balloon safari; afternoon game drive; overnight</li>
+              <li>Day 5: Morning game drive; return to Nairobi</li>
+              <li>Day 6: Flight to Malindi; transfer to beach resort; overnight</li>
+              <li>Day 7: Beach leisure; transfer to airport</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="experiences-cta reveal">
+    <a href="#contact" class="btn-primary">Design This Experience</a>
+  </div>
+</section>
+
+<!-- ── SERVICES ── -->
+<section id="services">
+  <div class="services-inner">
+    <p class="section-eyebrow reveal">Our Services</p>
+    <h2 class="section-title reveal reveal-delay-1">Everything, Seamlessly Arranged</h2>
+    <p class="services-sub reveal reveal-delay-2">Travel should feel effortless — and with Crislynn Ventures, every detail is professionally handled.</p>
+    <div class="services-grid">
+      <div class="service-item reveal">
+        <div class="service-num">01</div>
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3m-4 12h8a2 2 0 002-2v-8a2 2 0 00-2-2H9a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+        </div>
+        <h4 class="service-name">Mobility &amp; Transfers</h4>
+        <p class="service-desc">Self-drive or chauffeur-driven vehicles. Airport transfers, SGR pick-ups, long-distance, and corporate transport — every journey smooth, safe, and enjoyable.</p>
+      </div>
+      <div class="service-item reveal reveal-delay-1">
+        <div class="service-num">02</div>
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <h4 class="service-name">Stays &amp; Retreats</h4>
+        <p class="service-desc">Fully serviced studios, 1 and 2-bedroom apartments, homestays, and hotel bookings — handpicked for comfort, convenience, and coastal warmth.</p>
+      </div>
+      <div class="service-item reveal reveal-delay-2">
+        <div class="service-num">03</div>
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.64A2 2 0 012 .99h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+        </div>
+        <h4 class="service-name">Flights &amp; Logistics</h4>
+        <p class="service-desc">SGR and domestic flight bookings, charter flights, and bus travel — seamless transitions between destinations, stress-free journeys.</p>
+      </div>
+      <div class="service-item reveal reveal-delay-3">
+        <div class="service-num">04</div>
+        <div class="service-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        </div>
+        <h4 class="service-name">Safaris &amp; Excursions</h4>
+        <p class="service-desc">From marine parks and coastal mangroves to national reserves and cultural villages — every excursion guided by local expertise and authentic knowledge.</p>
+      </div>
+    </div>
+    <div class="services-cta reveal">
+      <a href="#contact" class="btn-primary">Request Your Experience</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── WHY US ── -->
+<section id="why-us">
+  <p class="section-eyebrow reveal">The Crislynn Difference</p>
+  <h2 class="section-title reveal reveal-delay-1">Thoughtfully Designed.<br>Professionally Delivered.</h2>
+  <div class="pillars-grid">
+    <div class="pillar reveal">
+      <div class="pillar-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6h16M4 10h10M4 14h7M4 18h4"/></svg>
+      </div>
+      <div class="pillar-dot"></div>
+      <div class="pillar-name">Tailored, Never Templated</div>
+      <p class="pillar-desc">Every journey is crafted from scratch around your pace, style, and interests — never off a shelf.</p>
+    </div>
+    <div class="pillar reveal reveal-delay-1">
+      <div class="pillar-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3C8 3 4 7 4 12c0 3 1.5 5.5 4 7M12 3c4 0 8 4 8 9 0 3-1.5 5.5-4 7M12 3v18M4 12h16"/></svg>
+      </div>
+      <div class="pillar-dot"></div>
+      <div class="pillar-name">Coastal Roots, National Reach</div>
+      <p class="pillar-desc">Our foundation in the coast ensures authenticity, while our offerings span Kenya and beyond.</p>
+    </div>
+    <div class="pillar reveal reveal-delay-2">
+      <div class="pillar-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      </div>
+      <div class="pillar-dot"></div>
+      <div class="pillar-name">Trusted Local Partners</div>
+      <p class="pillar-desc">Carefully selected guides and partners who share our commitment to safety, comfort, and authenticity.</p>
+    </div>
+    <div class="pillar reveal reveal-delay-3">
+      <div class="pillar-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      </div>
+      <div class="pillar-dot"></div>
+      <div class="pillar-name">Seamless from Start to Finish</div>
+      <p class="pillar-desc">Mobility, stays, flights, and excursions — all handled under one trusted brand so you arrive fully present.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── STORIES ── -->
+<section id="stories">
+  <div class="stories-inner">
+    <p class="section-eyebrow reveal">Stories From the Road</p>
+    <h2 class="section-title reveal reveal-delay-1">Inspired by journeys already lived.</h2>
+    <div class="stories-grid">
+      <div class="story-quote reveal">
+        <div class="quote-mark">"</div>
+        <p class="quote-text">Effortless from start to finish — every detail felt intentional.</p>
+        <div class="quote-source">Coastal Escape, 2025</div>
+      </div>
+      <div class="story-quote reveal reveal-delay-1">
+        <div class="quote-mark">"</div>
+        <p class="quote-text">From the coast to the wild, everything flowed beautifully.</p>
+        <div class="quote-source">Bush to Beach Safari, 2025</div>
+      </div>
+      <div class="story-quote reveal reveal-delay-2">
+        <div class="quote-mark">"</div>
+        <p class="quote-text">Professional, personal, and unforgettable. We will be back.</p>
+        <div class="quote-source">Family Journey, 2024</div>
+      </div>
+      <div class="story-quote reveal reveal-delay-3">
+        <div class="quote-mark">"</div>
+        <p class="quote-text">3 days. One dhow. A memory that stayed.</p>
+        <div class="quote-source">Dhow Cruise, 2025</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CONTACT ── -->
+<section id="contact">
+  <div class="contact-inner">
+    <div class="contact-left">
+      <p class="section-eyebrow reveal">Begin Here</p>
+      <h2 class="contact-title reveal reveal-delay-1">Let's Design Your<br>Next Journey</h2>
+      <div class="contact-divider reveal reveal-delay-1"></div>
+      <p class="contact-tagline reveal reveal-delay-2">Tell us where you're dreaming of going — we'll help bring it to life. We respond within 2 hours to start crafting your journey.</p>
+      <div class="contact-detail reveal reveal-delay-2">
+        <div class="contact-detail-label">Email</div>
+        <div class="contact-detail-value">karibu@crislynnventures.co.ke</div>
+      </div>
+      <div class="contact-detail reveal reveal-delay-2">
+        <div class="contact-detail-label">Phone &amp; WhatsApp</div>
+        <div class="contact-detail-value">+254 794 464 898</div>
+      </div>
+      <div class="contact-detail reveal reveal-delay-2">
+        <div class="contact-detail-label">Address</div>
+        <div class="contact-detail-value">Apartment 7, Kijani Suites<br>Lamu Road, Malindi, Kenya</div>
+      </div>
+    </div>
+    <div>
+      <div class="contact-form reveal reveal-delay-1">
+        <div class="form-field">
+          <label>Full Name</label>
+          <input type="text" placeholder="Your full name">
+        </div>
+        <div class="form-field">
+          <label>Email Address</label>
+          <input type="email" placeholder="your@email.com">
+        </div>
+        <div class="form-field">
+          <label>Phone Number</label>
+          <input type="tel" placeholder="+254 …">
+        </div>
+        <div class="form-field">
+          <label>Preferred Travel Dates</label>
+          <input type="text" placeholder="e.g. April 2026">
+        </div>
+        <div class="form-field full">
+          <label>Type of Experience</label>
+          <select>
+            <option value="" disabled selected>Select an experience…</option>
+            <option>Coastal Escape</option>
+            <option>Safari Adventure</option>
+            <option>Culture &amp; Heritage Tour</option>
+            <option>Bush to Beach Combo</option>
+            <option>Island Getaway</option>
+            <option>Corporate Travel</option>
+            <option>Custom Journey</option>
+          </select>
+        </div>
+        <div class="form-field full">
+          <label>Tell us about your dream journey</label>
+          <textarea placeholder="Where do you want to go? What matters most to you?"></textarea>
+        </div>
+        <div class="form-submit-row">
+          <button class="btn-primary" onclick="handleSubmit(event)">Request Services &nbsp;›</button>
+          <span class="form-note">We respond within 2 hours. Your details are kept private.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
 <footer>
-  <div class="footer-grid">
-    <!-- About -->
-    <div class="footer-section">
-      <h4>About Us</h4>
-      <p>Your premier destination for discovering and booking authentic Kenyan travel experiences. We connect travelers with unforgettable adventures across Kenya's most beautiful destinations.</p>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <div class="logo-mark">C</div>
+        Crislynn<br><span style="font-size:13px;font-weight:300;letter-spacing:0.18em;color:rgba(255,255,255,0.5)">VENTURES</span>
+      </div>
+      <p>Rooted in Malindi on the Kenyan Coast — crafting seamless, authentic, and unforgettable journeys across Kenya and beyond since 2018.</p>
+      <div class="footer-badge">
+        <div class="footer-badge-dot">✦</div>
+        <div class="footer-badge-text">
+          <strong>Boutique Travel &amp; Lifestyle</strong>
+          Malindi, Kenya
+        </div>
+      </div>
     </div>
-    <!-- Quick Links -->
-    <div class="footer-section">
-      <h4>Quick Links</h4>
-      <ul class="footer-links">
-        <li><a href="#destinations">Destinations</a></li>
-        <li><a href="#why">Hotels</a></li>
-        <li><a href="#why">Restaurants</a></li>
-        <li><a href="#events">Events</a></li>
+    <div class="footer-col">
+      <h4>Experiences</h4>
+      <ul>
+        <li><a href="#experiences">Dhow Cruise</a></li>
+        <li><a href="#experiences">Island Escapades</a></li>
+        <li><a href="#experiences">Watamu Marine Explorer</a></li>
+        <li><a href="#experiences">Tsavo Safari</a></li>
+        <li><a href="#experiences">Bush to Beach</a></li>
       </ul>
     </div>
-    <!-- Contact -->
-    <div class="footer-section">
-      <h4>Contact Info</h4>
-      <div class="contact-item">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-          <polyline points="22,6 12,13 2,6"/>
-        </svg>
-        samuelkamande997@gmail.com
-      </div>
-      <div class="contact-item">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.5 2 2 0 0 1 3.58 1.36h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-        </svg>
-        +254 798 595 394
-      </div>
-      <div class="contact-item">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-        </svg>
-        Nairobi, Kenya
-      </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#about">Our Story</a></li>
+        <li><a href="#why-us">Why Crislynn</a></li>
+        <li><a href="#services">Our Services</a></li>
+        <li><a href="#stories">Stories</a></li>
+        <li><a href="#contact">Contact Us</a></li>
+      </ul>
     </div>
-    <!-- Social -->
-    <div class="footer-section">
-      <h4>Follow Us</h4>
-      <div class="social-icons">
-        <button class="social-btn" title="Facebook">
-          <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-          </svg>
-        </button>
-        <button class="social-btn" title="Twitter">
-          <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
-          </svg>
-        </button>
-        <button class="social-btn" title="Instagram">
-          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
-          </svg>
-        </button>
+    <div class="footer-col">
+      <h4>Get in Touch</h4>
+      <div class="footer-contact-item">
+        <div class="label">Email</div>
+        <div class="value">karibu@crislynnventures.co.ke</div>
       </div>
+      <div class="footer-contact-item">
+        <div class="label">Phone / WhatsApp</div>
+        <div class="value">+254 794 464 898</div>
+      </div>
+      <div class="footer-contact-item">
+        <div class="label">Address</div>
+        <div class="value">Apt 7, Kijani Suites, Lamu Road<br>Malindi, Kenya</div>
+      </div>
+      <p style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin:20px 0 10px;">Follow Our Journey</p>
+      <div class="footer-socials">
+        <a href="#" class="social-btn">f</a>
+        <a href="#" class="social-btn" style="font-style:italic">ig</a>
+        <a href="#" class="social-btn">𝕏</a>
+        <a href="#" class="social-btn">tt</a>
+      </div>
+      <p style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:12px;">@CrislynnVentures</p>
     </div>
   </div>
   <div class="footer-bottom">
-    <p>&copy; 2026 Travel &amp; Tourism Portal. All rights reserved.</p>
+    <p>© 2026 Crislynn Ventures Ltd. All rights reserved.</p>
+    <div class="footer-bottom-links">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms &amp; Conditions</a>
+    </div>
   </div>
 </footer>
 
-<script src="script.js"></script>
+<script src="main.js"></script>
+<script src="experiences.js"></script>
 </body>
 </html>
