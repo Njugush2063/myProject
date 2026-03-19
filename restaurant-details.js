@@ -23,14 +23,13 @@ document.addEventListener('DOMContentLoaded', async function () {
   /* ── Fetch from Supabase ── */
   let restaurant = null;
   try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/restaurants?slug=eq.${slug}&select=*&limit=1`,
-      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-    );
-    const data = await res.json();
-    restaurant = data[0] || null;
+    restaurant = await getRestaurant(slug);
   } catch (err) {
     console.error('Supabase error:', err);
+    document.getElementById('heroTitle').textContent = 'Could not load restaurant';
+    document.getElementById('heroBg').style.background = '#1a1a1a';
+    document.getElementById('breadcrumbName').textContent = 'Error';
+    return;
   }
 
   if (!restaurant) {
