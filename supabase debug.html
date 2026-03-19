@@ -19,130 +19,57 @@
 <body>
   <h2>🔧 Supabase Connection Debug</h2>
   <p>This page tests your Supabase connection step by step.</p>
-
-  <div class="test pending" id="t1">
-    <div class="label">Test 1: Can the browser reach Supabase?</div>
-    <div class="result" id="r1">Running…</div>
-  </div>
-
-  <div class="test pending" id="t2">
-    <div class="label">Test 2: Does the <code>restaurants</code> table exist and have data?</div>
-    <div class="result" id="r2">Waiting…</div>
-  </div>
-
-  <div class="test pending" id="t3">
-    <div class="label">Test 3: Can we fetch Mama Oliech by slug?</div>
-    <div class="result" id="r3">Waiting…</div>
-  </div>
-
-  <div class="test pending" id="t4">
-    <div class="label">Test 4: Does the row have <code>price_per_person_min</code> column?</div>
-    <div class="result" id="r4">Waiting…</div>
-  </div>
-
-  <div class="test pending" id="t5">
-    <div class="label">Test 5: Raw API response (first restaurant, all columns)</div>
-    <div class="result" id="r5">Waiting…</div>
-  </div>
-
-  <button onclick="runTests()">▶ Run Tests Again</button>
-
+  <div class="test pending" id="t1"><div class="label">Test 1: Can the browser reach Supabase?</div><div class="result" id="r1">Running…</div></div>
+  <div class="test pending" id="t2"><div class="label">Test 2: Does the restaurants table exist and have data?</div><div class="result" id="r2">Waiting…</div></div>
+  <div class="test pending" id="t3"><div class="label">Test 3: Can we fetch Mama Oliech by slug?</div><div class="result" id="r3">Waiting…</div></div>
+  <div class="test pending" id="t4"><div class="label">Test 4: Does the row have price_per_person_min column?</div><div class="result" id="r4">Waiting…</div></div>
+  <div class="test pending" id="t5"><div class="label">Test 5: Raw API response (first restaurant, all columns)</div><div class="result" id="r5">Waiting…</div></div>
+  <button onclick="runTests()">Run Tests Again</button>
   <script>
     const URL = 'https://cbyipmrozqsntojiartw.supabase.co';
     const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieWlwbXJvenFzbnRvamlhcnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTkxNTQsImV4cCI6MjA4ODk3NTE1NH0.31TAhmUCV_Uh0W8FGnR2_TLCZDU4YBM1U5LMSMc5JZs';
-    const H   = { 'apikey': KEY, 'Authorization': `Bearer ${KEY}` };
-
+    const H = { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY };
     function mark(id, pass, msg, detail) {
-      const el = document.getElementById(id);
-      el.className = 'test ' + (pass ? 'pass' : 'fail');
-      document.getElementById('r' + id.slice(1)).innerHTML =
-        (pass ? '✅ ' : '❌ ') + msg +
-        (detail ? `<pre>${JSON.stringify(detail, null, 2)}</pre>` : '');
+      document.getElementById(id).className = 'test ' + (pass ? 'pass' : 'fail');
+      document.getElementById('r' + id.slice(1)).innerHTML = (pass ? '✅ ' : '❌ ') + msg + (detail ? '<pre>' + JSON.stringify(detail, null, 2) + '</pre>' : '');
     }
-
     async function runTests() {
-      // Reset
-      ['t1','t2','t3','t4','t5'].forEach(id => {
-        document.getElementById(id).className = 'test pending';
-      });
+      ['t1','t2','t3','t4','t5'].forEach(id => { document.getElementById(id).className = 'test pending'; });
       document.getElementById('r1').textContent = 'Running…';
-      ['r2','r3','r4','r5'].forEach(id => {
-        document.getElementById(id).textContent = 'Waiting…';
-      });
-
-      // Test 1 — basic reachability
+      ['r2','r3','r4','r5'].forEach(id => { document.getElementById(id).textContent = 'Waiting…'; });
       try {
-        const res = await fetch(`${URL}/rest/v1/`, { headers: H });
-        if (res.ok || res.status === 200) {
-          mark('t1', true, `Reached Supabase. Status: ${res.status}`);
-        } else {
-          mark('t1', false, `Reached Supabase but got status: ${res.status}. Check your API key.`);
-          return;
-        }
-      } catch(e) {
-        mark('t1', false, `Network error: ${e.message}`);
-        return;
-      }
-
-      // Test 2 — restaurants table
+        const res = await fetch(URL + '/rest/v1/', { headers: H });
+        if (res.ok || res.status === 200) { mark('t1', true, 'Reached Supabase. Status: ' + res.status); }
+        else { mark('t1', false, 'Got status: ' + res.status + '. Key rejected.'); return; }
+      } catch(e) { mark('t1', false, 'Network error: ' + e.message); return; }
       try {
-        const res = await fetch(`${URL}/rest/v1/restaurants?select=slug,name&limit=3`, { headers: H });
+        const res = await fetch(URL + '/rest/v1/restaurants?select=slug,name&limit=3', { headers: H });
         const data = await res.json();
-        if (res.ok && Array.isArray(data) && data.length > 0) {
-          mark('t2', true, `Table exists. Found ${data.length} rows. First: "${data[0].name}"`, data);
-        } else if (Array.isArray(data) && data.length === 0) {
-          mark('t2', false, 'Table exists but is EMPTY — run the insert-restaurants.sql in Supabase!', data);
-        } else {
-          mark('t2', false, `Unexpected response (status ${res.status})`, data);
-        }
-      } catch(e) {
-        mark('t2', false, `Error: ${e.message}`);
-      }
-
-      // Test 3 — fetch by slug
+        if (res.ok && Array.isArray(data) && data.length > 0) { mark('t2', true, 'Found ' + data.length + ' rows. First: "' + data[0].name + '"', data); }
+        else if (Array.isArray(data) && data.length === 0) { mark('t2', false, 'Table EMPTY — run insert-restaurants.sql!', data); }
+        else { mark('t2', false, 'Error status ' + res.status, data); }
+      } catch(e) { mark('t2', false, 'Error: ' + e.message); }
       try {
-        const res = await fetch(`${URL}/rest/v1/restaurants?slug=eq.mama-oliech&select=*&limit=1`, { headers: H });
+        const res = await fetch(URL + '/rest/v1/restaurants?slug=eq.mama-oliech&select=*&limit=1', { headers: H });
         const data = await res.json();
-        if (res.ok && Array.isArray(data) && data.length > 0) {
-          mark('t3', true, `Found Mama Oliech by slug ✓`);
-        } else if (Array.isArray(data) && data.length === 0) {
-          mark('t3', false, 'Slug "mama-oliech" not found — check your data or try a different slug', data);
-        } else {
-          mark('t3', false, `Error (status ${res.status})`, data);
-        }
-      } catch(e) {
-        mark('t3', false, `Error: ${e.message}`);
-      }
-
-      // Test 4 — price column exists
+        if (res.ok && Array.isArray(data) && data.length > 0) { mark('t3', true, 'Found Mama Oliech ✓'); }
+        else if (Array.isArray(data) && data.length === 0) { mark('t3', false, 'Slug not found', data); }
+        else { mark('t3', false, 'Error ' + res.status, data); }
+      } catch(e) { mark('t3', false, 'Error: ' + e.message); }
       try {
-        const res = await fetch(`${URL}/rest/v1/restaurants?slug=eq.mama-oliech&select=slug,price_per_person_min,price_per_person_max&limit=1`, { headers: H });
+        const res = await fetch(URL + '/rest/v1/restaurants?slug=eq.mama-oliech&select=slug,price_per_person_min,price_per_person_max&limit=1', { headers: H });
         const data = await res.json();
-        if (res.ok && Array.isArray(data) && data.length > 0 && data[0].price_per_person_min !== undefined) {
-          mark('t4', true, `price_per_person_min = KSh ${data[0].price_per_person_min}`, data[0]);
-        } else if (res.ok && Array.isArray(data) && data.length > 0 && data[0].price_per_person_min === undefined) {
-          mark('t4', false, 'Column does not exist — run add-prices-and-menu.sql in Supabase first!', data[0]);
-        } else {
-          mark('t4', false, 'Could not check — run tests 2 & 3 first', data);
-        }
-      } catch(e) {
-        mark('t4', false, `Error: ${e.message}`);
-      }
-
-      // Test 5 — raw full row
+        if (res.ok && Array.isArray(data) && data.length > 0 && data[0].price_per_person_min !== undefined) { mark('t4', true, 'price_per_person_min = KSh ' + data[0].price_per_person_min, data[0]); }
+        else if (res.ok && Array.isArray(data) && data.length > 0) { mark('t4', false, 'Column missing — run add-prices-and-menu.sql!', data[0]); }
+        else { mark('t4', false, 'Could not check', data); }
+      } catch(e) { mark('t4', false, 'Error: ' + e.message); }
       try {
-        const res = await fetch(`${URL}/rest/v1/restaurants?select=*&limit=1&order=name.asc`, { headers: H });
+        const res = await fetch(URL + '/rest/v1/restaurants?select=*&limit=1&order=name.asc', { headers: H });
         const data = await res.json();
-        if (res.ok && Array.isArray(data) && data.length > 0) {
-          mark('t5', true, `Full first row (all columns):`, data[0]);
-        } else {
-          mark('t5', false, `No data`, data);
-        }
-      } catch(e) {
-        mark('t5', false, `Error: ${e.message}`);
-      }
+        if (res.ok && Array.isArray(data) && data.length > 0) { mark('t5', true, 'Full first row:', data[0]); }
+        else { mark('t5', false, 'No data', data); }
+      } catch(e) { mark('t5', false, 'Error: ' + e.message); }
     }
-
     runTests();
   </script>
 </body>
