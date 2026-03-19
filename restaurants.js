@@ -1,0 +1,209 @@
+/* ============================================================
+   RESTAURANTS PAGE — restaurants.js
+   Fetches all restaurants from Supabase and renders them
+   ============================================================ */
+
+document.addEventListener('DOMContentLoaded', async function () {
+
+  /* ── State ── */
+  let allRestaurants = [];
+  let filtered = [];
+  let activeCity = 'all';
+
+  /* ── Navbar scroll ── */
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  /* ── Fetch from Supabase ── */
+  async function fetchRestaurants() {
+    showSkeletons();
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/restaurants?select=*&order=featured.desc,name.asc`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+      );
+      if (!res.ok) throw new Error('Fetch failed');
+      allRestaurants = await res.json();
+      filtered = [...allRestaurants];
+      renderAll();
+      document.getElementById('statTotal').textContent = allRestaurants.length;
+    } catch (err) {
+      console.error('Supabase error:', err);
+      // Fallback to static data if Supabase fails
+      allRestaurants = getStaticRestaurants();
+      filtered = [...allRestaurants];
+      renderAll();
+    }
+  }
+
+  /* ── Render both grids ── */
+  function renderAll() {
+    const featured = filtered.filter(r => r.featured);
+    const rest = filtered.filter(r => !r.featured);
+
+    const featuredSection = document.getElementById('featuredSection');
+    const featuredGrid = document.getElementById('featuredGrid');
+
+    if (featured.length > 0) {
+      featuredSection.style.display = 'block';
+      featuredGrid.innerHTML = featured.map(buildCard).join('');
+    } else {
+      featuredSection.style.display = 'none';
+    }
+
+    const grid = document.getElementById('restaurantsGrid');
+    const count = document.getElementById('resultsCount');
+    const empty = document.getElementById('emptyState');
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+    } else {
+      empty.style.display = 'none';
+      grid.innerHTML = rest.map(buildCard).join('');
+    }
+
+    count.textContent = `${filtered.length} restaurant${filtered.length !== 1 ? 's' : ''}`;
+  }
+
+  /* ── Build Card HTML ── */
+  function buildCard(r) {
+    const priceSymbol = buildPriceSymbol(r.price_level);
+    const shortDesc = r.description.length > 110
+      ? r.description.substring(0, 110) + '…'
+      : r.description;
+
+    return `
+      <a class="rest-card" href="restaurant-details.html?id=${r.slug}">
+        <div class="rest-card-img-wrap">
+          <img class="rest-card-img" src="${r.image_hero}" alt="${r.name}" loading="lazy"
+               onerror="this.src='https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80'"/>
+          ${r.featured ? '<div class="rest-card-badge">⭐ Featured</div>' : ''}
+          <div class="rest-card-cuisine-badge">${r.cuisine}</div>
+        </div>
+        <div class="rest-card-body">
+          <div class="rest-card-city">📍 ${r.city}</div>
+          <div class="rest-card-name">${r.name}</div>
+          <div class="rest-card-desc">${shortDesc}</div>
+          <div class="rest-card-footer">
+            <div class="rest-card-price">${priceSymbol}</div>
+            <div class="rest-card-cta">View Restaurant →</div>
+          </div>
+        </div>
+      </a>`;
+  }
+
+  /* ── Price Symbol ── */
+  function buildPriceSymbol(level) {
+    const labels = ['', 'Budget', 'Mid-range', 'Upscale', 'Fine Dining'];
+    let html = '';
+    for (let i = 1; i <= 4; i++) {
+      html += `<span class="price-symbol ${i <= level ? '' : 'dimmed'}">KSh</span> `;
+    }
+    return html + `<span style="font-size:0.76rem;color:#999;margin-left:4px">${labels[level] || ''}</span>`;
+  }
+
+  /* ── Skeleton loaders ── */
+  function showSkeletons() {
+    const grid = document.getElementById('restaurantsGrid');
+    grid.innerHTML = Array(9).fill('<div class="skeleton"></div>').join('');
+  }
+
+  /* ── Apply all filters ── */
+  window.applyFilters = function () {
+    const cuisine = document.getElementById('cuisineFilter').value;
+    const price = document.getElementById('priceFilter').value;
+    const sort = document.getElementById('sortFilter').value;
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+
+    filtered = allRestaurants.filter(r => {
+      const matchCity = activeCity === 'all' || r.city === activeCity;
+      const matchCuisine = cuisine === 'all' || r.cuisine.toLowerCase().includes(cuisine.toLowerCase());
+      const matchPrice = price === 'all' || String(r.price_level) === price;
+      const matchSearch = !search ||
+        r.name.toLowerCase().includes(search) ||
+        r.city.toLowerCase().includes(search) ||
+        r.cuisine.toLowerCase().includes(search) ||
+        (r.description && r.description.toLowerCase().includes(search)) ||
+        (r.tags && r.tags.some(t => t.includes(search)));
+      return matchCity && matchCuisine && matchPrice && matchSearch;
+    });
+
+    // Sort
+    if (sort === 'name') {
+      filtered.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sort === 'price-asc') {
+      filtered.sort((a, b) => a.price_level - b.price_level);
+    } else if (sort === 'price-desc') {
+      filtered.sort((a, b) => b.price_level - a.price_level);
+    } else {
+      // featured first
+      filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+    }
+
+    // Update title
+    const titleEl = document.getElementById('resultsTitle');
+    if (activeCity !== 'all') {
+      titleEl.textContent = `Restaurants in ${activeCity}`;
+    } else if (cuisine !== 'all') {
+      titleEl.textContent = `${cuisine} Restaurants`;
+    } else {
+      titleEl.textContent = 'All Restaurants';
+    }
+
+    renderAll();
+  };
+
+  /* ── City filter ── */
+  window.filterCity = function (el, city) {
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    activeCity = city;
+    applyFilters();
+  };
+
+  /* ── Search ── */
+  window.applySearch = applyFilters;
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') applyFilters();
+  });
+
+  /* ── Cuisine section click ── */
+  window.setCuisineFilter = function (cuisine) {
+    document.getElementById('cuisineFilter').value = cuisine;
+    applyFilters();
+    document.querySelector('.main-content').scrollIntoView({ behavior: 'smooth' });
+  };
+
+  /* ── Clear all ── */
+  window.clearFilters = function () {
+    activeCity = 'all';
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    document.querySelector('.pill').classList.add('active');
+    document.getElementById('cuisineFilter').value = 'all';
+    document.getElementById('priceFilter').value = 'all';
+    document.getElementById('sortFilter').value = 'featured';
+    document.getElementById('searchInput').value = '';
+    filtered = [...allRestaurants];
+    document.getElementById('resultsTitle').textContent = 'All Restaurants';
+    renderAll();
+  };
+
+  /* ── Static fallback data (first 6 featured) ── */
+  function getStaticRestaurants() {
+    return [
+      { slug: 'carnivore-restaurant', name: 'Carnivore Restaurant', city: 'Nairobi', cuisine: 'BBQ & Steakhouse', price_level: 3, price_range: 'Upscale', featured: true, description: 'World-famous "Beast of a Feast" all-you-can-eat meat restaurant — a Nairobi icon since 1980.', image_hero: 'https://images.unsplash.com/photo-1558030006-450675393462?w=800&q=80', tags: ['bbq','nairobi'] },
+      { slug: 'mama-oliech', name: 'Mama Oliech Restaurant', city: 'Nairobi', cuisine: 'Kenyan (Fish)', price_level: 1, price_range: 'Budget', featured: true, description: 'Nairobi\'s most famous fried tilapia restaurant — a legendary institution.', image_hero: 'https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?w=800&q=80', tags: ['kenyan','fish'] },
+      { slug: 'tamarind-dhow', name: 'Tamarind Dhow', city: 'Mombasa', cuisine: 'Swahili & Seafood', price_level: 3, price_range: 'Upscale', featured: true, description: 'A unique dining experience on a traditional sailing dhow with Mombasa harbour views.', image_hero: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80', tags: ['swahili','seafood','mombasa'] },
+      { slug: 'the-moorings-kisumu', name: 'The Moorings', city: 'Kisumu', cuisine: 'African & Seafood', price_level: 2, price_range: 'Mid-range', featured: true, description: 'A floating restaurant on Lake Victoria with spectacular sunset views.', image_hero: 'https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?w=800&q=80', tags: ['lake victoria','seafood','kisumu'] },
+      { slug: 'talisman-restaurant', name: 'Talisman Restaurant', city: 'Nairobi', cuisine: 'International & African', price_level: 3, price_range: 'Upscale', featured: true, description: 'A Karen institution with beautiful fairy-lit garden and eclectic world menu.', image_hero: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=800&q=80', tags: ['international','karen'] },
+      { slug: 'forodhani-mombasa', name: 'Forodhani Restaurant', city: 'Mombasa', cuisine: 'Swahili & Seafood', price_level: 2, price_range: 'Mid-range', featured: true, description: 'Authentic Swahili seafood in the heart of Mombasa\'s historic Old Town.', image_hero: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80', tags: ['swahili','seafood','mombasa'] }
+    ];
+  }
+
+  /* ── Init ── */
+  fetchRestaurants();
+
+});
