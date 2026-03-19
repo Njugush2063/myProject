@@ -1,351 +1,209 @@
-/* ============================================================
-   RESTAURANT DETAILS — restaurant-details.js
-   Fetches a single restaurant from Supabase by slug
-   ============================================================ */
+// restaurant-details.js - Updated with debugging
+console.log('🚀 Restaurant details page loaded');
 
-document.addEventListener('DOMContentLoaded', async function () {
+// Get slug from URL
+const urlParams = new URLSearchParams(window.location.search);
+const slug = urlParams.get('id');
+console.log('📍 Looking for restaurant with slug:', slug);
 
-  /* ── Navbar scroll ── */
-  const navbar = document.getElementById('navbar');
-  window.addEventListener('scroll', () => {
-    navbar.classList.toggle('scrolled', window.scrollY > 40);
-  });
-
-  /* ── Get slug from URL ── */
-  const params = new URLSearchParams(window.location.search);
-  const slug = params.get('id');
-
-  if (!slug) {
-    document.getElementById('heroTitle').textContent = 'Restaurant not found';
-    return;
-  }
-
-  /* ── Fetch from Supabase ── */
-  let restaurant = null;
-  try {
-    restaurant = await getRestaurant(slug);
-  } catch (err) {
-    console.error('Supabase error:', err);
-    document.getElementById('heroTitle').textContent = 'Could not load restaurant';
-    document.getElementById('heroBg').style.background = '#1a1a1a';
-    document.getElementById('breadcrumbName').textContent = 'Error';
-    return;
-  }
-
-  if (!restaurant) {
-    document.getElementById('heroTitle').textContent = 'Restaurant not found';
-    return;
-  }
-
-  /* ── Set page title ── */
-  document.title = `${restaurant.name} — Discover the Magic of Kenya`;
-
-  /* ── Populate Page ── */
-  populatePage(restaurant);
-  buildGallery(restaurant.image_gallery || [restaurant.image_hero]);
-  buildHighlights(restaurant.highlights || []);
-  buildExperience(restaurant);
-  buildMenu(restaurant);
-  populateSidebar(restaurant);
-  updateMap(restaurant);
-  fetchSimilar(restaurant);
-
-  /* ── Set min date for reservation ── */
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('resDate').min = today;
-  document.getElementById('resDate').value = today;
-
-  /* ── Scroll to reservation from hero button ── */
-  document.getElementById('reserveBtn').addEventListener('click', () => {
-    document.getElementById('bookingSidebar').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-  document.getElementById('galleryBtn').addEventListener('click', () => {
-    openLightbox(0);
-  });
-
-});
-
-/* ── Populate Hero & Strip ── */
-function populatePage(r) {
-  // Hero background
-  document.getElementById('heroBg').style.backgroundImage = `url('${r.image_hero}')`;
-
-  // Hero text
-  set('breadcrumbName', r.name);
-  set('heroCuisine', r.cuisine);
-  set('heroCity', `📍 ${r.city}`);
-  set('heroTitle', r.name);
-
-  // Show real KSh price if available, else price_range label
-  if (r.price_per_person_min && r.price_per_person_max) {
-    set('heroPriceRange', `KSh ${r.price_per_person_min.toLocaleString('en-KE')} – KSh ${r.price_per_person_max.toLocaleString('en-KE')} per person`);
-  } else {
-    set('heroPriceRange', r.price_range);
-  }
-  set('heroHours', r.opening_hours || 'See details');
-
-  // Info strip
-  set('stripCuisine', r.cuisine);
-  set('stripPrice', r.price_range);
-  set('stripLocation', `${r.city}, Kenya`);
-  set('stripHours', r.opening_hours ? r.opening_hours.split('|')[0].trim() : '—');
-
-  // Overview
-  set('overviewText', r.description);
-
-  // Map overlay
-  set('mapCardName', r.name);
-  set('mapCardLocation', `${r.location}, ${r.city}`);
+// Show debug info on page
+function showDebugInfo(message, isError = false) {
+    const container = document.querySelector('.restaurant-detail-container');
+    if (container) {
+        const debugDiv = document.createElement('div');
+        debugDiv.style.cssText = `
+            background: ${isError ? '#ffebee' : '#e8f5e8'};
+            color: ${isError ? '#c62828' : '#2e7d32'};
+            padding: 16px;
+            margin: 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            border: 1px solid ${isError ? '#ef9a9a' : '#a5d6a7'};
+        `;
+        debugDiv.innerHTML = `<strong>🔍 Debug:</strong> ${message}`;
+        container.prepend(debugDiv);
+    }
 }
 
-/* ── Populate Sidebar ── */
-function populateSidebar(r) {
-  // Show real KSh price range if available
-  const priceEl = document.getElementById('sidebarPriceKsh');
-  if (r.price_per_person_min && r.price_per_person_max) {
-    priceEl.innerHTML = `KSh ${r.price_per_person_min.toLocaleString('en-KE')} – ${r.price_per_person_max.toLocaleString('en-KE')}`;
-  } else {
-    priceEl.textContent = r.price_range || '—';
-  }
-  set('sidebarCuisine', r.cuisine);
-  set('sidebarPriceRange', buildPriceSymbol(r.price_level));
-  set('sidebarHours', r.opening_hours ? r.opening_hours.split('|')[0].trim() : '—');
-  set('sidebarLocation', `${r.city}, Kenya`);
+if (!slug) {
+    showDebugInfo('❌ No restaurant ID provided in URL', true);
+    document.querySelector('.restaurant-content').innerHTML = '<div class="error">No restaurant specified</div>';
+    throw new Error('No slug provided');
 }
 
-/* ── Build Gallery ── */
-function buildGallery(images) {
-  const grid = document.getElementById('galleryGrid');
-  if (!images || images.length === 0) {
-    grid.style.display = 'none';
-    return;
-  }
-  window._galleryImages = images;
-  grid.innerHTML = images.slice(0, 5).map((src, i) => `
-    <img class="gal-img" src="${src}" alt="Photo ${i + 1}" loading="lazy"
-         onclick="openLightbox(${i})"
-         onerror="this.style.display='none'"/>
-  `).join('');
+// Show that we're trying to fetch
+showDebugInfo(`⏳ Fetching restaurant with slug: "${slug}"...`);
+
+// Supabase config
+const SUPABASE_URL = 'https://cbyipmrozqsntojiartw.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieWlwbXJvenFzbnRvamlhcnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTkxNTQsImV4cCI6MjA4ODk3NTE1NH0.31TAhmUCV_Uh0W8FGnR2_TLCZDU4YBM1U5LMSMc5JZs';
+
+async function fetchRestaurant() {
+    try {
+        console.log('📡 Fetching from Supabase...');
+        
+        // Try simple fetch first to test connection
+        const testUrl = `${SUPABASE_URL}/rest/v1/restaurants?select=count`;
+        console.log('🔗 Test URL:', testUrl);
+        
+        const testResponse = await fetch(testUrl, {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`
+            }
+        });
+        
+        console.log('📊 Test response status:', testResponse.status);
+        
+        if (!testResponse.ok) {
+            const testError = await testResponse.text();
+            console.error('❌ Test failed:', testError);
+            showDebugInfo(`❌ Connection test failed: Status ${testResponse.status} - ${testError}`, true);
+            return;
+        }
+        
+        console.log('✅ Connection test passed');
+        showDebugInfo('✅ Supabase connection working! Now fetching restaurant...');
+        
+        // Now fetch the actual restaurant
+        const url = `${SUPABASE_URL}/rest/v1/restaurants?slug=eq.${slug}&select=*`;
+        console.log('🔗 Restaurant URL:', url);
+        
+        const response = await fetch(url, {
+            headers: {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`
+            }
+        });
+        
+        console.log('📊 Restaurant response status:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Restaurant fetch failed:', errorText);
+            showDebugInfo(`❌ Failed to fetch restaurant: Status ${response.status} - ${errorText}`, true);
+            return;
+        }
+        
+        const data = await response.json();
+        console.log('✅ Restaurant data received:', data);
+        
+        if (data.length === 0) {
+            showDebugInfo(`❌ No restaurant found with slug: "${slug}"`, true);
+            return;
+        }
+        
+        const restaurant = data[0];
+        console.log('🍽️ Restaurant details:', restaurant);
+        showDebugInfo(`✅ Found: ${restaurant.name}`);
+        
+        // Update the page with restaurant data
+        updatePageWithRestaurant(restaurant);
+        
+    } catch (error) {
+        console.error('💥 Fatal error:', error);
+        showDebugInfo(`❌ Error: ${error.message}`, true);
+    }
 }
 
-/* ── Build Highlights ── */
-function buildHighlights(highlights) {
-  const grid = document.getElementById('highlightsGrid');
-  if (!highlights.length) { grid.style.display = 'none'; return; }
-  grid.innerHTML = highlights.map(h => `
-    <div class="highlight-item">
-      <span class="highlight-check">✓</span>
-      <span class="highlight-text">${h}</span>
-    </div>
-  `).join('');
+function updatePageWithRestaurant(restaurant) {
+    // Update page title
+    document.title = `${restaurant.name} - SafariQuest`;
+    
+    // Update hero section
+    document.querySelector('.restaurant-hero').style.backgroundImage = `url('${restaurant.image_url || restaurant.featured_image}')`;
+    document.querySelector('.restaurant-name').textContent = restaurant.name;
+    
+    // Update info strip
+    document.querySelector('.cuisine-type').textContent = restaurant.cuisine_type || 'African';
+    document.querySelector('.price-range').innerHTML = `<span class="price-value">KSh ${restaurant.price_per_person_min?.toLocaleString()} - ${restaurant.price_per_person_max?.toLocaleString()}</span> per person`;
+    document.querySelector('.location-name').textContent = `${restaurant.city}, ${restaurant.area || ''}`;
+    document.querySelector('.hours-value').textContent = restaurant.opening_hours || 'Daily 11am - 11pm';
+    
+    // Update description
+    document.querySelector('.restaurant-description').innerHTML = `<p>${restaurant.description || ''}</p>`;
+    
+    // Update highlights
+    if (restaurant.highlights) {
+        const highlightsList = document.querySelector('.highlights-list');
+        if (highlightsList) {
+            highlightsList.innerHTML = restaurant.highlights.map(h => `<li>${h}</li>`).join('');
+        }
+    }
+    
+    // Update reservation sidebar
+    document.querySelector('.reservation-card .price-display').innerHTML = `
+        <span class="price-amount">KSh ${restaurant.price_per_person_min?.toLocaleString()} - ${restaurant.price_per_person_max?.toLocaleString()}</span>
+        <span class="price-label">per person (avg.)</span>
+    `;
+    
+    // Build menu section if exists
+    if (restaurant.menu && restaurant.menu.length > 0) {
+        buildMenuSection(restaurant.menu);
+    }
 }
 
-/* ── Build Experience cards ── */
-function buildExperience(r) {
-  const defaults = [
-    { icon: '🍽️', name: 'Dining Experience', desc: `${r.cuisine} cuisine in ${r.city}` },
-    { icon: '🛎️', name: 'Table Service', desc: 'Attentive and friendly staff' },
-    { icon: '🥂', name: 'Beverages', desc: 'Curated drinks and cocktails' },
-    { icon: '🌿', name: 'Fresh Ingredients', desc: 'Locally sourced where possible' },
-    { icon: '📍', name: 'Location', desc: `Conveniently located in ${r.city}` },
-    { icon: '🎉', name: 'Events & Groups', desc: 'Available for private bookings' }
-  ];
-  const items = (r.experiences && r.experiences.length > 0) ? r.experiences : defaults;
-  document.getElementById('experienceGrid').innerHTML = items.map(e => `
-    <div class="exp-card">
-      <div class="exp-icon">${e.icon}</div>
-      <div class="exp-name">${e.name}</div>
-      <div class="exp-desc">${e.desc}</div>
-    </div>
-  `).join('');
+function buildMenuSection(menuItems) {
+    const menuSection = document.querySelector('.menu-section');
+    if (!menuSection) return;
+    
+    // Group by category
+    const categories = {};
+    menuItems.forEach(item => {
+        if (!categories[item.category]) {
+            categories[item.category] = [];
+        }
+        categories[item.category].push(item);
+    });
+    
+    let menuHtml = '<div class="menu-tabs">';
+    Object.keys(categories).forEach((category, index) => {
+        menuHtml += `<button class="menu-tab ${index === 0 ? 'active' : ''}" data-category="${category}">${category}</button>`;
+    });
+    menuHtml += '</div><div class="menu-content">';
+    
+    // Show first category by default
+    const firstCategory = Object.keys(categories)[0];
+    menuHtml += buildCategoryMenu(firstCategory, categories[firstCategory]);
+    menuHtml += '</div>';
+    
+    menuSection.innerHTML = menuHtml;
+    
+    // Add tab switching
+    document.querySelectorAll('.menu-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.menu-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const category = tab.dataset.category;
+            const menuContent = document.querySelector('.menu-content');
+            menuContent.innerHTML = buildCategoryMenu(category, categories[category]);
+        });
+    });
 }
 
-/* ── Build Menu Section ── */
-function buildMenu(r) {
-  const section = document.getElementById('menuSection');
-  const tabsEl = document.getElementById('menuTabs');
-  const bodyEl = document.getElementById('menuBody');
-
-  if (!r.menu || !r.menu.length) {
-    // Show a coming-soon empty state
-    tabsEl.style.display = 'none';
-    bodyEl.innerHTML = `
-      <div class="menu-empty">
-        <div style="font-size:2.5rem;margin-bottom:12px">🍽️</div>
-        <p>Full menu coming soon. Contact the restaurant for current offerings.</p>
-      </div>`;
-    return;
-  }
-
-  // Build category tabs
-  tabsEl.innerHTML = r.menu.map((cat, i) => `
-    <button class="menu-tab ${i === 0 ? 'active' : ''}"
-      onclick="switchMenuTab(${i})">${cat.category}</button>
-  `).join('');
-
-  // Build all category panels
-  bodyEl.innerHTML = r.menu.map((cat, i) => `
-    <div class="menu-category ${i === 0 ? 'active' : ''}" id="menuCat${i}">
-      <div class="menu-category-title">${cat.category}</div>
-      <div class="menu-items-grid">
-        ${cat.items.map(item => buildMenuItem(item)).join('')}
-      </div>
-    </div>
-  `).join('');
-}
-
-function buildMenuItem(item) {
-  const priceStr = item.price === 0
-    ? `<span class="menu-item-price free">Included</span>`
-    : `<span class="menu-item-price">KSh ${item.price.toLocaleString('en-KE')}</span>`;
-
-  return `
-    <div class="menu-item-card">
-      <div class="menu-item-img-wrap">
-        <img class="menu-item-img" src="${item.image}" alt="${item.name}" loading="lazy"
-             onerror="this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80'"/>
-        ${item.popular ? '<div class="popular-badge">⭐ Popular</div>' : ''}
-      </div>
-      <div class="menu-item-body">
-        <div class="menu-item-name">${item.name}</div>
-        <div class="menu-item-desc">${item.desc}</div>
-        <div class="menu-item-footer">
-          ${priceStr}
-          <button class="menu-item-add">+ Add to order</button>
+function buildCategoryMenu(category, items) {
+    return `
+        <div class="menu-category">
+            <h3>${category}</h3>
+            <div class="menu-items">
+                ${items.map(item => `
+                    <div class="menu-item">
+                        ${item.image ? `<img src="${item.image}" alt="${item.name}" class="menu-item-image">` : ''}
+                        <div class="menu-item-details">
+                            <div class="menu-item-header">
+                                <span class="menu-item-name">${item.name}</span>
+                                <span class="menu-item-price">KSh ${item.price?.toLocaleString()}</span>
+                            </div>
+                            ${item.description ? `<p class="menu-item-description">${item.description}</p>` : ''}
+                            ${item.popular ? '<span class="popular-badge">⭐ Popular</span>' : ''}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
         </div>
-      </div>
-    </div>`;
+    `;
 }
 
-window.switchMenuTab = function(index) {
-  document.querySelectorAll('.menu-tab').forEach((t, i) => t.classList.toggle('active', i === index));
-  document.querySelectorAll('.menu-category').forEach((c, i) => c.classList.toggle('active', i === index));
-};
-function updateMap(r) {
-  const query = encodeURIComponent(`${r.name}, ${r.city}, Kenya`);
-  // Use an OpenStreetMap embed (no API key needed)
-  document.getElementById('mapFrame').src =
-    `https://www.google.com/maps?q=${query}&output=embed`;
-  document.getElementById('mapOpenLink').href =
-    `https://www.google.com/maps/search/${query}`;
-}
-
-/* ── Fetch Similar Restaurants ── */
-async function fetchSimilar(r) {
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/restaurants?city=eq.${encodeURIComponent(r.city)}&slug=neq.${r.slug}&select=slug,name,city,cuisine,image_hero,price_range&limit=3`,
-      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-    );
-    const data = await res.json();
-    renderSimilar(data);
-  } catch (err) {
-    document.getElementById('similarGrid').innerHTML = '';
-  }
-}
-
-function renderSimilar(restaurants) {
-  const grid = document.getElementById('similarGrid');
-  if (!restaurants || restaurants.length === 0) {
-    grid.closest('.similar-section').style.display = 'none';
-    return;
-  }
-  grid.innerHTML = restaurants.map(r => `
-    <a class="similar-card" href="restaurant-details.html?id=${r.slug}">
-      <img src="${r.image_hero}" alt="${r.name}"
-           onerror="this.src='https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80'"/>
-      <div class="similar-card-body">
-        <div class="similar-card-cuisine">${r.cuisine}</div>
-        <div class="similar-card-name">${r.name}</div>
-        <div class="similar-card-city">📍 ${r.city}</div>
-      </div>
-    </a>
-  `).join('');
-}
-
-/* ── Price helpers ── */
-function buildPriceString(r) {
-  const symbols = ['', 'KSh', 'KSh KSh', 'KSh KSh KSh', 'KSh KSh KSh KSh'];
-  return `${symbols[r.price_level] || '—'} · ${r.price_range}`;
-}
-function buildPriceSymbol(level) {
-  let s = '';
-  for (let i = 1; i <= 4; i++) s += i <= level ? 'KSh ' : '<span style="opacity:.3">KSh </span>';
-  return s;
-}
-
-/* ── Guests counter ── */
-let guests = 2;
-window.changeGuests = function (delta) {
-  guests = Math.max(1, Math.min(20, guests + delta));
-  document.getElementById('guestCount').textContent = guests;
-};
-
-/* ── Submit Reservation ── */
-window.submitReservation = function () {
-  const date = document.getElementById('resDate').value;
-  const time = document.getElementById('resTime').value;
-  const btn = document.getElementById('reserveSubmitBtn');
-  if (!date) { alert('Please select a date.'); return; }
-  btn.textContent = '✅ Reservation Requested!';
-  btn.style.background = '#22c55e';
-  setTimeout(() => {
-    btn.textContent = '🍽️ Reserve a Table';
-    btn.style.background = '';
-  }, 3000);
-};
-
-/* ── Wishlist ── */
-let wishlisted = false;
-window.toggleWishlist = function () {
-  wishlisted = !wishlisted;
-  document.getElementById('wishlistBtn').textContent = wishlisted ? '❤️ Saved' : '🤍 Save Restaurant';
-};
-
-/* ── Share ── */
-window.shareRestaurant = function () {
-  if (navigator.share) {
-    navigator.share({ title: document.title, url: window.location.href });
-  } else {
-    navigator.clipboard.writeText(window.location.href);
-    alert('Link copied to clipboard!');
-  }
-};
-
-/* ── Lightbox ── */
-let lbIndex = 0;
-window.openLightbox = function (i) {
-  const imgs = window._galleryImages || [];
-  if (!imgs.length) return;
-  lbIndex = i;
-  const lb = document.getElementById('lightbox');
-  lb.classList.add('open');
-  updateLightbox();
-};
-window.closeLightbox = function () {
-  document.getElementById('lightbox').classList.remove('open');
-};
-window.moveLightbox = function (dir) {
-  const imgs = window._galleryImages || [];
-  lbIndex = (lbIndex + dir + imgs.length) % imgs.length;
-  updateLightbox();
-};
-function updateLightbox() {
-  const imgs = window._galleryImages || [];
-  document.getElementById('lbImg').src = imgs[lbIndex];
-  const dots = document.getElementById('lbDots');
-  dots.innerHTML = imgs.map((_, i) =>
-    `<div class="lb-dot ${i === lbIndex ? 'active' : ''}" onclick="openLightbox(${i})"></div>`
-  ).join('');
-}
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeLightbox();
-  if (e.key === 'ArrowLeft') moveLightbox(-1);
-  if (e.key === 'ArrowRight') moveLightbox(1);
-});
-
-/* ── Util ── */
-function set(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.innerHTML = val;
-}
+// Start fetching when page loads
+document.addEventListener('DOMContentLoaded', fetchRestaurant);
