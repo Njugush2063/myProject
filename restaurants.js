@@ -20,12 +20,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   async function fetchRestaurants() {
     showSkeletons();
     try {
-      const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/restaurants?select=*&order=featured.desc,name.asc`,
-        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-      );
-      if (!res.ok) throw new Error('Fetch failed');
-      allRestaurants = await res.json();
+      allRestaurants = await getRestaurants();
       filtered = [...allRestaurants];
       renderAll();
       document.getElementById('statTotal').textContent = allRestaurants.length;
