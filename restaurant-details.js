@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   buildGallery(restaurant.image_gallery || [restaurant.image_hero]);
   buildHighlights(restaurant.highlights || []);
   buildExperience(restaurant);
+  buildMenu(restaurant);
   populateSidebar(restaurant);
   updateMap(restaurant);
   fetchSimilar(restaurant);
@@ -75,7 +76,13 @@ function populatePage(r) {
   set('heroCuisine', r.cuisine);
   set('heroCity', `📍 ${r.city}`);
   set('heroTitle', r.name);
-  set('heroPriceRange', buildPriceString(r));
+
+  // Show real KSh price if available, else price_range label
+  if (r.price_per_person_min && r.price_per_person_max) {
+    set('heroPriceRange', `KSh ${r.price_per_person_min.toLocaleString('en-KE')} – KSh ${r.price_per_person_max.toLocaleString('en-KE')} per person`);
+  } else {
+    set('heroPriceRange', r.price_range);
+  }
   set('heroHours', r.opening_hours || 'See details');
 
   // Info strip
@@ -94,7 +101,13 @@ function populatePage(r) {
 
 /* ── Populate Sidebar ── */
 function populateSidebar(r) {
-  set('sidebarPrice', r.price_range || '—');
+  // Show real KSh price range if available
+  const priceEl = document.getElementById('sidebarPriceKsh');
+  if (r.price_per_person_min && r.price_per_person_max) {
+    priceEl.innerHTML = `KSh ${r.price_per_person_min.toLocaleString('en-KE')} – ${r.price_per_person_max.toLocaleString('en-KE')}`;
+  } else {
+    priceEl.textContent = r.price_range || '—';
+  }
   set('sidebarCuisine', r.cuisine);
   set('sidebarPriceRange', buildPriceSymbol(r.price_level));
   set('sidebarHours', r.opening_hours ? r.opening_hours.split('|')[0].trim() : '—');
@@ -148,7 +161,67 @@ function buildExperience(r) {
   `).join('');
 }
 
-/* ── Update Map ── */
+/* ── Build Menu Section ── */
+function buildMenu(r) {
+  const section = document.getElementById('menuSection');
+  const tabsEl = document.getElementById('menuTabs');
+  const bodyEl = document.getElementById('menuBody');
+
+  if (!r.menu || !r.menu.length) {
+    // Show a coming-soon empty state
+    tabsEl.style.display = 'none';
+    bodyEl.innerHTML = `
+      <div class="menu-empty">
+        <div style="font-size:2.5rem;margin-bottom:12px">🍽️</div>
+        <p>Full menu coming soon. Contact the restaurant for current offerings.</p>
+      </div>`;
+    return;
+  }
+
+  // Build category tabs
+  tabsEl.innerHTML = r.menu.map((cat, i) => `
+    <button class="menu-tab ${i === 0 ? 'active' : ''}"
+      onclick="switchMenuTab(${i})">${cat.category}</button>
+  `).join('');
+
+  // Build all category panels
+  bodyEl.innerHTML = r.menu.map((cat, i) => `
+    <div class="menu-category ${i === 0 ? 'active' : ''}" id="menuCat${i}">
+      <div class="menu-category-title">${cat.category}</div>
+      <div class="menu-items-grid">
+        ${cat.items.map(item => buildMenuItem(item)).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function buildMenuItem(item) {
+  const priceStr = item.price === 0
+    ? `<span class="menu-item-price free">Included</span>`
+    : `<span class="menu-item-price">KSh ${item.price.toLocaleString('en-KE')}</span>`;
+
+  return `
+    <div class="menu-item-card">
+      <div class="menu-item-img-wrap">
+        <img class="menu-item-img" src="${item.image}" alt="${item.name}" loading="lazy"
+             onerror="this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80'"/>
+        ${item.popular ? '<div class="popular-badge">⭐ Popular</div>' : ''}
+      </div>
+      <div class="menu-item-body">
+        <div class="menu-item-name">${item.name}</div>
+        <div class="menu-item-desc">${item.desc}</div>
+        <div class="menu-item-footer">
+          ${priceStr}
+          <button class="menu-item-add">+ Add to order</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+window.switchMenuTab = function(index) {
+  document.querySelectorAll('.menu-tab').forEach((t, i) => t.classList.toggle('active', i === index));
+  document.querySelectorAll('.menu-category').forEach((c, i) => c.classList.toggle('active', i === index));
+};
 function updateMap(r) {
   const query = encodeURIComponent(`${r.name}, ${r.city}, Kenya`);
   // Use an OpenStreetMap embed (no API key needed)
