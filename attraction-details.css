@@ -1,5 +1,5 @@
 /* ============================================================
-   ATTRACTION DETAILS — attraction-details.css
+   ATTRACTION DETAILS — attraction-details.css (SIDEBAR LAYOUT)
    ============================================================ */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -91,14 +91,8 @@ nav {
   font-weight: 900; color: #fff; line-height: 1.05;
   margin-bottom: 18px;
 }
-.hero-meta {
-  display: flex; gap: 24px; flex-wrap: wrap;
-  margin-bottom: 28px;
-}
-.hero-meta span {
-  display: flex; align-items: center; gap: 6px;
-  color: rgba(255,255,255,.8); font-size: .9rem; font-weight: 500;
-}
+.hero-meta { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 28px; }
+.hero-meta span { display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,.8); font-size: .9rem; font-weight: 500; }
 .hero-meta svg { flex-shrink: 0; }
 .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
 .btn-book {
@@ -130,10 +124,7 @@ nav {
 /* ── GALLERY STRIP ── */
 #gallery-strip { background: var(--dark); padding: 0; }
 .gallery-grid { display: grid; grid-template-columns: 1.6fr 1fr; height: 420px; }
-.gal-main {
-  background-size: cover; background-position: center;
-  position: relative; cursor: pointer;
-}
+.gal-main { background-size: cover; background-position: center; position: relative; cursor: pointer; }
 .gal-overlay-btn {
   position: absolute; bottom: 20px; right: 20px;
   background: rgba(255,255,255,.9); color: var(--dark);
@@ -151,8 +142,7 @@ nav {
   position: absolute; inset: 0;
   background: rgba(10,8,5,.6);
   display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 1.2rem; font-weight: 700;
-  cursor: pointer;
+  color: #fff; font-size: 1.2rem; font-weight: 700; cursor: pointer;
 }
 
 /* ── QUICK INFO BAR ── */
@@ -165,23 +155,47 @@ nav {
 .info-bar {
   display: flex; align-items: center; justify-content: center;
   flex-wrap: wrap; gap: 0;
-  max-width: 1100px; margin: 0 auto;
+  max-width: 1300px; margin: 0 auto;
   padding: 0 24px;
 }
-.info-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 18px 28px;
-  transition: background .2s;
-}
+.info-item { display: flex; align-items: center; gap: 12px; padding: 18px 28px; transition: background .2s; }
 .info-item:hover { background: var(--light-bg); }
 .info-icon { font-size: 1.4rem; }
 .info-label { font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
 .info-val { font-size: .93rem; font-weight: 700; color: var(--dark); }
 .info-divider { width: 1px; height: 40px; background: var(--border); flex-shrink: 0; }
 
-/* ── CONTENT LAYOUT — single column, no sidebar ── */
-#content-wrap { background: var(--light-bg); padding: 48px; }
-.content-layout { max-width: 900px; margin: 0 auto; }
+/* ══════════════════════════════════════════
+   CONTENT WRAP — two-column layout with sidebar
+══════════════════════════════════════════ */
+#content-wrap {
+  background: var(--light-bg);
+  padding: 48px;
+}
+
+.content-layout {
+  max-width: 1300px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 32px;
+  align-items: start;
+}
+
+/* ── MAIN CONTENT (left column) ── */
+.main-content {
+  min-width: 0; /* prevent overflow */
+}
+
+/* ── BOOKING SIDEBAR (right column) ── */
+.booking-sidebar {
+  position: sticky;
+  top: calc(72px + 16px); /* navbar height + gap */
+  max-height: calc(100vh - 72px - 32px);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.booking-sidebar::-webkit-scrollbar { display: none; }
 
 /* Content Cards */
 .content-card {
@@ -194,9 +208,7 @@ nav {
   font-size: 1.6rem; font-weight: 800; color: var(--dark);
   margin-bottom: 14px;
 }
-.divider-line {
-  display: flex; align-items: center; gap: 5px; margin-bottom: 24px;
-}
+.divider-line { display: flex; align-items: center; gap: 5px; margin-bottom: 24px; }
 .divider-line span:first-child { width: 36px; height: 3px; background: var(--orange); border-radius: 2px; }
 .divider-line span:last-child  { width: 8px; height: 8px; background: rgba(232,130,12,.35); border-radius: 50%; }
 .overview-text { font-size: .95rem; color: var(--muted); line-height: 1.8; margin-bottom: 14px; }
@@ -277,50 +289,14 @@ nav {
 .btn-all-reviews { background: none; border: 1.5px solid var(--orange); color: var(--orange); border-radius: 8px; padding: 11px 24px; font-family: 'DM Sans', sans-serif; font-size: .93rem; font-weight: 700; cursor: pointer; transition: background .2s, color .2s; }
 .btn-all-reviews:hover { background: var(--orange); color: #fff; }
 
-/* Trip details in booking sidebar */
-.trip-details {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  background: rgba(255,255,255,.07);
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 20px;
-  border: 1px solid rgba(255,255,255,.1);
-}
-.trip-detail-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.trip-detail-icon { font-size: 1.1rem; }
-.trip-detail-label {
-  font-size: .68rem;
-  font-weight: 800;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,.45);
-  margin-bottom: 2px;
-}
-.trip-detail-val {
-  font-size: .9rem;
-  font-weight: 700;
-  color: #fff;
-}
-
-/* ── BOOKING PANEL — new design ── */
-#booking { background: #0f1423; padding: 48px 24px; }
-
+/* ══════════════════════════════════════
+   BOOKING SIDEBAR PANEL — dark card
+══════════════════════════════════════ */
 .strip {
   background: #181f33;
   border-radius: 18px;
-  padding: 32px 36px;
+  padding: 28px 24px;
   width: 100%;
-  max-width: 520px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
 }
 
 /* Price block */
@@ -328,7 +304,7 @@ nav {
 .price-block { margin-bottom: 10px; }
 .price-from-row { display: flex; align-items: baseline; gap: 6px; }
 .from-label { font-size: 12px; color: #8b95a8; }
-.price-ksh { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 800; color: #fff; line-height: 1; }
+.price-ksh { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 800; color: #fff; line-height: 1; }
 .per-label { font-size: 12px; color: #8b95a8; }
 .price-number { display: none; }
 .rating-row { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; }
@@ -345,12 +321,12 @@ nav {
 
 /* Form col */
 .col-mid { display: flex; flex-direction: column; gap: 14px; }
-.dates-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.dates-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .bottom-row { display: flex; flex-direction: column; gap: 14px; }
 .field-label { font-size: 10px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: #8b95a8; margin-bottom: 8px; }
 .date-wrap { position: relative; }
 .d-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #8b95a8; pointer-events: none; display: flex; }
-.date-input { width: 100%; background: #222b42; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; color: #fff; padding: 12px 12px 12px 38px; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: border-color .15s; height: 46px; }
+.date-input { width: 100%; background: #222b42; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; color: #fff; padding: 12px 12px 12px 38px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; transition: border-color .15s; height: 46px; }
 .date-input::-webkit-calendar-picker-indicator { filter: invert(1); opacity: .35; cursor: pointer; }
 .date-input:focus { outline: none; border-color: rgba(255,255,255,.25); }
 .trav-box { background: #222b42; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 0 14px; display: flex; align-items: center; gap: 10px; height: 46px; }
@@ -361,7 +337,7 @@ nav {
 .cnt-num { font-size: 16px; font-weight: 700; color: #fff; flex: 1; text-align: center; }
 .sel-wrap { position: relative; }
 .sel-pin { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #8b95a8; pointer-events: none; display: flex; }
-.pkg-sel { width: 100%; background: #222b42; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; color: #fff; padding: 0 34px 0 36px; font-size: 13.5px; font-weight: 500; font-family: 'DM Sans', sans-serif; appearance: none; -webkit-appearance: none; cursor: pointer; height: 46px; }
+.pkg-sel { width: 100%; background: #222b42; border: 1px solid rgba(255,255,255,.08); border-radius: 10px; color: #fff; padding: 0 34px 0 36px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; appearance: none; -webkit-appearance: none; cursor: pointer; height: 46px; }
 .pkg-sel:focus { outline: none; border-color: rgba(255,255,255,.25); }
 .pkg-sel option { background: #222b42; color: #fff; }
 .sel-chev { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #8b95a8; display: flex; }
@@ -389,14 +365,6 @@ nav {
 .trust-list { display: flex; flex-direction: column; gap: 8px; }
 .trust-item { display: flex; align-items: center; gap: 9px; font-size: 12px; color: #8b95a8; }
 .t-chk { width: 14px; height: 14px; color: #1ec99a; flex-shrink: 0; display: flex; }
-
-@media (max-width: 600px) {
-  .strip { padding: 22px 18px; max-width: 100%; }
-  .dates-row { grid-template-columns: 1fr; }
-}
-.trust-badges { border-top: 1.5px solid var(--border); padding-top: 16px; display: flex; flex-direction: column; gap: 8px; }
-.trust-item { display: flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--muted); }
-.trust-item svg { stroke: var(--green); }
 
 /* ── SIMILAR ── */
 #similar { background: var(--white); padding: 80px 48px; }
@@ -467,38 +435,35 @@ footer { background: #111827; color: rgba(255,255,255,.75); padding: 64px 48px 3
 .lb-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.4); cursor: pointer; transition: background .2s; border: none; padding: 0; }
 .lb-dot.active { background: var(--orange); }
 
-/* ── EXPERIENCE ICON COLOURS (replaces inline styles) ── */
+/* ── EXPERIENCE ICON COLOURS ── */
 .exp-orange { background: #fff5ec; color: #E8820C; }
 .exp-green  { background: #f0faf4; color: #16a87e; }
 .exp-pink   { background: #fff0f5; color: #e1306c; }
 .exp-blue   { background: #f0f4ff; color: #4a6cf7; }
 
-/* ── REVIEW AVATAR COLOURS (replaces inline styles) ── */
+/* ── REVIEW AVATAR COLOURS ── */
 .avatar-orange { background: #E8820C; }
 .avatar-green  { background: #16a87e; }
 .avatar-blue   { background: #4a6cf7; }
 
-/* ── RATING BAR WIDTHS (replaces inline styles) ── */
+/* ── RATING BAR WIDTHS ── */
 .rbar-85 { width: 85%; }
 .rbar-11 { width: 11%; }
 .rbar-3  { width: 3%;  }
 .rbar-1  { width: 1%;  }
 .rbar-0  { width: 0%;  }
 
-/* ── LOCATION NOTE (replaces inline p style) ── */
+/* ── MISC ── */
 .location-note { color: #666; margin-bottom: 16px; font-size: .93rem; }
-
-/* ── MAP IFRAME (replaces inline border:0) ── */
 #map-iframe { border: 0; display: block; }
-
-/* ── NEWSLETTER INPUT ERROR ── */
 .newsletter-input.input-error { border-color: var(--orange); }
-
-/* ── ERROR STATE ── */
 .error-state { color: #fff; text-align: center; padding: 40px 20px; }
 .error-state .error-icon { font-size: 3rem; margin-bottom: 16px; }
 .error-state h2 { font-family: 'Playfair Display', serif; margin-bottom: 12px; }
 .error-state p  { opacity: .8; margin-bottom: 24px; }
+.reviews-empty { text-align: center; padding: 32px; color: var(--muted); }
+.reviews-empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+.reviews-empty h3 { font-size: 1.1rem; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
 
 /* ── ANIMATIONS ── */
 @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
@@ -507,19 +472,28 @@ footer { background: #111827; color: rgba(255,255,255,.75); padding: 64px 48px 3
 
 /* ── RESPONSIVE ── */
 @media (max-width: 1100px) {
-  .booking-panel-wrap { grid-template-columns: 1fr 1fr; }
-  .bp-cta { padding-top: 0; }
-  .bform-row { grid-template-columns: 1fr 1fr; }
-  .similar-grid { grid-template-columns: repeat(2,1fr); }
+  .content-layout { grid-template-columns: 1fr 340px; gap: 24px; }
   .experience-grid { grid-template-columns: repeat(2,1fr); }
+  .similar-grid { grid-template-columns: repeat(2,1fr); }
 }
+
+@media (max-width: 900px) {
+  /* Stack to single column, booking goes back below content */
+  .content-layout { grid-template-columns: 1fr; }
+  .booking-sidebar {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+  .strip { max-width: 600px; margin: 0 auto; }
+}
+
 @media (max-width: 768px) {
   nav { padding: 0 20px; }
   .nav-links { display: none; }
   .hamburger { display: flex; }
   #content-wrap { padding: 24px 20px; }
-  #booking, #similar, footer { padding-left: 20px; padding-right: 20px; }
-  #booking { padding-top: 40px; padding-bottom: 40px; }
+  #similar, footer { padding-left: 20px; padding-right: 20px; }
   .content-card { padding: 24px 20px; }
   .gallery-grid { grid-template-columns: 1fr; height: auto; }
   .gal-main { height: 300px; }
@@ -531,10 +505,9 @@ footer { background: #111827; color: rgba(255,255,255,.75); padding: 64px 48px 3
   .hero-content { padding: 0 20px 40px; }
   .breadcrumb { left: 20px; }
   .footer-grid { grid-template-columns: 1fr; gap: 28px; }
-  .booking-panel-wrap { grid-template-columns: 1fr; gap: 28px; }
-  .bform-row { grid-template-columns: 1fr 1fr; }
+  .dates-row { grid-template-columns: 1fr; }
 }
+
 @media (max-width: 480px) {
   .experience-grid { grid-template-columns: 1fr 1fr; }
-  .bform-row { grid-template-columns: 1fr; }
 }
