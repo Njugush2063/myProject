@@ -5,8 +5,8 @@
    Find them in: Supabase Dashboard → Settings → API
    ============================================================ */
 
-const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
-const SUPABASE_KEY = 'YOUR_ANON_PUBLIC_KEY';
+const SUPABASE_URL = 'https://cbyipmrozqsntojiartw.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieWlwbXJvenFzbnRvamlhcnR3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3MzM5OTE1NCwiZXhwIjoyMDg4OTc1MTU0fQ.8-lofBhuCiw78An17hUUak8iAkKu27ql71FWkLQv-8Y';
 
 /* ── Fetch all restaurants ── */
 async function getRestaurants() {
