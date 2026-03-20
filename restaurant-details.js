@@ -163,13 +163,10 @@ function buildMenu(r) {
   const bodyEl = document.getElementById('menuBody');
 
   if (!r.menu || !r.menu.length) {
+    /* No inline menu — fetch best items from restaurant_menus table */
     tabsEl.style.display = 'none';
-    bodyEl.innerHTML = `
-      <div class="menu-empty">
-        <div class="menu-empty-icon-wrap">🍽️</div>
-        <h3>Menu Coming Soon</h3>
-        <p>We're working on adding the full menu for this restaurant. Contact them directly for current offerings and daily specials.</p>
-      </div>`;
+    bodyEl.innerHTML = `<div class="menu-loading"><span class="menu-loading-spinner"></span> Loading best dishes…</div>`;
+    fetchBestMenuItems(r.slug, bodyEl);
     return;
   }
 
@@ -186,6 +183,78 @@ function buildMenu(r) {
       </div>
     </div>
   `).join('');
+}
+
+/* ── Fetch best/popular items from restaurant_menus table ── */
+async function fetchBestMenuItems(slug, bodyEl) {
+  try {
+    /* Try popular items first, then fall back to any items */
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/restaurant_menus?restaurant_slug=eq.${encodeURIComponent(slug)}&order=popular.desc,price.asc&limit=6&select=*`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    const items = await res.json();
+
+    if (!Array.isArray(items) || items.length === 0) {
+      bodyEl.innerHTML = `
+        <div class="menu-empty">
+          <div class="menu-empty-icon-wrap">🍽️</div>
+          <h3>Menu Coming Soon</h3>
+          <p>We're working on adding the full menu. Contact the restaurant directly for current offerings.</p>
+        </div>`;
+      return;
+    }
+
+    bodyEl.innerHTML = `
+      <div class="menu-best-header">
+        <span class="menu-best-label">⭐ Best Dishes</span>
+        <span class="menu-best-sub">Hand-picked popular items from this restaurant</span>
+      </div>
+      <div class="menu-items-grid">
+        ${items.map(item => buildMenuItemFromDB(item)).join('')}
+      </div>`;
+
+  } catch (err) {
+    console.error('Menu fetch error:', err);
+    bodyEl.innerHTML = `
+      <div class="menu-empty">
+        <div class="menu-empty-icon-wrap">🍽️</div>
+        <h3>Menu Coming Soon</h3>
+        <p>Contact the restaurant directly for current offerings and daily specials.</p>
+      </div>`;
+  }
+}
+
+/* ── Build a menu item card from restaurant_menus DB row ── */
+function buildMenuItemFromDB(item) {
+  const name = item.item_name || item.name || '—';
+  const desc = item.description || '';
+  const price = item.price || 0;
+  const image = item.image || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80';
+  const popular = item.popular;
+
+  const priceStr = price === 0
+    ? `<span class="menu-item-price free">Included</span>`
+    : `<span class="menu-item-price">KSh ${price.toLocaleString('en-KE')}</span>`;
+
+  return `
+    <div class="menu-item-card">
+      <div class="menu-item-img-wrap">
+        <img class="menu-item-img" src="${image}" alt="${name}" loading="lazy"
+             onerror="this.src='https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80'"/>
+        ${popular ? '<div class="popular-badge">⭐ Popular</div>' : ''}
+      </div>
+      <div class="menu-item-body">
+        <div class="menu-item-info">
+          <div class="menu-item-name">${name}</div>
+          <div class="menu-item-desc">${desc}</div>
+        </div>
+        <div class="menu-item-footer">
+          ${priceStr}
+          <button class="menu-item-add" onclick="window.location.href='restaurant-services.html?id=${item.restaurant_slug}'">Order →</button>
+        </div>
+      </div>
+    </div>`;
 }
 
 function buildMenuItem(item) {
