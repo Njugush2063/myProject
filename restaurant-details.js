@@ -166,8 +166,9 @@ function buildMenu(r) {
     tabsEl.style.display = 'none';
     bodyEl.innerHTML = `
       <div class="menu-empty">
-        <div style="font-size:2.5rem;margin-bottom:12px">🍽️</div>
-        <p>Full menu coming soon. Contact the restaurant for current offerings.</p>
+        <div class="menu-empty-icon-wrap">🍽️</div>
+        <h3>Menu Coming Soon</h3>
+        <p>We're working on adding the full menu for this restaurant. Contact them directly for current offerings and daily specials.</p>
       </div>`;
     return;
   }
@@ -199,11 +200,13 @@ function buildMenuItem(item) {
         ${item.popular ? '<div class="popular-badge">⭐ Popular</div>' : ''}
       </div>
       <div class="menu-item-body">
-        <div class="menu-item-name">${item.name}</div>
-        <div class="menu-item-desc">${item.desc}</div>
+        <div class="menu-item-info">
+          <div class="menu-item-name">${item.name}</div>
+          <div class="menu-item-desc">${item.desc}</div>
+        </div>
         <div class="menu-item-footer">
           ${priceStr}
-          <button class="menu-item-add">+ Add to order</button>
+          <button class="menu-item-add">+ Add</button>
         </div>
       </div>
     </div>`;
