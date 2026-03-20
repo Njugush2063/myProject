@@ -3,6 +3,157 @@
    Fetches a single restaurant from Supabase by slug
    ============================================================ */
 
+/* ══════════════════════════════════════
+   CART STATE
+══════════════════════════════════════ */
+const cart = {
+  items: [],   // { id, name, price, qty }
+
+  add(id, name, price) {
+    const existing = this.items.find(i => i.id === id);
+    if (existing) {
+      existing.qty++;
+    } else {
+      this.items.push({ id, name, price, qty: 1 });
+    }
+    this.render();
+  },
+
+  remove(id) {
+    this.items = this.items.filter(i => i.id !== id);
+    this.render();
+  },
+
+  changeQty(id, delta) {
+    const item = this.items.find(i => i.id === id);
+    if (!item) return;
+    item.qty += delta;
+    if (item.qty <= 0) this.items = this.items.filter(i => i.id !== id);
+    this.render();
+  },
+
+  get total() {
+    return this.items.reduce((sum, i) => sum + i.price * i.qty, 0);
+  },
+
+  get count() {
+    return this.items.reduce((sum, i) => sum + i.qty, 0);
+  },
+
+  render() {
+    renderCart();
+    syncAddButtons();
+  }
+};
+
+/* ══════════════════════════════════════
+   RENDER CART IN SIDEBAR
+══════════════════════════════════════ */
+function renderCart() {
+  const panel = document.getElementById('cartPanel');
+  const badge = document.getElementById('cartBadge');
+  const totalEl = document.getElementById('cartTotal');
+  const emptyEl = document.getElementById('cartEmpty');
+  const itemsEl = document.getElementById('cartItems');
+  const footerEl = document.getElementById('cartFooter');
+  const countEl = document.getElementById('cartCount');
+
+  if (!panel) return;
+
+  const count = cart.count;
+  const total = cart.total;
+
+  // Badge
+  if (badge) {
+    badge.textContent = count;
+    badge.style.display = count > 0 ? 'flex' : 'none';
+  }
+
+  // Count label
+  if (countEl) countEl.textContent = count === 0 ? 'Your order' : `${count} item${count !== 1 ? 's' : ''}`;
+
+  if (count === 0) {
+    if (emptyEl)  emptyEl.style.display = 'flex';
+    if (itemsEl)  itemsEl.style.display = 'none';
+    if (footerEl) footerEl.style.display = 'none';
+    return;
+  }
+
+  if (emptyEl)  emptyEl.style.display = 'none';
+  if (itemsEl)  itemsEl.style.display = 'flex';
+  if (footerEl) footerEl.style.display = 'block';
+
+  // Build item rows
+  itemsEl.innerHTML = cart.items.map(item => `
+    <div class="cart-item" data-id="${item.id}">
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-unit">KSh ${item.price.toLocaleString('en-KE')} each</div>
+      </div>
+      <div class="cart-item-controls">
+        <button class="cart-qty-btn" onclick="cart.changeQty('${item.id}', -1)">−</button>
+        <span class="cart-qty-num">${item.qty}</span>
+        <button class="cart-qty-btn" onclick="cart.changeQty('${item.id}', 1)">+</button>
+        <span class="cart-item-subtotal">KSh ${(item.price * item.qty).toLocaleString('en-KE')}</span>
+        <button class="cart-remove-btn" onclick="cart.remove('${item.id}')" title="Remove">✕</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Total
+  if (totalEl) totalEl.textContent = `KSh ${total.toLocaleString('en-KE')}`;
+}
+
+/* Keep "+ Add" buttons in sync with cart state */
+function syncAddButtons() {
+  document.querySelectorAll('.menu-item-add[data-item-id]').forEach(btn => {
+    const id = btn.dataset.itemId;
+    const inCart = cart.items.find(i => i.id === id);
+    if (inCart) {
+      btn.textContent = `✓ ${inCart.qty} in cart`;
+      btn.classList.add('in-cart');
+    } else {
+      btn.textContent = '+ Add';
+      btn.classList.remove('in-cart');
+    }
+  });
+}
+
+/* ══════════════════════════════════════
+   PLACE ORDER
+══════════════════════════════════════ */
+function placeOrder() {
+  if (cart.count === 0) return;
+  const btn = document.getElementById('placeOrderBtn');
+  if (!btn) return;
+  btn.textContent = '✅ Order Placed!';
+  btn.style.background = '#22c55e';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = '🛒 Place Order';
+    btn.style.background = '';
+    btn.disabled = false;
+    cart.items = [];
+    cart.render();
+    showToast('Order placed! The restaurant will confirm shortly.');
+  }, 2000);
+}
+
+function showToast(msg) {
+  let t = document.getElementById('sqToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'sqToast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+/* ══════════════════════════════════════
+   DOMContentLoaded
+══════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', async function () {
 
   /* ── Navbar scroll ── */
@@ -50,6 +201,9 @@ document.addEventListener('DOMContentLoaded', async function () {
   updateMap(restaurant);
   fetchSimilar(restaurant);
 
+  /* Initial cart render (empty state) */
+  renderCart();
+
   /* ── Set min date for reservation ── */
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('resDate').min = today;
@@ -72,6 +226,18 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('menuSidebarBtn').addEventListener('click', goToMenu);
   document.getElementById('menuBannerBtn').addEventListener('click', goToMenu);
 
+  /* ── Cart toggle (mobile) ── */
+  const cartToggle = document.getElementById('cartToggle');
+  const cartPanel  = document.getElementById('cartPanel');
+  if (cartToggle && cartPanel) {
+    cartToggle.addEventListener('click', () => {
+      cartPanel.classList.toggle('cart-open');
+    });
+  }
+
+  /* ── Place order button ── */
+  const placeBtn = document.getElementById('placeOrderBtn');
+  if (placeBtn) placeBtn.addEventListener('click', placeOrder);
 });
 
 /* ── Populate Hero & Strip ── */
@@ -163,7 +329,6 @@ function buildMenu(r) {
   const bodyEl = document.getElementById('menuBody');
 
   if (!r.menu || !r.menu.length) {
-    /* No inline menu — fetch best items from restaurant_menus table */
     tabsEl.style.display = 'none';
     bodyEl.innerHTML = `<div class="menu-loading"><span class="menu-loading-spinner"></span> Loading best dishes…</div>`;
     fetchBestMenuItems(r.slug, bodyEl);
@@ -188,7 +353,6 @@ function buildMenu(r) {
 /* ── Fetch best/popular items from restaurant_menus table ── */
 async function fetchBestMenuItems(slug, bodyEl) {
   try {
-    /* Try popular items first, then fall back to any items */
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/restaurant_menus?restaurant_slug=eq.${encodeURIComponent(slug)}&order=popular.desc,price.asc&limit=6&select=*`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
@@ -225,17 +389,30 @@ async function fetchBestMenuItems(slug, bodyEl) {
   }
 }
 
+/* ── Generate a stable item ID from name + price ── */
+function makeItemId(name, price) {
+  return (name + '_' + price).toLowerCase().replace(/[^a-z0-9]/g, '_');
+}
+
 /* ── Build a menu item card from restaurant_menus DB row ── */
 function buildMenuItemFromDB(item) {
-  const name = item.item_name || item.name || '—';
-  const desc = item.description || '';
-  const price = item.price || 0;
-  const image = item.image || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80';
+  const name    = item.item_name || item.name || '—';
+  const desc    = item.description || '';
+  const price   = item.price || 0;
+  const image   = item.image || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80';
   const popular = item.popular;
+  const itemId  = makeItemId(name, price);
 
   const priceStr = price === 0
     ? `<span class="menu-item-price free">Included</span>`
     : `<span class="menu-item-price">KSh ${price.toLocaleString('en-KE')}</span>`;
+
+  const addBtn = price === 0 ? '' : `
+    <button class="menu-item-add"
+      data-item-id="${itemId}"
+      data-item-name="${name.replace(/"/g, '&quot;')}"
+      data-item-price="${price}"
+      onclick="handleAddToCart(this)">+ Add</button>`;
 
   return `
     <div class="menu-item-card">
@@ -251,16 +428,27 @@ function buildMenuItemFromDB(item) {
         </div>
         <div class="menu-item-footer">
           ${priceStr}
-          <button class="menu-item-add" onclick="window.location.href='restaurant-services.html?id=${item.restaurant_slug}'">Order →</button>
+          ${addBtn}
         </div>
       </div>
     </div>`;
 }
 
 function buildMenuItem(item) {
-  const priceStr = item.price === 0
+  const price   = item.price || 0;
+  const itemId  = makeItemId(item.name, price);
+
+  const priceStr = price === 0
     ? `<span class="menu-item-price free">Included</span>`
-    : `<span class="menu-item-price">KSh ${item.price.toLocaleString('en-KE')}</span>`;
+    : `<span class="menu-item-price">KSh ${price.toLocaleString('en-KE')}</span>`;
+
+  const addBtn = price === 0 ? '' : `
+    <button class="menu-item-add"
+      data-item-id="${itemId}"
+      data-item-name="${item.name.replace(/"/g, '&quot;')}"
+      data-item-price="${price}"
+      onclick="handleAddToCart(this)">+ Add</button>`;
+
   return `
     <div class="menu-item-card">
       <div class="menu-item-img-wrap">
@@ -275,11 +463,31 @@ function buildMenuItem(item) {
         </div>
         <div class="menu-item-footer">
           ${priceStr}
-          <button class="menu-item-add">+ Add</button>
+          ${addBtn}
         </div>
       </div>
     </div>`;
 }
+
+/* ── Handle Add to Cart click ── */
+window.handleAddToCart = function(btn) {
+  const id    = btn.dataset.itemId;
+  const name  = btn.dataset.itemName;
+  const price = parseInt(btn.dataset.itemPrice, 10);
+  cart.add(id, name, price);
+
+  /* Micro-animation on the button */
+  btn.classList.add('add-bounce');
+  setTimeout(() => btn.classList.remove('add-bounce'), 350);
+
+  /* Scroll sidebar into view on mobile if cart just got its first item */
+  if (cart.count === 1) {
+    const cartPanel = document.getElementById('cartPanel');
+    if (cartPanel && window.innerWidth < 1100) {
+      cartPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+};
 
 window.switchMenuTab = function(index) {
   document.querySelectorAll('.menu-tab').forEach((t, i) => t.classList.toggle('active', i === index));
