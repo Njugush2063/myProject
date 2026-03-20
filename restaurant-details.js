@@ -6,8 +6,27 @@
 /* ══════════════════════════════════════
    CART STATE
 ══════════════════════════════════════ */
+/* ── Cart key is per-restaurant so carts don't bleed across restaurants ── */
+function cartKey() {
+  const slug = new URLSearchParams(window.location.search).get('id') || 'default';
+  return `sq_cart_${slug}`;
+}
+
 const cart = {
   items: [],   // { id, name, price, qty }
+
+  /* Load from localStorage on startup */
+  load() {
+    try {
+      const saved = localStorage.getItem(cartKey());
+      if (saved) this.items = JSON.parse(saved);
+    } catch (e) { this.items = []; }
+  },
+
+  /* Persist to localStorage after every change */
+  save() {
+    try { localStorage.setItem(cartKey(), JSON.stringify(this.items)); } catch (e) {}
+  },
 
   add(id, name, price) {
     const existing = this.items.find(i => i.id === id);
@@ -16,11 +35,13 @@ const cart = {
     } else {
       this.items.push({ id, name, price, qty: 1 });
     }
+    this.save();
     this.render();
   },
 
   remove(id) {
     this.items = this.items.filter(i => i.id !== id);
+    this.save();
     this.render();
   },
 
@@ -29,6 +50,7 @@ const cart = {
     if (!item) return;
     item.qty += delta;
     if (item.qty <= 0) this.items = this.items.filter(i => i.id !== id);
+    this.save();
     this.render();
   },
 
@@ -201,7 +223,8 @@ document.addEventListener('DOMContentLoaded', async function () {
   updateMap(restaurant);
   fetchSimilar(restaurant);
 
-  /* Initial cart render (empty state) */
+  /* Load persisted cart then render */
+  cart.load();
   renderCart();
 
   /* ── Set min date for reservation ── */
