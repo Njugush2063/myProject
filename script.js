@@ -1,5 +1,5 @@
 /* ============================================================
-   TRAVEL & TOURISM PORTAL — script.js
+   SAFARIQUEST — script.js
    ============================================================ */
 
 /* ─────────────────────────────────────────
@@ -10,7 +10,7 @@ const destinations = [
     name:   'Maasai Mara',
     tag:    'Safari Tours',
     rating: 4.8,
-    stars:  4,
+    stars:  5,
     slug:   'maasai-mara',
     img:    'https://images.unsplash.com/photo-1547970810-dc1eac37d174?w=600&q=80'
   },
@@ -26,7 +26,7 @@ const destinations = [
     name:   'Mount Kenya',
     tag:    'Mountain Adventure',
     rating: 4.9,
-    stars:  4,
+    stars:  5,
     slug:   'mount-kenya',
     img:    'https://images.unsplash.com/photo-1589825743638-54a8ee3b6d67?w=600&q=80'
   },
@@ -62,28 +62,28 @@ const destinations = [
 const events = [
   {
     title:    'Lamu Cultural Festival',
-    date:     'March 15-17, 2026',
+    date:     'March 15–17, 2026',
     location: 'Lamu Island',
     desc:     'Experience traditional Swahili culture with dhow races, donkey races, and local cuisine.',
     img:      'https://images.unsplash.com/photo-1541532713592-79a0317b272b?w=500&q=80'
   },
   {
     title:    'Nairobi Music Festival',
-    date:     'April 8-10, 2026',
+    date:     'April 8–10, 2026',
     location: 'Nairobi',
     desc:     'Three days of incredible music featuring local and international artists.',
     img:      'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=500&q=80'
   },
   {
     title:    'Maasai Mara Migration',
-    date:     'July - September',
+    date:     'July – September',
     location: 'Maasai Mara',
     desc:     'Witness the greatest wildlife show on earth — the Great Wildebeest Migration.',
     img:      'https://images.unsplash.com/photo-1534177616072-ef7dc120449d?w=500&q=80'
   },
   {
     title:    'Mombasa Carnival',
-    date:     'December 20-25, 2026',
+    date:     'December 20–25, 2026',
     location: 'Mombasa',
     desc:     'Coastal celebration with street parades, music, dance, and authentic cuisine.',
     img:      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500&q=80'
@@ -100,7 +100,7 @@ function renderStars(count, total = 5) {
 }
 
 function calendarIcon() {
-  return `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+  return `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
     <rect x="3" y="4" width="18" height="18" rx="2"/>
     <line x1="16" y1="2" x2="16" y2="6"/>
     <line x1="8"  y1="2" x2="8"  y2="6"/>
@@ -109,13 +109,13 @@ function calendarIcon() {
 }
 
 function pinIcon() {
-  return `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+  return `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
   </svg>`;
 }
 
 /* ─────────────────────────────────────────
-   RENDER: DESTINATION CARDS (clickable)
+   RENDER: DESTINATION CARDS
 ───────────────────────────────────────── */
 function renderDestinations() {
   const grid = document.getElementById('destGrid');
@@ -143,13 +143,10 @@ function renderDestinations() {
       </div>
     `;
 
-    /* Click — navigate to attraction details */
-    card.addEventListener('click', function () {
+    card.addEventListener('click', () => {
       window.location.href = 'attraction-details.html?id=' + dest.slug;
     });
-
-    /* Keyboard Enter / Space also triggers navigation */
-    card.addEventListener('keydown', function (e) {
+    card.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         window.location.href = 'attraction-details.html?id=' + dest.slug;
@@ -171,13 +168,16 @@ function renderEvents() {
     const card = document.createElement('div');
     card.className = 'event-card';
     card.innerHTML = `
-      <img class="event-img" src="${event.img}" alt="${event.title}" loading="lazy" />
+      <div class="event-img-wrap">
+        <img class="event-img" src="${event.img}" alt="${event.title}" loading="lazy" />
+        <div class="event-date-badge">${event.date}</div>
+      </div>
       <div class="event-body">
         <h3>${event.title}</h3>
         <div class="event-meta">${calendarIcon()} ${event.date}</div>
         <div class="event-meta">${pinIcon()} ${event.location}</div>
         <p>${event.desc}</p>
-        <a href="#" class="learn-more-link">Learn More &#8594;</a>
+        <a href="events.html" class="learn-more-link">Learn More &#8594;</a>
       </div>
     `;
     grid.appendChild(card);
@@ -225,10 +225,12 @@ function initSlideshow() {
   nextBtn.addEventListener('click', () => { stopTimer(); goTo(current + 1); startTimer(); });
 
   const hero = document.getElementById('hero');
-  hero.addEventListener('mouseenter', stopTimer);
-  hero.addEventListener('mouseleave', startTimer);
+  if (hero) {
+    hero.addEventListener('mouseenter', stopTimer);
+    hero.addEventListener('mouseleave', startTimer);
+  }
 
-  document.addEventListener('keydown', function(e) {
+  document.addEventListener('keydown', e => {
     if (e.key === 'ArrowLeft')  { stopTimer(); goTo(current - 1); startTimer(); }
     if (e.key === 'ArrowRight') { stopTimer(); goTo(current + 1); startTimer(); }
   });
@@ -237,37 +239,91 @@ function initSlideshow() {
 }
 
 /* ─────────────────────────────────────────
-   SMOOTH SCROLL
+   MOBILE HAMBURGER MENU
 ───────────────────────────────────────── */
-function initSmoothScroll() {
-  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
-    anchor.addEventListener('click', function(e) {
-      const target = document.querySelector(this.getAttribute('href'));
-      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+function initHamburger() {
+  const btn   = document.getElementById('navHamburger');
+  const links = document.getElementById('navLinks');
+  if (!btn || !links) return;
+
+  btn.addEventListener('click', () => {
+    links.classList.toggle('open');
+    btn.classList.toggle('active');
+  });
+
+  /* Close when a link is clicked */
+  links.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      links.classList.remove('open');
+      btn.classList.remove('active');
     });
   });
 }
 
 /* ─────────────────────────────────────────
-   NAVBAR: DEEPEN SHADOW ON SCROLL
+   SMOOTH SCROLL
+───────────────────────────────────────── */
+function initSmoothScroll() {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+}
+
+/* ─────────────────────────────────────────
+   NAVBAR SCROLL SHADOW
 ───────────────────────────────────────── */
 function initNavbarScroll() {
   const nav = document.querySelector('nav');
   if (!nav) return;
-  window.addEventListener('scroll', function() {
+  window.addEventListener('scroll', () => {
     nav.style.boxShadow = window.scrollY > 10
-      ? '0 4px 20px rgba(0,0,0,0.12)'
+      ? '0 4px 24px rgba(0,0,0,0.14)'
       : '0 2px 12px rgba(0,0,0,0.07)';
+  });
+}
+
+/* ─────────────────────────────────────────
+   SCROLL REVEAL (fade-in on scroll)
+───────────────────────────────────────── */
+function initScrollReveal() {
+  const targets = document.querySelectorAll(
+    '.dest-card, .why-card, .event-card, .testi-card'
+  );
+  if (!('IntersectionObserver' in window)) return;
+
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  targets.forEach((el, i) => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(24px)';
+    el.style.transition = `opacity 0.5s ease ${i * 0.07}s, transform 0.5s ease ${i * 0.07}s`;
+    obs.observe(el);
   });
 }
 
 /* ─────────────────────────────────────────
    INIT
 ───────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
   initSlideshow();
   renderDestinations();
   renderEvents();
   initSmoothScroll();
   initNavbarScroll();
+  initHamburger();
+  initScrollReveal();
 });
