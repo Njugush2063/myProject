@@ -21,12 +21,14 @@ document.addEventListener('DOMContentLoaded', async function () {
     showSkeletons();
     try {
       allRestaurants = await getRestaurants();
+      if (!Array.isArray(allRestaurants) || allRestaurants.length === 0) {
+        throw new Error('No data returned');
+      }
       filtered = [...allRestaurants];
       renderAll();
       document.getElementById('statTotal').textContent = allRestaurants.length;
     } catch (err) {
       console.error('Supabase error:', err);
-      // Fallback to static data if Supabase fails
       allRestaurants = getStaticRestaurants();
       filtered = [...allRestaurants];
       renderAll();
@@ -66,21 +68,24 @@ document.addEventListener('DOMContentLoaded', async function () {
   /* ── Build Card HTML ── */
   function buildCard(r) {
     const priceSymbol = buildPriceSymbol(r.price_level);
-    const shortDesc = r.description.length > 110
-      ? r.description.substring(0, 110) + '…'
-      : r.description;
+    const desc = r.description || '';
+    const shortDesc = desc.length > 110 ? desc.substring(0, 110) + '…' : desc;
+    const image = r.image_hero || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80';
+    const cuisine = r.cuisine || '';
+    const city = r.city || '';
+    const name = r.name || 'Restaurant';
 
     return `
       <a class="rest-card" href="restaurant-details.html?id=${r.slug}">
         <div class="rest-card-img-wrap">
-          <img class="rest-card-img" src="${r.image_hero}" alt="${r.name}" loading="lazy"
+          <img class="rest-card-img" src="${image}" alt="${name}" loading="lazy"
                onerror="this.src='https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80'"/>
           ${r.featured ? '<div class="rest-card-badge">⭐ Featured</div>' : ''}
-          <div class="rest-card-cuisine-badge">${r.cuisine}</div>
+          ${cuisine ? `<div class="rest-card-cuisine-badge">${cuisine}</div>` : ''}
         </div>
         <div class="rest-card-body">
-          <div class="rest-card-city">📍 ${r.city}</div>
-          <div class="rest-card-name">${r.name}</div>
+          ${city ? `<div class="rest-card-city">📍 ${city}</div>` : ''}
+          <div class="rest-card-name">${name}</div>
           <div class="rest-card-desc">${shortDesc}</div>
           <div class="rest-card-footer">
             <div class="rest-card-price">${priceSymbol}</div>
@@ -93,11 +98,12 @@ document.addEventListener('DOMContentLoaded', async function () {
   /* ── Price Symbol ── */
   function buildPriceSymbol(level) {
     const labels = ['', 'Budget', 'Mid-range', 'Upscale', 'Fine Dining'];
+    const lvl = level || 0;
     let html = '';
     for (let i = 1; i <= 4; i++) {
-      html += `<span class="price-symbol ${i <= level ? '' : 'dimmed'}">KSh</span> `;
+      html += `<span class="price-symbol ${i <= lvl ? '' : 'dimmed'}">KSh</span> `;
     }
-    return html + `<span style="font-size:0.76rem;color:#999;margin-left:4px">${labels[level] || ''}</span>`;
+    return html + `<span style="font-size:0.76rem;color:#999;margin-left:4px">${labels[lvl] || ''}</span>`;
   }
 
   /* ── Skeleton loaders ── */
@@ -115,30 +121,27 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     filtered = allRestaurants.filter(r => {
       const matchCity = activeCity === 'all' || r.city === activeCity;
-      const matchCuisine = cuisine === 'all' || r.cuisine.toLowerCase().includes(cuisine.toLowerCase());
+      const matchCuisine = cuisine === 'all' || (r.cuisine || '').toLowerCase().includes(cuisine.toLowerCase());
       const matchPrice = price === 'all' || String(r.price_level) === price;
       const matchSearch = !search ||
-        r.name.toLowerCase().includes(search) ||
-        r.city.toLowerCase().includes(search) ||
-        r.cuisine.toLowerCase().includes(search) ||
-        (r.description && r.description.toLowerCase().includes(search)) ||
+        (r.name || '').toLowerCase().includes(search) ||
+        (r.city || '').toLowerCase().includes(search) ||
+        (r.cuisine || '').toLowerCase().includes(search) ||
+        (r.description || '').toLowerCase().includes(search) ||
         (r.tags && r.tags.some(t => t.includes(search)));
       return matchCity && matchCuisine && matchPrice && matchSearch;
     });
 
-    // Sort
     if (sort === 'name') {
-      filtered.sort((a, b) => a.name.localeCompare(b.name));
+      filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     } else if (sort === 'price-asc') {
-      filtered.sort((a, b) => a.price_level - b.price_level);
+      filtered.sort((a, b) => (a.price_level || 0) - (b.price_level || 0));
     } else if (sort === 'price-desc') {
-      filtered.sort((a, b) => b.price_level - a.price_level);
+      filtered.sort((a, b) => (b.price_level || 0) - (a.price_level || 0));
     } else {
-      // featured first
       filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     }
 
-    // Update title
     const titleEl = document.getElementById('resultsTitle');
     if (activeCity !== 'all') {
       titleEl.textContent = `Restaurants in ${activeCity}`;
@@ -186,15 +189,15 @@ document.addEventListener('DOMContentLoaded', async function () {
     renderAll();
   };
 
-  /* ── Static fallback data (first 6 featured) ── */
+  /* ── Static fallback data ── */
   function getStaticRestaurants() {
     return [
-      { slug: 'carnivore-restaurant', name: 'Carnivore Restaurant', city: 'Nairobi', cuisine: 'BBQ & Steakhouse', price_level: 3, price_range: 'Upscale', featured: true, description: 'World-famous "Beast of a Feast" all-you-can-eat meat restaurant — a Nairobi icon since 1980.', image_hero: 'https://images.unsplash.com/photo-1558030006-450675393462?w=800&q=80', tags: ['bbq','nairobi'] },
-      { slug: 'mama-oliech', name: 'Mama Oliech Restaurant', city: 'Nairobi', cuisine: 'Kenyan (Fish)', price_level: 1, price_range: 'Budget', featured: true, description: 'Nairobi\'s most famous fried tilapia restaurant — a legendary institution.', image_hero: 'https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?w=800&q=80', tags: ['kenyan','fish'] },
-      { slug: 'tamarind-dhow', name: 'Tamarind Dhow', city: 'Mombasa', cuisine: 'Swahili & Seafood', price_level: 3, price_range: 'Upscale', featured: true, description: 'A unique dining experience on a traditional sailing dhow with Mombasa harbour views.', image_hero: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80', tags: ['swahili','seafood','mombasa'] },
-      { slug: 'the-moorings-kisumu', name: 'The Moorings', city: 'Kisumu', cuisine: 'African & Seafood', price_level: 2, price_range: 'Mid-range', featured: true, description: 'A floating restaurant on Lake Victoria with spectacular sunset views.', image_hero: 'https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?w=800&q=80', tags: ['lake victoria','seafood','kisumu'] },
-      { slug: 'talisman-restaurant', name: 'Talisman Restaurant', city: 'Nairobi', cuisine: 'International & African', price_level: 3, price_range: 'Upscale', featured: true, description: 'A Karen institution with beautiful fairy-lit garden and eclectic world menu.', image_hero: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=800&q=80', tags: ['international','karen'] },
-      { slug: 'forodhani-mombasa', name: 'Forodhani Restaurant', city: 'Mombasa', cuisine: 'Swahili & Seafood', price_level: 2, price_range: 'Mid-range', featured: true, description: 'Authentic Swahili seafood in the heart of Mombasa\'s historic Old Town.', image_hero: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80', tags: ['swahili','seafood','mombasa'] }
+      { slug: 'carnivore-restaurant', name: 'Carnivore Restaurant', city: 'Nairobi', cuisine: 'BBQ & Steakhouse', price_level: 3, featured: true, description: 'World-famous all-you-can-eat meat restaurant — a Nairobi icon since 1980.', image_hero: 'https://images.unsplash.com/photo-1558030006-450675393462?w=800&q=80' },
+      { slug: 'mama-oliech', name: 'Mama Oliech Restaurant', city: 'Nairobi', cuisine: 'Kenyan (Fish)', price_level: 1, featured: true, description: 'Nairobi\'s most famous fried tilapia restaurant — a legendary institution.', image_hero: 'https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?w=800&q=80' },
+      { slug: 'tamarind-dhow', name: 'Tamarind Dhow', city: 'Mombasa', cuisine: 'Swahili & Seafood', price_level: 3, featured: true, description: 'A unique dining experience on a traditional sailing dhow with Mombasa harbour views.', image_hero: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80' },
+      { slug: 'the-moorings-kisumu', name: 'The Moorings', city: 'Kisumu', cuisine: 'African & Seafood', price_level: 2, featured: true, description: 'A floating restaurant on Lake Victoria with spectacular sunset views.', image_hero: 'https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?w=800&q=80' },
+      { slug: 'talisman-restaurant', name: 'Talisman Restaurant', city: 'Nairobi', cuisine: 'International & African', price_level: 3, featured: true, description: 'A Karen institution with beautiful fairy-lit garden and eclectic world menu.', image_hero: 'https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=800&q=80' },
+      { slug: 'forodhani-mombasa', name: 'Forodhani Restaurant', city: 'Mombasa', cuisine: 'Swahili & Seafood', price_level: 2, featured: true, description: 'Authentic Swahili seafood in the heart of Mombasa\'s historic Old Town.', image_hero: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80' }
     ];
   }
 
