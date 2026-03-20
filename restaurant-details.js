@@ -28,12 +28,12 @@ const cart = {
     try { localStorage.setItem(cartKey(), JSON.stringify(this.items)); } catch (e) {}
   },
 
-  add(id, name, price) {
+  add(id, name, price, dbId, image, desc) {
     const existing = this.items.find(i => i.id === id);
     if (existing) {
       existing.qty++;
     } else {
-      this.items.push({ id, name, price, qty: 1 });
+      this.items.push({ id, db_id: dbId, name, price, image: image || '', desc: desc || '', qty: 1 });
     }
     this.save();
     this.render();
@@ -433,8 +433,11 @@ function buildMenuItemFromDB(item) {
   const addBtn = price === 0 ? '' : `
     <button class="menu-item-add"
       data-item-id="${itemId}"
+      data-item-db-id="${item.id}"
       data-item-name="${name.replace(/"/g, '&quot;')}"
       data-item-price="${price}"
+      data-item-image="${image}"
+      data-item-desc="${desc.replace(/"/g, '&quot;')}"
       onclick="handleAddToCart(this)">+ Add</button>`;
 
   return `
@@ -468,8 +471,11 @@ function buildMenuItem(item) {
   const addBtn = price === 0 ? '' : `
     <button class="menu-item-add"
       data-item-id="${itemId}"
+      data-item-db-id="${item.id || ''}"
       data-item-name="${item.name.replace(/"/g, '&quot;')}"
       data-item-price="${price}"
+      data-item-image="${item.image || ''}"
+      data-item-desc="${(item.desc || '').replace(/"/g, '&quot;')}"
       onclick="handleAddToCart(this)">+ Add</button>`;
 
   return `
@@ -494,10 +500,13 @@ function buildMenuItem(item) {
 
 /* ── Handle Add to Cart click ── */
 window.handleAddToCart = function(btn) {
-  const id    = btn.dataset.itemId;
-  const name  = btn.dataset.itemName;
-  const price = parseInt(btn.dataset.itemPrice, 10);
-  cart.add(id, name, price);
+  const id      = btn.dataset.itemId;
+  const dbId    = btn.dataset.itemDbId ? parseInt(btn.dataset.itemDbId, 10) : null;
+  const name    = btn.dataset.itemName;
+  const price   = parseInt(btn.dataset.itemPrice, 10);
+  const image   = btn.dataset.itemImage || '';
+  const desc    = btn.dataset.itemDesc || '';
+  cart.add(id, name, price, dbId, image, desc);
 
   /* Micro-animation on the button */
   btn.classList.add('add-bounce');
