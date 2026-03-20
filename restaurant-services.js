@@ -2,6 +2,59 @@
    RESTAURANT SERVICES & MENU — restaurant-services.js
    ============================================================ */
 
+/* ── Shared cart key (matches restaurant-details.js) ── */
+function cartKey() {
+  const slug = new URLSearchParams(window.location.search).get('id') || 'default';
+  return `sq_cart_${slug}`;
+}
+
+/* ── Load cart from localStorage into window._cart format ──
+   restaurant-details saves: [ { id, db_id, name, price, image, desc, qty } ]
+   restaurant-services uses: { [db_id]: { id, item_name, price, image, qty, … } }
+   We hydrate from localStorage and merge with live DB items once they load.
+── */
+function loadCartFromStorage() {
+  try {
+    const saved = localStorage.getItem(cartKey());
+    if (!saved) return {};
+    const items = JSON.parse(saved);
+    const cart = {};
+    items.forEach(item => {
+      // Key by db_id if available, otherwise use string id
+      const key = item.db_id || item.id;
+      cart[key] = {
+        id: item.db_id || item.id,
+        item_name: item.name,
+        price: item.price,
+        image: item.image || '',
+        description: item.desc || '',
+        qty: item.qty,
+        available: true,
+        _fromStorage: true   // flag so we know to merge later
+      };
+    });
+    return cart;
+  } catch (e) { return {}; }
+}
+
+/* ── Save window._cart back to localStorage ── */
+function saveCartToStorage() {
+  try {
+    const items = Object.values(window._cart).map(item => ({
+      id: typeof item.id === 'number'
+        ? (item.item_name + '_' + item.price).toLowerCase().replace(/[^a-z0-9]/g, '_')
+        : item.id,
+      db_id: typeof item.id === 'number' ? item.id : null,
+      name: item.item_name,
+      price: item.price,
+      image: item.image || '',
+      desc: item.description || '',
+      qty: item.qty
+    }));
+    localStorage.setItem(cartKey(), JSON.stringify(items));
+  } catch (e) {}
+}
+
 document.addEventListener('DOMContentLoaded', async function () {
 
   /* ── Navbar scroll ── */
@@ -42,6 +95,10 @@ document.addEventListener('DOMContentLoaded', async function () {
     window._restaurantName = restaurant.name;
   }
 
+  /* ── Pre-load cart from localStorage BEFORE menu items arrive ── */
+  window._cart = loadCartFromStorage();
+  updateCartSidebar();
+
   /* ── Fetch menu items ── */
   showSkeletons();
   let allItems = [];
@@ -64,6 +121,23 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   window._allItems = allItems;
+
+  /* ── Merge storage cart with live DB items ──
+     Storage items keyed by db_id can now be fully hydrated with DB data
+  ── */
+  const mergedCart = {};
+  Object.values(window._cart).forEach(stored => {
+    // Find the matching live DB item
+    const live = allItems.find(i => i.id === stored.id || i.item_name === stored.item_name);
+    if (live) {
+      mergedCart[live.id] = { ...live, qty: stored.qty };
+    } else {
+      // Keep as-is (item may have been removed from DB)
+      mergedCart[stored.id] = stored;
+    }
+  });
+  window._cart = mergedCart;
+  updateCartSidebar();
 
   /* ── Group by category ── */
   const categories = {};
@@ -100,9 +174,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   /* ── Render initial (all items) ── */
   renderItems(allItems);
-
-  /* ── Cart state ── */
-  window._cart = {};
 
 });
 
@@ -180,6 +251,7 @@ window.addToCart = function (id) {
     window._cart[id] = { ...item, qty: 0 };
   }
   window._cart[id].qty++;
+  saveCartToStorage();
   refreshCard(id);
   updateCartSidebar();
 };
@@ -189,6 +261,7 @@ window.changeQty = function (id, delta) {
   if (!window._cart[id]) return;
   window._cart[id].qty = Math.max(0, window._cart[id].qty + delta);
   if (window._cart[id].qty === 0) delete window._cart[id];
+  saveCartToStorage();
   refreshCard(id);
   updateCartSidebar();
 };
@@ -229,16 +302,16 @@ function updateCartSidebar() {
     cartEmpty.style.display = 'block';
     cartItemsEl.style.display = 'none';
     cartFooter.style.display = 'none';
-    specialWrap.style.display = 'none';
-    fabCart.classList.remove('has-items');
+    if (specialWrap) specialWrap.style.display = 'none';
+    if (fabCart) fabCart.classList.remove('has-items');
     return;
   }
 
   cartEmpty.style.display = 'none';
   cartItemsEl.style.display = 'block';
   cartFooter.style.display = 'block';
-  specialWrap.style.display = 'block';
-  fabCart.classList.add('has-items');
+  if (specialWrap) specialWrap.style.display = 'block';
+  if (fabCart) fabCart.classList.add('has-items');
 
   cartItemsEl.innerHTML = cartItems.map(item => `
     <div class="cart-item">
@@ -259,8 +332,8 @@ function updateCartSidebar() {
 
   document.getElementById('cartSubtotal').textContent = `KSh ${total.toLocaleString('en-KE')}`;
   document.getElementById('cartTotal').textContent = `KSh ${total.toLocaleString('en-KE')}`;
-  document.getElementById('fabCount').textContent = count;
-  document.getElementById('fabTotal').textContent = `KSh ${total.toLocaleString('en-KE')}`;
+  if (document.getElementById('fabCount')) document.getElementById('fabCount').textContent = count;
+  if (document.getElementById('fabTotal')) document.getElementById('fabTotal').textContent = `KSh ${total.toLocaleString('en-KE')}`;
 }
 
 /* ── Place Order ── */
@@ -312,8 +385,12 @@ window.placeOrder = async function () {
     if (!res.ok) throw new Error(`Order failed: ${res.status}`);
 
     showSuccessModal(cartItems, total, tableNumber, customerName);
+
+    /* Clear both in-memory and localStorage cart */
     window._cart = {};
+    saveCartToStorage();
     updateCartSidebar();
+
     document.getElementById('tableNumber').value = '';
     document.getElementById('customerName').value = '';
     document.getElementById('customerPhone').value = '';
@@ -359,6 +436,7 @@ window.clearCart = function () {
   if (!Object.keys(window._cart).length) return;
   if (!confirm('Clear your entire cart?')) return;
   window._cart = {};
+  saveCartToStorage();
   updateCartSidebar();
   window._allItems.forEach(item => refreshCard(item.id));
 };
