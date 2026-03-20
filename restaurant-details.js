@@ -35,10 +35,6 @@ if (!slug) {
 // Show that we're trying to fetch
 showDebugInfo(`⏳ Fetching restaurant with slug: "${slug}"...`);
 
-// Supabase config
-const SUPABASE_URL = 'https://cbyipmrozqsntojiartw.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieWlwbXJvenFzbnRvamlhcnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTkxNTQsImV4cCI6MjA4ODk3NTE1NH0.31TAhmUCV_Uh0W8FGnR2_TLCZDU4YBM1U5LMSMc5JZs';
-
 async function fetchRestaurant() {
     try {
         console.log('📡 Fetching from Supabase...');
