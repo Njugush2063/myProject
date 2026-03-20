@@ -55,28 +55,33 @@ document.addEventListener('DOMContentLoaded', async function () {
   document.getElementById('resDate').min = today;
   document.getElementById('resDate').value = today;
 
-  /* ── Scroll to reservation from hero button ── */
+  /* ── Button listeners ── */
   document.getElementById('reserveBtn').addEventListener('click', () => {
     document.getElementById('bookingSidebar').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
+
   document.getElementById('galleryBtn').addEventListener('click', () => {
     openLightbox(0);
   });
+
+  /* ── Menu & Services — all three entry points go to same page ── */
+  const goToMenu = () => {
+    window.location.href = `restaurant-services.html?id=${restaurant.slug}`;
+  };
+  document.getElementById('menuBtn').addEventListener('click', goToMenu);
+  document.getElementById('menuSidebarBtn').addEventListener('click', goToMenu);
+  document.getElementById('menuBannerBtn').addEventListener('click', goToMenu);
 
 });
 
 /* ── Populate Hero & Strip ── */
 function populatePage(r) {
-  // Hero background
   document.getElementById('heroBg').style.backgroundImage = `url('${r.image_hero}')`;
-
-  // Hero text
   set('breadcrumbName', r.name);
   set('heroCuisine', r.cuisine);
   set('heroCity', `📍 ${r.city}`);
   set('heroTitle', r.name);
 
-  // Show real KSh price if available, else price_range label
   if (r.price_per_person_min && r.price_per_person_max) {
     set('heroPriceRange', `KSh ${r.price_per_person_min.toLocaleString('en-KE')} – KSh ${r.price_per_person_max.toLocaleString('en-KE')} per person`);
   } else {
@@ -84,16 +89,12 @@ function populatePage(r) {
   }
   set('heroHours', r.opening_hours || 'See details');
 
-  // Info strip
   set('stripCuisine', r.cuisine);
   set('stripPrice', r.price_range);
   set('stripLocation', `${r.city}, Kenya`);
   set('stripHours', r.opening_hours ? r.opening_hours.split('|')[0].trim() : '—');
 
-  // Overview
   set('overviewText', r.description);
-
-  // Map overlay
   set('mapCardName', r.name);
   set('mapCardLocation', `${r.location || ''}, ${r.city}`);
 }
@@ -115,10 +116,7 @@ function populateSidebar(r) {
 /* ── Build Gallery ── */
 function buildGallery(images) {
   const grid = document.getElementById('galleryGrid');
-  if (!images || images.length === 0) {
-    grid.style.display = 'none';
-    return;
-  }
+  if (!images || images.length === 0) { grid.style.display = 'none'; return; }
   window._galleryImages = images;
   grid.innerHTML = images.slice(0, 5).map((src, i) => `
     <img class="gal-img" src="${src}" alt="Photo ${i + 1}" loading="lazy"
@@ -193,7 +191,6 @@ function buildMenuItem(item) {
   const priceStr = item.price === 0
     ? `<span class="menu-item-price free">Included</span>`
     : `<span class="menu-item-price">KSh ${item.price.toLocaleString('en-KE')}</span>`;
-
   return `
     <div class="menu-item-card">
       <div class="menu-item-img-wrap">
@@ -220,10 +217,8 @@ window.switchMenuTab = function(index) {
 /* ── Update Map ── */
 function updateMap(r) {
   const query = encodeURIComponent(`${r.name}, ${r.city}, Kenya`);
-  document.getElementById('mapFrame').src =
-    `https://www.google.com/maps?q=${query}&output=embed`;
-  document.getElementById('mapOpenLink').href =
-    `https://www.google.com/maps/search/${query}`;
+  document.getElementById('mapFrame').src = `https://www.google.com/maps?q=${query}&output=embed`;
+  document.getElementById('mapOpenLink').href = `https://www.google.com/maps/search/${query}`;
 }
 
 /* ── Fetch Similar Restaurants ── */
@@ -309,8 +304,7 @@ window.openLightbox = function (i) {
   const imgs = window._galleryImages || [];
   if (!imgs.length) return;
   lbIndex = i;
-  const lb = document.getElementById('lightbox');
-  lb.classList.add('open');
+  document.getElementById('lightbox').classList.add('open');
   updateLightbox();
 };
 window.closeLightbox = function () {
