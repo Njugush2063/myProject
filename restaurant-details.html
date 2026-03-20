@@ -122,6 +122,39 @@
         <div class="booking-price-ksh" id="sidebarPriceKsh">—</div>
         <div class="booking-price-label">per person (avg.)</div>
       </div>
+
+      <!-- ══ CART PANEL ══ -->
+      <div class="cart-panel" id="cartPanel">
+        <div class="cart-panel-header">
+          <div class="cart-panel-title">
+            <span class="cart-icon">🛒</span>
+            <span id="cartCount">Your order</span>
+          </div>
+          <span class="cart-badge" id="cartBadge" style="display:none">0</span>
+        </div>
+
+        <!-- Empty state -->
+        <div class="cart-empty" id="cartEmpty">
+          <div class="cart-empty-icon">🍽️</div>
+          <p>No items yet — add dishes from the menu below</p>
+        </div>
+
+        <!-- Item list -->
+        <div class="cart-items" id="cartItems" style="display:none"></div>
+
+        <!-- Footer: total + place order -->
+        <div class="cart-footer" id="cartFooter" style="display:none">
+          <div class="cart-total-row">
+            <span>Order Total</span>
+            <span class="cart-total" id="cartTotal">KSh 0</span>
+          </div>
+          <button class="btn-place-order" id="placeOrderBtn">🛒 Place Order</button>
+          <p class="cart-disclaimer">Order confirmed when restaurant accepts</p>
+        </div>
+      </div>
+
+      <div class="booking-divider"></div>
+
       <div class="booking-info-box">
         <div class="info-row"><span class="info-row-label">Cuisine</span><span class="info-row-val" id="sidebarCuisine">—</span></div>
         <div class="info-row"><span class="info-row-label">Price Range</span><span class="info-row-val" id="sidebarPriceRange">—</span></div>
@@ -168,6 +201,7 @@
         <button class="btn-share" onclick="shareRestaurant()">↗ Share</button>
       </div>
     </div>
+
   </aside>
 </div>
 <section class="similar-section">
@@ -200,7 +234,7 @@
     </div>
     <div class="footer-contact">
       <h4>Contact</h4>
-      <p>📧 info@safariquest.com</p>
+      <p>📧 <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a8c1c6cec7e8dbc9cec9dac1d9ddcddbdc86cbc7c5">[email&#160;protected]</a></p>
       <p>📍 Nairobi, Kenya</p>
     </div>
   </div>
@@ -209,9 +243,4 @@
   </div>
 </footer>
 
-<!-- ── SCRIPTS ── -->
-<script src="supabase-config.js"></script>
-<script src="restaurant-details.js"></script>
-
-</body>
-</html>
+<!-- ── SC
