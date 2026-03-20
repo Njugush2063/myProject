@@ -143,17 +143,121 @@ function renderDestinations() {
       </div>
     `;
 
-    card.addEventListener('click', () => {
+    const navigate = () => {
       window.location.href = 'attraction-details.html?id=' + dest.slug;
-    });
+    };
+    card.addEventListener('click', navigate);
     card.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        window.location.href = 'attraction-details.html?id=' + dest.slug;
-      }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(); }
     });
 
     grid.appendChild(card);
+  });
+}
+
+/* ─────────────────────────────────────────
+   SEARCH WITH SUPABASE SUGGESTIONS
+───────────────────────────────────────── */
+
+/* Cache so we don't re-fetch on every keystroke */
+let _attractionsCache = null;
+
+async function fetchAttractions() {
+  if (_attractionsCache) return _attractionsCache;
+  try {
+    _attractionsCache = await db.getAttractions();
+    return _attractionsCache;
+  } catch {
+    /* Fall back to local destinations array so search still works offline */
+    _attractionsCache = destinations.map(d => ({
+      slug: d.slug, name: d.name,
+      region: '', category: d.tag,
+      image_hero: d.img
+    }));
+    return _attractionsCache;
+  }
+}
+
+function initSearch() {
+  const input       = document.getElementById('searchWhere');
+  const dropdown    = document.getElementById('searchSuggestions');
+  const searchBtn   = document.getElementById('btnSearch');
+  if (!input || !dropdown) return;
+
+  let debounceTimer = null;
+
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const q = input.value.trim();
+    if (q.length < 1) { dropdown.innerHTML = ''; return; }
+    debounceTimer = setTimeout(() => showSuggestions(q), 200);
+  });
+
+  async function showSuggestions(q) {
+    const items = await fetchAttractions();
+    const ql = q.toLowerCase();
+    const matches = items.filter(a =>
+      (a.name     || '').toLowerCase().includes(ql) ||
+      (a.region   || '').toLowerCase().includes(ql) ||
+      (a.category || '').toLowerCase().includes(ql)
+    ).slice(0, 6);
+
+    if (!matches.length) {
+      dropdown.innerHTML = `<div class="suggestion-no-results">No destinations found for "<strong>${q}</strong>"</div>`;
+      return;
+    }
+
+    dropdown.innerHTML = matches.map(a => `
+      <div class="suggestion-item" data-slug="${a.slug}" role="button" tabindex="0">
+        <img class="suggestion-img"
+             src="${a.image_hero || 'https://images.unsplash.com/photo-1547970810-dc1eac37d174?w=100&q=60'}"
+             alt="${a.name}"
+             onerror="this.src='https://images.unsplash.com/photo-1547970810-dc1eac37d174?w=100&q=60'"/>
+        <div class="suggestion-info">
+          <div class="suggestion-name">${a.name}</div>
+          <div class="suggestion-tag">${a.category || a.region || 'Destination'}</div>
+        </div>
+        <span class="suggestion-arrow">→</span>
+      </div>
+    `).join('');
+
+    /* Click/keyboard on a suggestion */
+    dropdown.querySelectorAll('.suggestion-item').forEach(el => {
+      const go = () => {
+        window.location.href = 'attraction-details.html?id=' + el.dataset.slug;
+      };
+      el.addEventListener('click', go);
+      el.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+    });
+  }
+
+  /* Search button — navigate to first match or destinations page */
+  if (searchBtn) {
+    searchBtn.addEventListener('click', async () => {
+      const q = input.value.trim();
+      if (!q) { window.location.href = 'destinations.html'; return; }
+      const items = await fetchAttractions();
+      const match = items.find(a =>
+        (a.name || '').toLowerCase().includes(q.toLowerCase())
+      );
+      if (match) {
+        window.location.href = 'attraction-details.html?id=' + match.slug;
+      } else {
+        window.location.href = `destinations.html?search=${encodeURIComponent(q)}`;
+      }
+    });
+  }
+
+  /* Enter key in input */
+  input.addEventListener('keydown', async e => {
+    if (e.key === 'Enter') searchBtn && searchBtn.click();
+  });
+
+  /* Close dropdown when clicking outside */
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.search-field-wrap')) {
+      dropdown.innerHTML = '';
+    }
   });
 }
 
@@ -326,4 +430,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initNavbarScroll();
   initHamburger();
   initScrollReveal();
+  initSearch();
 });
