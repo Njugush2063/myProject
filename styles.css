@@ -926,80 +926,92 @@ footer {
 }
 
 /* ============================================================
-   LOGO IMAGE & SLOGAN
+   LOGO IMAGE & SLOGAN — fixes
    ============================================================ */
 
-/* Logo image next to brand name */
+/* Override old logo-icon — hide it when logo-img is present */
+.logo:has(.logo-img) .logo-icon { display: none; }
+
+/* Logo image — constrained size, background cropped out */
 .logo-img {
-  width: 40px;
-  height: 40px;
-  object-fit: contain;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 50%;
   flex-shrink: 0;
+  /* Crop to just the compass, hiding the gradient background */
+  box-shadow: 0 0 0 1.5px rgba(232,130,12,0.25);
 }
 .logo-img-sm {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 50%;
 }
 
-/* Logo text block — stacks name + slogan vertically */
+/* Logo text block — inline, not stacked */
 .logo-text {
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: column !important;
   justify-content: center;
-  gap: 1px;
+  gap: 0;
+  font-size: unset;
+  font-weight: unset;
 }
 
 .logo-name {
   display: block;
   font-family: 'Playfair Display', serif;
   font-weight: 800;
-  font-size: 1.05rem;
+  font-size: 1rem;
   color: var(--dark);
-  line-height: 1.1;
+  line-height: 1.15;
+  white-space: nowrap;
 }
 
-/* Slogan under brand name in navbar — italic */
+/* Slogan — italic, small, tight under the name */
 .logo-slogan {
   display: block;
-  font-size: 0.58rem;
+  font-size: 0.55rem;
   font-weight: 500;
   font-style: italic;
-  letter-spacing: 1.2px;
+  letter-spacing: 0.8px;
   color: var(--orange);
   line-height: 1;
+  white-space: nowrap;
 }
 
-/* Hero slogan line between headline and search bar */
+/* Hero slogan — italic, subtle, between headline and search */
 .hero-slogan {
-  font-size: 0.82rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 400;
   font-style: italic;
-  letter-spacing: 3px;
-  color: rgba(255,255,255,0.78);
-  margin-bottom: 10px;
-  margin-top: -6px;
+  letter-spacing: 2.5px;
+  color: rgba(255,255,255,0.72);
+  margin-bottom: 12px;
+  margin-top: -4px;
 }
 
 /* Footer logo row */
 .footer-logo {
-  display: flex;
+  display: flex !important;
   align-items: center;
   gap: 10px;
   margin-bottom: 14px;
   font-family: 'Playfair Display', serif;
   font-weight: 800;
-  font-size: 1.05rem;
+  font-size: 1rem;
   color: #fff;
 }
 
-/* Search suggestions dropdown */
+/* ── Search suggestions dropdown ── */
 .search-field-wrap {
   position: relative;
   flex: 1;
   min-width: 150px;
 }
-
 .search-suggestions {
   position: absolute;
   top: calc(100% + 8px);
@@ -1013,7 +1025,6 @@ footer {
   overflow-y: auto;
 }
 .search-suggestions:empty { display: none; }
-
 .suggestion-item {
   display: flex;
   align-items: center;
@@ -1026,7 +1037,6 @@ footer {
 }
 .suggestion-item:last-child { border-bottom: none; }
 .suggestion-item:hover { background: var(--orange-pale); }
-
 .suggestion-img {
   width: 44px; height: 44px;
   border-radius: 8px;
@@ -1047,11 +1057,7 @@ footer {
   color: var(--orange);
   font-weight: 600;
 }
-.suggestion-arrow {
-  color: var(--orange);
-  font-size: 0.9rem;
-  flex-shrink: 0;
-}
+.suggestion-arrow { color: var(--orange); font-size: 0.9rem; flex-shrink: 0; }
 .suggestion-no-results {
   padding: 16px;
   text-align: center;
