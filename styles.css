@@ -925,65 +925,48 @@ footer {
   .hero-stat-divider { display: none; }
 }
 
-/* ============================================================
-   LOGO IMAGE & SLOGAN — fixes
-   ============================================================ */
-
-/* Override old logo-icon — hide it when logo-img is present */
-.logo:has(.logo-img) .logo-icon { display: none; }
-
-/* Logo image — constrained size, background cropped out */
+/* ── NAVBAR LOGO IMAGE & SLOGAN ONLY ── */
 .logo-img {
-  width: 36px;
-  height: 36px;
-  object-fit: cover;
-  object-position: center;
-  border-radius: 50%;
-  flex-shrink: 0;
-  /* Crop to just the compass, hiding the gradient background */
-  box-shadow: 0 0 0 1.5px rgba(232,130,12,0.25);
+  width: 36px !important;
+  height: 36px !important;
+  object-fit: cover !important;
+  object-position: 55% 50% !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+  display: inline-block !important;
+  box-shadow: 0 0 0 2px rgba(232,130,12,0.3);
 }
-.logo-img-sm {
-  width: 28px;
-  height: 28px;
-  object-fit: cover;
-  object-position: center;
-  border-radius: 50%;
-}
-
-/* Logo text block — inline, not stacked */
 .logo-text {
   display: flex !important;
   flex-direction: column !important;
-  justify-content: center;
-  gap: 0;
-  font-size: unset;
-  font-weight: unset;
+  justify-content: center !important;
+  gap: 1px !important;
 }
-
 .logo-name {
-  display: block;
-  font-family: 'Playfair Display', serif;
-  font-weight: 800;
-  font-size: 1rem;
-  color: var(--dark);
-  line-height: 1.15;
-  white-space: nowrap;
+  display: block !important;
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 800 !important;
+  font-size: 1rem !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
 }
-
-/* Slogan — italic, small, tight under the name */
 .logo-slogan {
-  display: block;
-  font-size: 0.55rem;
-  font-weight: 500;
-  font-style: italic;
-  letter-spacing: 0.8px;
-  color: var(--orange);
-  line-height: 1;
-  white-space: nowrap;
+  display: block !important;
+  font-size: 0.55rem !important;
+  font-weight: 500 !important;
+  font-style: italic !important;
+  letter-spacing: 0.8px !important;
+  color: #E8820C !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
 }
-
-/* Hero slogan — italic, subtle, between headline and search */
+/* For restaurant pages that use .nav-logo */
+.nav-logo {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+/* Hero slogan on index page */
 .hero-slogan {
   font-size: 0.8rem;
   font-weight: 400;
@@ -992,75 +975,4 @@ footer {
   color: rgba(255,255,255,0.72);
   margin-bottom: 12px;
   margin-top: -4px;
-}
-
-/* Footer logo row */
-.footer-logo {
-  display: flex !important;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-  font-family: 'Playfair Display', serif;
-  font-weight: 800;
-  font-size: 1rem;
-  color: #fff;
-}
-
-/* ── Search suggestions dropdown ── */
-.search-field-wrap {
-  position: relative;
-  flex: 1;
-  min-width: 150px;
-}
-.search-suggestions {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0; right: 0;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.18);
-  overflow: hidden;
-  z-index: 200;
-  max-height: 280px;
-  overflow-y: auto;
-}
-.search-suggestions:empty { display: none; }
-.suggestion-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  cursor: pointer;
-  transition: background 0.15s;
-  border-bottom: 1px solid #f5f5f5;
-  text-align: left;
-}
-.suggestion-item:last-child { border-bottom: none; }
-.suggestion-item:hover { background: var(--orange-pale); }
-.suggestion-img {
-  width: 44px; height: 44px;
-  border-radius: 8px;
-  object-fit: cover;
-  flex-shrink: 0;
-}
-.suggestion-info { flex: 1; min-width: 0; }
-.suggestion-name {
-  font-size: 0.88rem;
-  font-weight: 700;
-  color: var(--dark);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.suggestion-tag {
-  font-size: 0.74rem;
-  color: var(--orange);
-  font-weight: 600;
-}
-.suggestion-arrow { color: var(--orange); font-size: 0.9rem; flex-shrink: 0; }
-.suggestion-no-results {
-  padding: 16px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 0.85rem;
 }

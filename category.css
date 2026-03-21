@@ -311,3 +311,55 @@ footer { background: #111827; color: rgba(255,255,255,.75); padding: 64px 48px 3
   .filter-results { display: none; }
 }
 @media (max-width: 480px) { .dest-grid { grid-template-columns: 1fr; } }
+
+/* ── NAVBAR LOGO IMAGE & SLOGAN ONLY ── */
+.logo-img {
+  width: 36px !important;
+  height: 36px !important;
+  object-fit: cover !important;
+  object-position: 55% 50% !important;
+  border-radius: 50% !important;
+  flex-shrink: 0 !important;
+  display: inline-block !important;
+  box-shadow: 0 0 0 2px rgba(232,130,12,0.3);
+}
+.logo-text {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 1px !important;
+}
+.logo-name {
+  display: block !important;
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 800 !important;
+  font-size: 1rem !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
+}
+.logo-slogan {
+  display: block !important;
+  font-size: 0.55rem !important;
+  font-weight: 500 !important;
+  font-style: italic !important;
+  letter-spacing: 0.8px !important;
+  color: #E8820C !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+/* For restaurant pages that use .nav-logo */
+.nav-logo {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+/* Hero slogan on index page */
+.hero-slogan {
+  font-size: 0.8rem;
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 2.5px;
+  color: rgba(255,255,255,0.72);
+  margin-bottom: 12px;
+  margin-top: -4px;
+}
