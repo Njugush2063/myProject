@@ -925,48 +925,106 @@ footer {
   .hero-stat-divider { display: none; }
 }
 
-/* ── NAVBAR LOGO IMAGE & SLOGAN ONLY ── */
-.logo-img {
+/* ============================================================
+   LOGO & FOOTER DEFINITIVE FIX
+   ============================================================ */
+
+/* 1. NAVBAR logo image — small and circular */
+nav .logo-img {
   width: 36px !important;
   height: 36px !important;
   object-fit: cover !important;
   object-position: 55% 50% !important;
   border-radius: 50% !important;
   flex-shrink: 0 !important;
-  display: inline-block !important;
+  display: block !important;
   box-shadow: 0 0 0 2px rgba(232,130,12,0.3);
 }
-.logo-text {
+
+/* 2. NAVBAR logo text — stack name + slogan vertically */
+nav .logo-text {
   display: flex !important;
   flex-direction: column !important;
   justify-content: center !important;
-  gap: 1px !important;
+  gap: 0 !important;
 }
-.logo-name {
+
+/* Hide old span-based text in navbar */
+nav .logo-text > span:not(.logo-name):not(.logo-slogan) {
+  display: none !important;
+}
+
+nav .logo-name {
   display: block !important;
   font-family: 'Playfair Display', serif !important;
   font-weight: 800 !important;
   font-size: 1rem !important;
+  color: var(--dark, #1A1A2E) !important;
   line-height: 1.15 !important;
   white-space: nowrap !important;
 }
-.logo-slogan {
+
+nav .logo-slogan {
   display: block !important;
   font-size: 0.55rem !important;
   font-weight: 500 !important;
   font-style: italic !important;
   letter-spacing: 0.8px !important;
   color: #E8820C !important;
-  line-height: 1 !important;
+  line-height: 1.2 !important;
   white-space: nowrap !important;
 }
-/* For restaurant pages that use .nav-logo */
+
+/* 3. FOOTER logo — hide the image, keep SVG icon + text as original */
+footer .logo-img,
+footer .logo-img-sm {
+  display: none !important;
+}
+
+/* Keep footer logo-icon visible */
+footer .logo-icon {
+  display: flex !important;
+}
+
+/* Footer logo-text — keep original horizontal layout */
+footer .logo-text {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 0 !important;
+}
+
+footer .logo-text > span {
+  display: inline !important;
+}
+
+/* 4. Index page footer-logo (uses different class) */
+.footer-logo .logo-img-sm {
+  width: 32px !important;
+  height: 32px !important;
+  object-fit: cover !important;
+  object-position: 55% 50% !important;
+  border-radius: 50% !important;
+  display: block !important;
+}
+
+/* 5. Restaurant pages .nav-logo */
 .nav-logo {
   display: flex !important;
   align-items: center !important;
   gap: 10px !important;
 }
-/* Hero slogan on index page */
+.nav-logo .logo-img {
+  width: 36px !important;
+  height: 36px !important;
+  object-fit: cover !important;
+  object-position: 55% 50% !important;
+  border-radius: 50% !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 0 0 2px rgba(232,130,12,0.3);
+}
+
+/* 6. Hero slogan */
 .hero-slogan {
   font-size: 0.8rem;
   font-weight: 400;
@@ -975,4 +1033,137 @@ footer {
   color: rgba(255,255,255,0.72);
   margin-bottom: 12px;
   margin-top: -4px;
+}
+
+/* ============================================================
+   FOOTER LOGO BLOCK — square image, name + italic slogan
+   ============================================================ */
+.footer-logo-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.footer-logo-img {
+  width: 52px !important;
+  height: 52px !important;
+  object-fit: cover !important;
+  object-position: 55% 50% !important;
+  border-radius: 10px !important;   /* square with slight rounding */
+  flex-shrink: 0 !important;
+  display: block !important;
+}
+
+.footer-logo-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.footer-logo-name {
+  display: block;
+  font-family: 'Playfair Display', serif;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.footer-logo-slogan {
+  display: block;
+  font-size: 0.72rem;
+  font-style: italic;
+  font-weight: 500;
+  color: #E8820C;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+/* ── INDEX PAGE FOOTER GRID ── */
+.footer { background: var(--dark); color: var(--white); padding: 56px 48px 0; }
+
+.footer-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 48px;
+  padding-bottom: 48px;
+}
+
+.footer-brand p {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.7;
+  margin-top: 16px;
+}
+
+.footer-links-col h4,
+.footer-contact-col h4 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--orange);
+  margin-bottom: 16px;
+  font-weight: 700;
+}
+
+.footer-links-col ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footer-links-col ul li a {
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.footer-links-col ul li a:hover { color: var(--orange); }
+
+.footer-contact-col p {
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 8px;
+}
+
+.footer-contact-col a {
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+}
+
+.footer-contact-col a:hover { color: var(--orange); }
+
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 20px 0;
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.footer-bottom p {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.4);
+}
+
+.footer-slogan {
+  font-size: 0.78rem !important;
+  color: rgba(255,255,255,0.35) !important;
+}
+
+@media (max-width: 900px) {
+  .footer-container {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .footer { padding: 48px 24px 0; }
 }
