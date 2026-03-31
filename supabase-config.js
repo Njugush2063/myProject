@@ -14,7 +14,7 @@
    The service_role key must NEVER appear in frontend code.
    ============================================================ */
 const SUPABASE_URL = 'https://cbyipmrozqsntojiartw.supabase.co';
-const SUPABASE_KEY = 'YOUR_ANON_PUBLIC_KEY'; // ← Replace this with your anon key
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieWlwbXJvenFzbnRvamlhcnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTkxNTQsImV4cCI6MjA4ODk3NTE1NH0.31TAhmUCV_Uh0W8FGnR2_TLCZDU4YBM1U5LMSMc5JZs'; // ← Replace this with your anon key
 
 /* ============================================================
    ROW LEVEL SECURITY REMINDER
