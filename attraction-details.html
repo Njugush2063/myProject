@@ -1,489 +1,359 @@
-/* ── HERO FIX: push content below fixed navbar ── */
-.hero {
-  padding-top: 72px; /* height of fixed nav */
-  min-height: calc(90vh + 72px);
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Destination — SafariQuest Kenya</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="attraction-details.css">
+</head>
+<body>
 
-/* Breadcrumb: was position:absolute top:24px but that's relative to hero,
-   not accounting for navbar. Now position it properly. */
-.breadcrumb {
-  position: relative !important;
-  top: auto !important;
-  left: auto !important;
-  margin-bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: .82rem;
-  color: rgba(255,255,255,.7);
-}
-.breadcrumb a { color: rgba(255,255,255,.7); text-decoration: none; transition: color .2s; }
-.breadcrumb a:hover { color: #F47940; }
+<!-- ── NAV ── -->
+<nav id="navbar">
+  <a class="logo" href="Index.html">
+    <img src="logo.png" alt="SafariQuest" class="logo-img"/>
+    <div class="logo-text">
+      <span class="logo-name">SafariQuest</span>
+      <span class="logo-slogan">Discover. Explore. Experience.</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="destinations.html">Destinations</a></li>
+    <li><a href="Index.html#regions">Regions</a></li>
+    <li><a href="events.html">Events</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <div class="nav-actions">
+    <button class="btn-fill"   onclick="window.location.href='register.html'">Sign Up</button>
+    <button class="btn-outline" onclick="window.location.href='login.html'">Sign In</button>
+  </div>
+</nav>
 
-/* Hero content: was padding-bottom only, needs top padding too */
-.hero-content {
-  position: relative;
-  z-index: 2;
-  padding: 80px 48px 60px !important; /* top | sides | bottom */
-  max-width: 860px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: inherit;
-}
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb">
+      <a href="Index.html">Home</a>
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      <a href="destinations.html">Destinations</a>
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Loading...</span>
+    </nav>
 
-/* Badges row */
-.hero-badges {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
+    <!-- Badges -->
+    <div class="hero-badges">
+      <span class="badge-difficulty moderate">Moderate</span>
+      <span class="badge-category">🌍 Safari</span>
+    </div>
 
-.badge-difficulty,
-.badge-category {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border-radius: 50px;
-  padding: 6px 16px;
-  font-size: .78rem;
-  font-weight: 700;
-  letter-spacing: .05em;
-}
+    <!-- Title -->
+    <h1>Loading Destination...</h1>
 
-.badge-difficulty.moderate   { background: rgba(232,130,12,.25); color: #F5A623; border: 1px solid rgba(232,130,12,.5); }
-.badge-difficulty.easy       { background: rgba(22,168,126,.25); color: #2ecc71; border: 1px solid rgba(22,168,126,.5); }
-.badge-difficulty.challenging{ background: rgba(220,50,50,.25);  color: #ff6b6b; border: 1px solid rgba(220,50,50,.5); }
-.badge-category { background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.35); backdrop-filter: blur(6px); }
+    <!-- Meta row -->
+    <div class="hero-meta">
+      <span class="meta-location">📍 Kenya</span>
+      <span class="meta-rating">⭐ 4.8</span>
+      <span class="meta-time">🕐 Best: Year-round</span>
+    </div>
 
-/* Hero h1 — ensure it's visible and not clipped */
-.hero-content h1 {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(2.8rem, 5.5vw, 5rem);
-  font-weight: 900;
-  color: #fff;
-  line-height: 1.05;
-  margin-bottom: 20px;
-  text-shadow: 0 2px 20px rgba(0,0,0,.4);
-}
+    <!-- Action buttons -->
+    <div class="hero-actions">
+      <button class="btn-share">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Share
+      </button>
+      <button class="btn-wishlist" id="wishlistBtn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        Save to<br>Wishlist
+      </button>
+    </div>
+  </div>
+</section>
 
-/* Hero meta row */
-.hero-meta {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  margin-bottom: 28px;
-}
-.hero-meta span {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: rgba(255,255,255,.85);
-  font-size: .9rem;
-  font-weight: 500;
-}
+<!-- ── QUICK INFO BAR ── -->
+<div class="info-bar">
+  <div class="info-item">
+    <svg class="info-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <div><div class="info-label">Best Time to Visit</div><div class="info-value" id="info-best-time">—</div></div>
+  </div>
+  <div class="info-divider"></div>
+  <div class="info-item">
+    <svg class="info-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    <div><div class="info-label">Difficulty</div><div class="info-value" id="info-difficulty">—</div></div>
+  </div>
+  <div class="info-divider"></div>
+  <div class="info-item">
+    <svg class="info-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    <div><div class="info-label">Climate</div><div class="info-value" id="info-climate">—</div></div>
+  </div>
+</div>
 
-/* Share / Wishlist buttons in hero */
-.hero-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.btn-share, .btn-wishlist {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: .88rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .2s;
-  line-height: 1.3;
-}
-.btn-share {
-  background: rgba(255,255,255,.15);
-  color: #fff;
-  border: 1.5px solid rgba(255,255,255,.35);
-  backdrop-filter: blur(6px);
-}
-.btn-share:hover { background: rgba(255,255,255,.25); }
+<!-- ── MAIN CONTENT ── -->
+<div class="page-layout">
 
-.btn-wishlist {
-  background: rgba(255,255,255,.15);
-  color: #fff;
-  border: 1.5px solid rgba(255,255,255,.35);
-  backdrop-filter: blur(6px);
-}
-.btn-wishlist:hover { background: rgba(255,255,255,.25); }
-.btn-wishlist.saved { background: rgba(224,92,122,.2); border-color: rgba(224,92,122,.5); color: #ff8fab; }
+  <!-- LEFT: Content column -->
+  <main class="content-col">
 
-/* Info bar: sticky below nav */
-.info-bar {
-  position: sticky;
-  top: 72px;
-  z-index: 100;
-  background: #fff;
-  border-bottom: 1.5px solid #e8e4dc;
-  box-shadow: 0 4px 16px rgba(0,0,0,.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  padding: 0 48px;
-}
-.info-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 18px 28px;
-  transition: background .2s;
-}
-.info-item:hover { background: #faf9f6; }
-.info-label {
-  font-size: .68rem;
-  font-weight: 800;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: #666;
-  margin-bottom: 3px;
-}
-.info-value {
-  font-size: .93rem;
-  font-weight: 700;
-  color: #1A1A2E;
-}
-.info-divider {
-  width: 1px;
-  height: 40px;
-  background: #e8e4dc;
-  flex-shrink: 0;
-}
+    <!-- Gallery -->
+    <section class="gallery-section fade-in">
+      <div class="gallery-grid">
+        <div class="gal-main" id="openGallery" title="Open gallery"></div>
+        <div class="gal-thumbs">
+          <div class="gal-thumb"></div>
+          <div class="gal-thumb"></div>
+          <div class="gal-thumb gal-more">
+            <div class="gal-more-overlay" id="openGallery2">
+              <svg width="22" height="22" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span>View All Photos</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-/* Page layout: two-column */
-.page-layout {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 32px;
-  max-width: 1300px;
-  margin: 0 auto;
-  padding: 48px;
-  background: #faf9f6;
-  align-items: start;
-}
+    <!-- Overview -->
+    <section class="detail-section fade-in">
+      <div class="section-label-sm">About This Destination</div>
+      <h2 class="section-h2">Overview</h2>
+      <p class="overview-text" id="overview-text">Loading destination information...</p>
+    </section>
 
-/* Content column */
-.content-col { min-width: 0; }
+    <!-- Highlights -->
+    <section class="detail-section fade-in">
+      <div class="section-label-sm">What to Expect</div>
+      <h2 class="section-h2">Highlights</h2>
+      <div class="highlights-grid" id="highlights-list">
+        <!-- Populated by JS -->
+      </div>
+    </section>
 
-/* Detail sections */
-.detail-section {
-  background: #fff;
-  border-radius: 20px;
-  padding: 36px;
-  box-shadow: 0 4px 24px rgba(0,0,0,.07);
-  margin-bottom: 24px;
-}
-.section-label-sm {
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: #E8820C;
-  margin-bottom: 6px;
-}
-.section-h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.55rem;
-  font-weight: 800;
-  color: #1A1A2E;
-  margin-bottom: 18px;
-}
+    <!-- Map -->
+    <section class="detail-section fade-in">
+      <div class="section-label-sm">Location</div>
+      <h2 class="section-h2">Getting There</h2>
+      <div class="map-card">
+        <div class="map-placeholder">
+          <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" opacity=".35"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+          <div class="map-pin-label" id="map-pin-title">Loading...</div>
+        </div>
+        <div class="map-info">
+          <p id="location-note">Location details loading...</p>
+          <a class="btn-maps" id="maps-link" href="#" target="_blank" rel="noopener">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            Open in Google Maps
+          </a>
+        </div>
+      </div>
+    </section>
 
-/* Gallery */
-.gallery-section { margin-bottom: 24px; }
-.gallery-grid {
-  display: grid;
-  grid-template-columns: 1.6fr 1fr;
-  border-radius: 20px;
-  overflow: hidden;
-  height: 380px;
-  gap: 3px;
-}
-.gal-main {
-  background-size: cover;
-  background-position: center;
-  cursor: pointer;
-  transition: opacity .2s;
-}
-.gal-main:hover { opacity: .92; }
-.gal-thumbs {
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  gap: 3px;
-}
-.gal-thumb {
-  background-size: cover;
-  background-position: center;
-  cursor: pointer;
-  transition: opacity .2s;
-  background-color: #2a2a2a;
-}
-.gal-thumb:hover { opacity: .85; }
-.gal-more { position: relative; }
-.gal-more-overlay {
-  position: absolute; inset: 0;
-  background: rgba(0,0,0,.55);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: #fff;
-  font-size: .88rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background .2s;
-}
-.gal-more-overlay:hover { background: rgba(0,0,0,.7); }
+    <!-- Reviews -->
+    <section class="detail-section fade-in">
+      <div class="section-label-sm">Community Feedback</div>
+      <h2 class="section-h2">Traveler Reviews</h2>
+      <div class="reviews-summary">
+        <div class="reviews-score">
+          <div class="score-big" id="rating-score">—</div>
+          <div class="score-stars">★★★★★</div>
+          <div class="score-count" id="rating-count">0 reviews</div>
+        </div>
+        <div class="reviews-bars">
+          <div class="rbar-row"><span>5★</span><div class="rbar"><div class="rbar-fill" style="width:78%"></div></div><span>78%</span></div>
+          <div class="rbar-row"><span>4★</span><div class="rbar"><div class="rbar-fill" style="width:15%"></div></div><span>15%</span></div>
+          <div class="rbar-row"><span>3★</span><div class="rbar"><div class="rbar-fill" style="width:5%"></div></div><span>5%</span></div>
+          <div class="rbar-row"><span>2★</span><div class="rbar"><div class="rbar-fill" style="width:1%"></div></div><span>1%</span></div>
+          <div class="rbar-row"><span>1★</span><div class="rbar"><div class="rbar-fill" style="width:1%"></div></div><span>1%</span></div>
+        </div>
+      </div>
+      <button class="btn-all-reviews">Read All Reviews</button>
+    </section>
 
-/* Overview */
-.overview-text {
-  font-size: .95rem;
-  color: #555;
-  line-height: 1.8;
-}
+    <!-- Similar Destinations -->
+    <section class="detail-section fade-in">
+      <div class="section-label-sm">You May Also Like</div>
+      <h2 class="section-h2">Similar Destinations</h2>
+      <div class="similar-grid" id="similar-grid">
+        <!-- Populated by JS -->
+      </div>
+    </section>
 
-/* Highlights */
-.highlights-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.highlight-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  font-size: .93rem;
-  color: #333;
-}
-.hl-dot {
-  width: 8px; height: 8px;
-  background: #E8820C;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin-top: 6px;
-}
+  </main>
 
-/* Map card */
-.map-card {
-  border: 1.5px solid #e8e4dc;
-  border-radius: 14px;
-  overflow: hidden;
-}
-.map-placeholder {
-  height: 160px;
-  background: linear-gradient(135deg, #f5f3f0, #ede9e4);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: #999;
-}
-.map-pin-label { font-weight: 700; font-size: .95rem; color: #333; }
-.map-info { padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.map-info p { font-size: .88rem; color: #666; line-height: 1.5; flex: 1; }
-.btn-maps {
-  display: inline-flex; align-items: center; gap: 7px;
-  color: #E8820C; font-weight: 700; font-size: .9rem;
-  text-decoration: none; white-space: nowrap; transition: gap .2s;
-}
-.btn-maps:hover { gap: 11px; }
+  <!-- RIGHT: Booking sidebar -->
+  <aside class="booking-sidebar">
+    <div class="sidebar-card">
 
-/* Reviews */
-.reviews-summary {
-  display: flex; gap: 32px; align-items: center;
-  padding: 24px; background: #faf9f6;
-  border-radius: 14px; margin-bottom: 24px;
-}
-.reviews-score { text-align: center; flex-shrink: 0; }
-.score-big {
-  font-family: 'Playfair Display', serif;
-  font-size: 3.2rem; font-weight: 900; color: #1A1A2E; line-height: 1;
-}
-.score-stars { color: #E8820C; font-size: 1.1rem; margin: 6px 0; }
-.score-count { font-size: .82rem; color: #666; }
-.reviews-bars { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-.rbar-row { display: flex; align-items: center; gap: 10px; font-size: .82rem; color: #666; }
-.rbar-row > span:first-child { width: 24px; text-align: right; }
-.rbar { flex: 1; height: 6px; background: #e8e4dc; border-radius: 3px; overflow: hidden; }
-.rbar-fill { height: 100%; background: #E8820C; border-radius: 3px; }
-.rbar-row > span:last-child { width: 32px; }
-.btn-all-reviews {
-  background: none; border: 1.5px solid #E8820C;
-  color: #E8820C; border-radius: 8px; padding: 11px 24px;
-  font-family: 'DM Sans', sans-serif; font-size: .93rem; font-weight: 700;
-  cursor: pointer; transition: background .2s, color .2s; margin-top: 8px;
-}
-.btn-all-reviews:hover { background: #E8820C; color: #fff; }
+      <!-- Price display -->
+      <div class="sidebar-price-wrap">
+        <div class="sidebar-price-label">From</div>
+        <div class="price-ksh">KSh —</div>
+        <div class="sidebar-price-per">per person</div>
+      </div>
 
-/* Similar grid */
-.similar-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-.sim-card {
-  border-radius: 14px; overflow: hidden;
-  border: 1.5px solid #e8e4dc; background: #fff;
-  transition: transform .25s, box-shadow .25s;
-}
-.sim-card:hover { transform: translateY(-5px); box-shadow: 0 12px 32px rgba(0,0,0,.12); }
-.sim-img {
-  height: 160px; background-size: cover; background-position: center;
-  position: relative;
-}
-.sim-badge {
-  position: absolute; top: 10px; left: 10px;
-  border-radius: 50px; padding: 4px 12px;
-  font-size: .73rem; font-weight: 800;
-}
-.sim-badge.easy        { background: rgba(22,168,126,.15); color: #16a87e; }
-.sim-badge.moderate    { background: rgba(232,130,12,.15); color: #E8820C; }
-.sim-badge.challenging { background: rgba(220,50,50,.15);  color: #e53e3e; }
-.sim-body { padding: 16px 18px; }
-.sim-name { font-weight: 800; font-size: .95rem; color: #1A1A2E; margin-bottom: 4px; }
-.sim-loc  { font-size: .8rem; color: #666; margin-bottom: 10px; }
-.sim-row  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.sim-stars { font-size: .82rem; color: #E8820C; font-weight: 600; }
-.sim-price { font-size: .85rem; font-weight: 700; color: #1A1A2E; }
-.sim-link  { color: #E8820C; font-weight: 700; font-size: .88rem; text-decoration: none; }
-.sim-link:hover { text-decoration: underline; }
+      <!-- Rating -->
+      <div class="sidebar-rating">
+        <svg width="14" height="14" fill="#E8541A" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        <span id="sidebar-rating-score">—</span>
+        <span id="sidebar-rating-count" style="color:#999; font-size:.85rem"></span>
+      </div>
 
-/* ── BOOKING SIDEBAR ── */
-.booking-sidebar {
-  position: sticky;
-  top: calc(72px + 16px);
-  max-height: calc(100vh - 72px - 32px);
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-.booking-sidebar::-webkit-scrollbar { display: none; }
+      <hr class="sidebar-divider"/>
 
-.sidebar-card {
-  background: #181f33;
-  border-radius: 20px;
-  padding: 28px 24px;
-}
+      <!-- Package selector -->
+      <div class="form-group">
+        <label class="form-label">Package Type</label>
+        <select class="form-select" id="packageType">
+          <option value="standard">Standard (3 nights)</option>
+          <option value="premium">Premium (5 nights)</option>
+          <option value="luxury">Luxury (7 nights)</option>
+          <option value="budget">Budget (2 nights)</option>
+        </select>
+      </div>
 
-.sidebar-price-wrap { margin-bottom: 6px; }
-.sidebar-price-label { font-size: .72rem; color: #8b95a8; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
-.price-ksh {
-  font-family: 'Playfair Display', serif;
-  font-size: 2rem; font-weight: 800; color: #fff; line-height: 1.1;
-}
-.sidebar-price-per { font-size: .75rem; color: #8b95a8; margin-top: 2px; }
+      <!-- Date pickers -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Check In</label>
+          <input class="form-input" type="date" id="checkIn"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Check Out</label>
+          <input class="form-input" type="date" id="checkOut"/>
+        </div>
+      </div>
 
-.sidebar-rating {
-  display: flex; align-items: center; gap: 6px;
-  font-size: .85rem; color: #fff; margin-bottom: 18px;
-}
+      <!-- Traveler count -->
+      <div class="form-group">
+        <label class="form-label">Travelers</label>
+        <div class="traveler-counter">
+          <button class="trav-btn" id="travMinus">−</button>
+          <span class="trav-count" id="travCount">2</span>
+          <button class="trav-btn" id="travPlus">+</button>
+        </div>
+      </div>
 
-.sidebar-divider { border: none; border-top: 1px solid rgba(255,255,255,.08); margin: 16px 0; }
+      <hr class="sidebar-divider"/>
 
-.form-group { margin-bottom: 14px; }
-.form-label {
-  display: block;
-  font-size: .7rem; font-weight: 700;
-  letter-spacing: .09em; text-transform: uppercase;
-  color: #8b95a8; margin-bottom: 7px;
-}
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.form-input, .form-select {
-  width: 100%; background: #222b42;
-  border: 1px solid rgba(255,255,255,.1);
-  border-radius: 10px; color: #fff;
-  padding: 11px 14px; font-size: .88rem;
-  font-family: 'DM Sans', sans-serif;
-  height: 44px; outline: none;
-  transition: border-color .15s;
-  appearance: none; -webkit-appearance: none;
-}
-.form-input:focus, .form-select:focus { border-color: rgba(255,255,255,.3); }
-.form-input::-webkit-calendar-picker-indicator { filter: invert(1); opacity: .4; cursor: pointer; }
-.form-select option { background: #222b42; }
+      <!-- Price breakdown -->
+      <div class="price-breakdown">
+        <div class="pb-row">
+          <span id="pb-label">Base price</span>
+          <span id="pbBase">—</span>
+        </div>
+        <div class="pb-row">
+          <span id="pb-nights">3 nights × 2 travelers</span>
+        </div>
+        <div class="pb-row">
+          <span>Taxes & fees (3.33%)</span>
+          <span id="pb-tax">—</span>
+        </div>
+        <div class="pb-row pb-total">
+          <span>Total</span>
+          <span id="pbTotal">—</span>
+        </div>
+      </div>
 
-.traveler-counter {
-  display: flex; align-items: center; gap: 0;
-  background: #222b42; border: 1px solid rgba(255,255,255,.1);
-  border-radius: 10px; overflow: hidden; height: 44px;
-}
-.trav-btn {
-  width: 44px; height: 44px; background: none;
-  border: none; color: #fff; font-size: 1.3rem;
-  cursor: pointer; transition: background .15s;
-  display: flex; align-items: center; justify-content: center;
-  font-family: inherit;
-}
-.trav-btn:hover { background: rgba(255,255,255,.1); }
-.trav-btn:disabled { opacity: .25; cursor: default; }
-.trav-count {
-  flex: 1; text-align: center;
-  font-size: 1rem; font-weight: 700; color: #fff;
-}
+      <!-- Book button -->
+      <button class="btn-book" id="bookNowBtn">⚡ Book This Experience</button>
 
-.price-breakdown { background: #222b42; border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-.pb-row {
-  display: flex; justify-content: space-between;
-  font-size: .83rem; margin-bottom: 8px;
-  color: #8b95a8;
-}
-.pb-row span:last-child { color: #c5cedd; font-weight: 500; }
-.pb-total {
-  border-top: 1px solid rgba(255,255,255,.1);
-  padding-top: 10px; margin-top: 4px;
-  font-size: .95rem; font-weight: 700; color: #fff !important;
-}
-.pb-total span:last-child { color: #fff !important; }
+      <!-- Quick details -->
+      <div class="sidebar-details">
+        <div class="sd-row">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Duration: <strong id="sidebar-duration">—</strong></span>
+        </div>
+        <div class="sd-row">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Group: <strong id="sidebar-group">—</strong></span>
+        </div>
+        <div class="sd-row">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span>Price range: <strong id="sidebar-price-range">—</strong></span>
+        </div>
+      </div>
 
-.btn-book {
-  width: 100%; background: #E8820C;
-  border: none; border-radius: 10px; color: #fff;
-  font-size: 1rem; font-weight: 700; padding: 14px;
-  cursor: pointer; font-family: 'DM Sans', sans-serif;
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  transition: background .15s, transform .1s; margin-bottom: 14px;
-}
-.btn-book:hover { background: #D4750A; }
-.btn-book:active { transform: scale(.98); }
+    </div>
+  </aside>
 
-.sidebar-details { display: flex; flex-direction: column; gap: 10px; }
-.sd-row {
-  display: flex; align-items: center; gap: 9px;
-  font-size: .83rem; color: #8b95a8;
-}
-.sd-row strong { color: #c5cedd; }
+</div><!-- end page-layout -->
 
-/* ── RESPONSIVE ── */
-@media (max-width: 1100px) {
-  .page-layout { grid-template-columns: 1fr 340px; gap: 24px; padding: 32px; }
-  .similar-grid { grid-template-columns: 1fr; }
-}
-@media (max-width: 900px) {
-  .page-layout { grid-template-columns: 1fr; padding: 24px 20px; }
-  .booking-sidebar { position: static; max-height: none; }
-  .sidebar-card { max-width: 600px; margin: 0 auto; }
-  .form-row { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 768px) {
-  .hero { padding-top: 68px; min-height: auto; }
-  .hero-content { padding: 40px 20px 40px !important; }
-  .gallery-grid { grid-template-columns: 1fr; height: auto; }
-  .gal-main { height: 260px; }
-  .gal-thumbs { grid-template-rows: none; grid-template-columns: 1fr 1fr; height: 130px; }
-  .info-bar { padding: 0 16px; flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; }
-  .detail-section { padding: 24px 18px; }
-  .reviews-summary { flex-direction: column; gap: 20px; }
-}
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <img src="logo.png" alt="SafariQuest" class="logo-img logo-img-sm"/>
+        <span>SafariQuest</span>
+      </div>
+      <p>Your trusted digital gateway to Kenya's most breathtaking destinations, events, and experiences.</p>
+      <div class="footer-socials">
+        <button class="fsoc">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
+        </button>
+        <button class="fsoc">
+          <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+        </button>
+        <button class="fsoc">
+          <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <ul class="footer-links">
+        <li><a href="destinations.html">Destinations</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="#">Accommodations</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Stay Updated</h4>
+      <p class="fnl-text">Get the latest destinations and travel tips in your inbox.</p>
+      <div class="newsletter-form">
+        <input class="newsletter-input" type="email" placeholder="Your email address"/>
+        <button class="newsletter-btn">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 SafariQuest. All rights reserved.</span>
+    <div class="footer-legal">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ── SCROLL TO TOP ── -->
+<button id="scrollTop" aria-label="Scroll to top">
+  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── LIGHTBOX ── -->
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" id="lbClose">
+    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <button class="lb-nav lb-prev" id="lbPrev">
+    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <div class="lb-img-wrap"><img id="lbImg" src="" alt="Gallery image"/></div>
+  <button class="lb-nav lb-next" id="lbNext">
+    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+  <div class="lb-dots" id="lbDots"></div>
+</div>
+
+<script src="supabase-config.js"></script>
+<script src="attraction-details.js"></script>
+</body>
+</html>
