@@ -36,7 +36,7 @@ const destinations = [
     rating: 4.7,
     stars:  4,
     slug:   'lake-nakuru',
-    img:    'https://images.unsplash.com/photo-1564760290292-23341e4df6ec?w=600&q=80'
+    img:    'https://plus.unsplash.com/premium_photo-1661846340419-89bf27138124?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8bGFrZSUyMG5ha3VydXxlbnwwfHwwfHx8MA%3D%3D'
   },
   {
     name:   'Amboseli National Park',
