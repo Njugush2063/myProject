@@ -32,14 +32,35 @@
       padding: 0 80px 52px;
       animation: fadeUp .7s ease both;
     }
+
+    /* ── FIX: .cat-breadcrumb is a <nav> tag and inherits the global nav {}
+       rule from destinations.css which sets position:sticky, height:68px,
+       background:rgba(255,255,255,0.92), backdrop-filter, border-bottom.
+       Reset all of those here. ── */
     .cat-breadcrumb {
-      display: flex; align-items: center; gap: 6px;
-      font-size: .8rem; color: rgba(255,255,255,.6);
+      position: relative !important;
+      top: auto !important;
+      height: auto !important;
+      background: transparent !important;
+      backdrop-filter: none !important;
+      border-bottom: none !important;
+      box-shadow: none !important;
+      z-index: auto !important;
+      padding: 0 !important;
+      justify-content: flex-start !important;
+      flex-direction: row !important;
+      /* Actual breadcrumb styles */
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .8rem;
+      color: rgba(255,255,255,.6);
       margin-bottom: 18px;
     }
     .cat-breadcrumb a { color: rgba(255,255,255,.6); text-decoration: none; transition: color .2s; }
     .cat-breadcrumb a:hover { color: var(--orange-light); }
     .cat-breadcrumb svg { flex-shrink: 0; }
+
     .cat-badge {
       display: inline-flex; align-items: center; gap: 8px;
       background: rgba(232,84,26,.2); border: 1px solid rgba(232,84,26,.4);
@@ -178,6 +199,8 @@
   <div class="cat-hero-bg" id="catHeroBg"></div>
   <div class="cat-hero-overlay"></div>
   <div class="cat-hero-content">
+    <!-- Using <nav class="cat-breadcrumb"> — the inline style above resets
+         all inherited nav {} properties from destinations.css -->
     <nav class="cat-breadcrumb">
       <a href="Index.html">Home</a>
       <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
@@ -218,7 +241,6 @@
   </div>
 
   <div class="cat-destinations-grid fade-in" id="catGrid">
-    <!-- Populated by JS -->
     <div class="cat-empty">
       <div class="cat-empty-icon">🔍</div>
       <h3>Loading destinations...</h3>
@@ -444,7 +466,7 @@ function sortDestinations(arr, method) {
   if (method === 'rating') return arr.sort((a,b) => b.rating - a.rating);
   if (method === 'easy')   return arr.sort((a,b) => (DIFF_ORDER[a.difficulty.toLowerCase()]||2) - (DIFF_ORDER[b.difficulty.toLowerCase()]||2));
   if (method === 'hard')   return arr.sort((a,b) => (DIFF_ORDER[b.difficulty.toLowerCase()]||2) - (DIFF_ORDER[a.difficulty.toLowerCase()]||2));
-  return arr; // default: as-is
+  return arr;
 }
 
 function sortGrid() {
