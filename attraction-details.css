@@ -6,15 +6,13 @@
 /* ── HERO ── */
 .hero {
   position: relative;
-  /* padding-top pushes content below fixed navbar */
-  padding-top: 70px;
-  /* 75vh total height gives a generous hero without the content being pushed
-     to the very bottom of a near-full-screen block */
+  /* No padding-top — transparent nav floats over the image.
+     hero-content uses its own top padding to clear the nav. */
   min-height: 75vh;
   display: flex;
-  align-items: flex-end; /* anchor content to bottom of hero */
+  align-items: flex-end;
   overflow: hidden;
-  background-color: #1a1a2e; /* shows while image_hero loads */
+  background-color: #1a1a2e;
 }
 
 /* .hero-bg: fills the entire hero behind everything */
@@ -62,13 +60,13 @@
 .hero-content {
   position: relative;
   z-index: 2;
-  padding: 48px 48px 56px;
+  /* Top padding clears the transparent fixed navbar (70px) + breathing room */
+  padding: 96px 48px 56px;
   max-width: 860px;
   width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  /* No min-height:inherit — that was stretching this to match the huge hero and creating blank space */
 }
 
 /* Badges */
@@ -164,21 +162,69 @@
 
 .btn-outline {
   padding: 8px 20px;
-  border: 1.5px solid #E8820C;
+  border: 1.5px solid rgba(255,255,255,.7);
   background: transparent;
-  color: #E8820C;
+  color: #fff;
   border-radius: 8px;
   font-size: .88rem;
   font-weight: 600;
   font-family: 'DM Sans', sans-serif;
   cursor: pointer;
-  transition: background .2s, color .2s;
+  transition: background .2s, color .2s, border-color .2s;
 }
-.btn-outline:hover { background: #E8820C; color: #fff; }
+.btn-outline:hover { background: rgba(255,255,255,.15); }
+
+/* ── TRANSPARENT NAVBAR (hero pages only) ── */
+/* At page top: nav is transparent so the hero image shows behind it.
+   JS adds .nav-scrolled once the user scrolls past the hero. */
+#navbar {
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  transition: background .35s ease, box-shadow .35s ease;
+}
+
+/* Nav links and logo text go white so they're readable over the hero photo */
+#navbar .nav-links a,
+#navbar .logo-name,
+#navbar .logo-slogan {
+  color: #fff !important;
+  transition: color .35s ease;
+}
+#navbar .nav-links a:hover { color: #F5A623 !important; }
+
+/* Sign In outline button: white border over hero */
+#navbar .btn-outline {
+  border-color: rgba(255,255,255,.7) !important;
+  color: #fff !important;
+}
+#navbar .btn-outline:hover {
+  background: rgba(255,255,255,.15) !important;
+}
+
+/* Once scrolled: nav turns white and text goes dark */
+#navbar.nav-scrolled {
+  background: rgba(255,255,255,0.97) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,.10) !important;
+  backdrop-filter: blur(12px) !important;
+}
+#navbar.nav-scrolled .nav-links a,
+#navbar.nav-scrolled .logo-name {
+  color: #1A1A2E !important;
+}
+#navbar.nav-scrolled .logo-slogan {
+  color: #E8820C !important;
+}
+#navbar.nav-scrolled .btn-outline {
+  border-color: #E8820C !important;
+  color: #E8820C !important;
+}
+#navbar.nav-scrolled .btn-outline:hover {
+  background: #E8820C !important;
+  color: #fff !important;
+}
 
 /* ── LOGO FIX: remove the white rectangle box that styles.css creates ── */
-/* styles.css has a .logo-icon with white background — but this page uses an <img>,
-   not an icon div. We need to ensure no stray background appears. */
 nav .logo {
   background: none !important;
   border: none !important;
@@ -198,10 +244,11 @@ nav .logo-img {
 }
 
 /* ── INFO BAR ── */
+/* Sits naturally below the hero — scrolls away with the page.
+   No sticky: that was making it look like a second navbar. */
 .info-bar {
-  position: sticky;
-  top: 70px;
-  z-index: 100;
+  position: relative;
+  z-index: 10;
   background: #fff;
   border-bottom: 1.5px solid #e8e4dc;
   box-shadow: 0 4px 16px rgba(0,0,0,.06);
@@ -424,7 +471,7 @@ nav .logo-img {
 /* ── BOOKING SIDEBAR ── */
 .booking-sidebar {
   position: sticky;
-  top: calc(70px + 16px);
+  top: calc(70px + 16px); /* just below fixed navbar */
   max-height: calc(100vh - 70px - 32px);
   overflow-y: auto;
   scrollbar-width: none;
@@ -706,8 +753,8 @@ footer .footer-grid {
   footer .footer-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 768px) {
-  .hero { padding-top: 64px; min-height: 60vh; }
-  .hero-content { padding: 32px 20px 40px; }
+  .hero { min-height: 60vh; }
+  .hero-content { padding: 80px 20px 36px; }
   .gallery-grid { grid-template-columns: 1fr; height: auto; }
   .gal-main { height: 260px; }
   .gal-thumbs { grid-template-rows: none; grid-template-columns: 1fr 1fr; height: 130px; }
