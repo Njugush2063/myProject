@@ -5,21 +5,22 @@
 
 document.addEventListener('DOMContentLoaded', async function () {
 
-  /* ── Navbar: transparent over hero, white when scrolled ── */
+  /* ── Navbar scroll shadow ── */
   const navbar = document.getElementById('navbar');
   const heroBg = document.querySelector('.hero-bg');
 
   function onScroll() {
-    const heroHeight = document.querySelector('.hero')?.offsetHeight || 300;
-    const scrolled   = window.scrollY > heroHeight * 0.55;
-    if (navbar) navbar.classList.toggle('nav-scrolled', scrolled);
+    if (navbar) {
+      navbar.style.boxShadow = window.scrollY > 10
+        ? '0 4px 20px rgba(0,0,0,.12)'
+        : '0 2px 12px rgba(0,0,0,.07)';
+    }
     const st = document.getElementById('scrollTop');
     if (st) st.classList.toggle('visible', window.scrollY > 400);
   }
   window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll(); /* run once on load in case page is pre-scrolled */
 
-  /* Trigger hero bg slow-zoom after a tiny delay so the transition fires */
+  /* Trigger hero bg slow-zoom after a tiny delay */
   if (heroBg) setTimeout(() => heroBg.classList.add('loaded'), 100);
 
   document.getElementById('scrollTop')?.addEventListener('click', () => {
