@@ -6,36 +6,43 @@
 /* ── HERO ── */
 .hero {
   position: relative;
-  padding-top: 70px; /* matches --nav-h in styles.css */
-  min-height: calc(90vh + 70px);
+  /* padding-top pushes content below fixed navbar */
+  padding-top: 70px;
+  /* 75vh total height gives a generous hero without the content being pushed
+     to the very bottom of a near-full-screen block */
+  min-height: 75vh;
   display: flex;
-  align-items: stretch;
+  align-items: flex-end; /* anchor content to bottom of hero */
   overflow: hidden;
+  background-color: #1a1a2e; /* shows while image_hero loads */
 }
 
-/* FIX: .hero-bg was referenced in JS but never styled — this is what shows the background photo */
+/* .hero-bg: fills the entire hero behind everything */
 .hero-bg {
   position: absolute;
   inset: 0;
   background-size: cover;
   background-position: center;
-  background-color: #1a1a2e; /* dark fallback while image loads */
+  background-repeat: no-repeat;
   z-index: 0;
+  /* Subtle slow-zoom on load — scale starts at 1.03 and settles at 1
+     over 8 s. JS can add class 'loaded' to trigger it, but it also
+     looks fine without JS since we start close to 1. */
   transform: scale(1.03);
   transition: transform 8s ease-out;
 }
 .hero-bg.loaded { transform: scale(1); }
 
-/* FIX: .hero-overlay was in HTML but never styled */
+/* .hero-overlay: dark gradient so white text is always readable */
 .hero-overlay {
   position: absolute;
   inset: 0;
   z-index: 1;
   background: linear-gradient(
-    to bottom,
-    rgba(0,0,0,0.35) 0%,
-    rgba(0,0,0,0.15) 40%,
-    rgba(0,0,0,0.65) 100%
+    160deg,
+    rgba(0,0,0,0.25) 0%,
+    rgba(0,0,0,0.10) 35%,
+    rgba(0,0,0,0.70) 100%
   );
 }
 
@@ -55,13 +62,13 @@
 .hero-content {
   position: relative;
   z-index: 2;
-  padding: 80px 48px 60px;
+  padding: 48px 48px 56px;
   max-width: 860px;
   width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  min-height: inherit;
+  /* No min-height:inherit — that was stretching this to match the huge hero and creating blank space */
 }
 
 /* Badges */
@@ -168,6 +175,27 @@
   transition: background .2s, color .2s;
 }
 .btn-outline:hover { background: #E8820C; color: #fff; }
+
+/* ── LOGO FIX: remove the white rectangle box that styles.css creates ── */
+/* styles.css has a .logo-icon with white background — but this page uses an <img>,
+   not an icon div. We need to ensure no stray background appears. */
+nav .logo {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+nav .logo-img {
+  width: 40px !important;
+  height: 40px !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  border-radius: 8px !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+}
 
 /* ── INFO BAR ── */
 .info-bar {
@@ -678,8 +706,8 @@ footer .footer-grid {
   footer .footer-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 768px) {
-  .hero { padding-top: 64px; min-height: auto; }
-  .hero-content { padding: 40px 20px 40px; }
+  .hero { padding-top: 64px; min-height: 60vh; }
+  .hero-content { padding: 32px 20px 40px; }
   .gallery-grid { grid-template-columns: 1fr; height: auto; }
   .gal-main { height: 260px; }
   .gal-thumbs { grid-template-rows: none; grid-template-columns: 1fr 1fr; height: 130px; }
