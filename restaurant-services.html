@@ -156,7 +156,7 @@
 <footer class="footer">
   <div class="footer-container">
     <div class="footer-brand">
-            <div class="footer-logo-block">
+      <div class="footer-logo-block">
         <img src="logo.png" alt="SafariQuest" class="footer-logo-img"/>
         <div class="footer-logo-text">
           <span class="footer-logo-name">SafariQuest</span>
@@ -176,7 +176,7 @@
     </div>
     <div class="footer-contact">
       <h4>Contact</h4>
-      <p>📧 <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e1888f878ea19280878093889094849295cf828e8c">[email&#160;protected]</a></p>
+      <p>📧 info@safariquest.com</p>
       <p>📍 Nairobi, Kenya</p>
     </div>
   </div>
@@ -185,4 +185,13 @@
   </div>
 </footer>
 
-<!-- ── SCR
+<!-- ── SCRIPTS ── -->
+<!-- 1. supabase-config.js MUST load first — it defines SUPABASE_URL, SUPABASE_KEY,
+        getRestaurant(), getRestaurantMenu() and sbFetch() which the page script needs -->
+<script src="supabase-config.js"></script>
+
+<!-- 2. Page logic — depends on variables from supabase-config.js above -->
+<script src="restaurant-services.js"></script>
+
+</body>
+</html>
