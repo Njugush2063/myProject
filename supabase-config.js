@@ -14,7 +14,7 @@
    ============================================================ */
 
 const SUPABASE_URL = 'https://cbyipmrozqsntojiartw.supabase.co';
-const SUPABASE_KEY = 'YOUR_NEW_ANON_KEY_HERE'; // ← paste your anon public key here
+const SUPABASE_KEY = 'sb_publishable_eKZx3549j8unaFOQaZNGlQ_IdVWH5BI'; // ← paste your anon public key here
 
 /* ============================================================
    ROW LEVEL SECURITY
