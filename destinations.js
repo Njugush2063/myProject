@@ -3,10 +3,6 @@
    Type filtering + site-specific destinations per category
    ============================================================ */
 
-/* ────────────────────────────────────────
-   STATIC DESTINATION DATA PER CATEGORY
-   (shown when user clicks a type button)
-──────────────────────────────────────── */
 const DESTINATIONS = {
 
   'big-five': [
@@ -102,7 +98,7 @@ const DESTINATIONS = {
 
   'birds': [
     {
-      slug: 'lake-nakuru',
+      slug: 'lake-nakuru-birds',
       name: 'Lake Nakuru National Park',
       county: 'Nakuru',
       difficulty: 'Easy',
@@ -433,7 +429,7 @@ const DESTINATIONS = {
       highlights: ['Cycling Safari', 'Gorge Walk']
     },
     {
-      slug: 'mount-longonot',
+      slug: 'mount-longonot-adv',
       name: 'Mount Longonot',
       county: 'Nakuru',
       difficulty: 'Moderate',
@@ -444,7 +440,7 @@ const DESTINATIONS = {
       highlights: ['Crater Rim Trek', 'Rift Valley Views']
     },
     {
-      slug: 'mount-kenya',
+      slug: 'mount-kenya-trek',
       name: 'Mount Kenya Trekking',
       county: 'Nyeri',
       difficulty: 'Challenging',
@@ -477,7 +473,7 @@ const DESTINATIONS = {
       highlights: ['Kitesurfing', 'Deep Sea Fishing']
     },
     {
-      slug: 'aberdare',
+      slug: 'aberdare-walks',
       name: 'Aberdare Forest Walks',
       county: 'Nyeri',
       difficulty: 'Moderate',
@@ -488,7 +484,7 @@ const DESTINATIONS = {
       highlights: ['Night Game Walks', 'Black Leopard']
     },
     {
-      slug: 'ngong-hills',
+      slug: 'ngong-hike',
       name: 'Ngong Hills Hiking',
       county: 'Kajiado',
       difficulty: 'Easy',
@@ -498,7 +494,10 @@ const DESTINATIONS = {
       image: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&q=85',
       highlights: ['Ridge Hike', 'City Views']
     }
-  ]
+  ],
+
+  /* Sports — navigates to category.html with sport tabs (Supabase-powered) */
+  'sports': []
 };
 
 /* ────────────────────────────────────────
@@ -511,13 +510,11 @@ let activeType = 'big-five';
 ──────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', async function () {
 
-  /* Fade-in observer */
   const observer = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
   }, { threshold: 0.1 });
   document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
-  /* Scroll to top */
   window.addEventListener('scroll', () => {
     document.getElementById('scrollTop')?.classList.toggle('visible', window.scrollY > 400);
   });
@@ -525,7 +522,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
-  /* Load More (static fallback) */
   window.loadMore = function () {
     ['extra-dest-1','extra-dest-2','extra-dest-3','extra-dest-4'].forEach(id => {
       const el = document.getElementById(id);
@@ -535,19 +531,22 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (btn) btn.style.display = 'none';
   };
 
-  /* Filter handler — navigates to category listing page */
+  /* Filter handler */
   window.filterType = function (btn, type) {
     document.querySelectorAll('.type-img-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+
+    /* Sports routes to category.html with sport sub-tabs */
+    if (type === 'sports') {
+      window.location.href = 'category.html?type=sports';
+      return;
+    }
+
     window.location.href = `category.html?type=${type}`;
   };
 
-  /* Initial render — show Big Five on load */
   renderTypeGrid('big-five');
-
-  /* Traveler Favorites — fetch from Supabase */
   await loadFeaturedDestinations();
-
 });
 
 /* ────────────────────────────────────────
@@ -557,20 +556,23 @@ function renderTypeGrid(type) {
   const grid = document.getElementById('dest-grid');
   if (!grid) return;
 
+  /* Sports has no static data — redirect handled by filterType */
+  if (type === 'sports') return;
+
   const destinations = DESTINATIONS[type];
   if (!destinations || destinations.length === 0) {
     grid.innerHTML = `<div class="fetch-error">No destinations found for this category.</div>`;
     return;
   }
 
-  /* Update section heading */
   const typeLabels = {
     'big-five':  '🦁 Big Five Safari',
     'birds':     '🦅 Bird Watching',
     'mountain':  '⛰️ Mountain Treks',
     'beach':     '🏖️ Beach Escapes',
     'cultural':  '🎭 Cultural Tours',
-    'adventure': '🪂 Adventure Sports'
+    'adventure': '🪂 Adventure Sports',
+    'sports':    '🏆 Sports'
   };
 
   const sectionTitle = document.querySelector('.destinations-section .section-title');
@@ -578,7 +580,6 @@ function renderTypeGrid(type) {
   if (sectionTitle) sectionTitle.textContent = typeLabels[type] || 'Featured Destinations';
   if (sectionSub)   sectionSub.textContent   = `Showing all ${destinations.length} destinations in this category`;
 
-  /* Hide load more btn — not needed for filtered view */
   const loadMoreWrap = document.querySelector('.load-more-wrap');
   if (loadMoreWrap) loadMoreWrap.style.display = 'none';
 
@@ -623,20 +624,20 @@ async function loadFeaturedDestinations() {
       <div class="dest-card" onclick="window.location.href='attraction-details.html?id=${a.slug}'">
         <div class="dest-img-wrap">
           <div class="dest-img" style="background-image:url('${a.image_hero}'); background-size:cover; background-position:center;"></div>
-          <span class="difficulty-badge diff-${a.difficulty.toLowerCase()}">${a.difficulty}</span>
+          <span class="difficulty-badge diff-${(a.difficulty||'easy').toLowerCase()}">${a.difficulty || 'Easy'}</span>
         </div>
         <div class="dest-body">
           <div class="dest-header">
             <div class="dest-name" style="color:var(--orange)">${a.name}</div>
             <div class="dest-rating">⭐ ${a.rating}</div>
           </div>
-          <div class="dest-desc">${a.description.substring(0, 110)}...</div>
+          <div class="dest-desc">${(a.description||'').substring(0, 110)}...</div>
           <div class="dest-meta">
             <div class="dest-meta-item">📍 ${a.county} County</div>
-            <div class="dest-meta-item">🕐 Best: ${a.best_time}</div>
+            <div class="dest-meta-item">🕐 Best: ${a.best_time || 'Year-round'}</div>
           </div>
           <div class="dest-tags">
-            ${a.highlights.slice(0, 2).map(h => `<span class="tag">${h.split(' ').slice(0,3).join(' ')}</span>`).join('')}
+            ${(a.highlights||[]).slice(0, 2).map(h => `<span class="tag">${h.split(' ').slice(0,3).join(' ')}</span>`).join('')}
           </div>
           <div class="dest-footer">
             <a href="attraction-details.html?id=${a.slug}" class="explore-link" onclick="event.stopPropagation()">⚡ Explore →</a>
