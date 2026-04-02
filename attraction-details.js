@@ -92,14 +92,18 @@ document.addEventListener('DOMContentLoaded', async function () {
      5. INIT INTERACTIVE FEATURES
   ══════════════════════════════════════ */
 
-  /* FIX: parse image_gallery safely — Supabase may return it as a JSON string */
+  /* Parse image_gallery safely — Supabase may return it as a JSON string.
+     Always ensure image_hero is present so lightbox has at least one image. */
   let gallery = attraction.image_gallery;
   if (typeof gallery === 'string') {
     try { gallery = JSON.parse(gallery); } catch { gallery = []; }
   }
-  if (!Array.isArray(gallery) || gallery.length === 0) {
-    gallery = attraction.image_hero ? [attraction.image_hero] : [];
+  if (!Array.isArray(gallery)) gallery = [];
+  gallery = gallery.filter(Boolean);
+  if (attraction.image_hero && !gallery.includes(attraction.image_hero)) {
+    gallery.unshift(attraction.image_hero);
   }
+  if (gallery.length === 0 && attraction.image_hero) gallery = [attraction.image_hero];
 
   initBooking(attraction, toast);
   initLightbox(gallery);
@@ -193,20 +197,29 @@ function populatePage(a) {
   }
 
   /* Gallery images */
-  /* FIX: parse safely in case it's a JSON string */
+  /* FIX: parse safely in case Supabase returns image_gallery as a JSON string */
   let gallery = a.image_gallery;
   if (typeof gallery === 'string') {
     try { gallery = JSON.parse(gallery); } catch { gallery = []; }
   }
-  if (!Array.isArray(gallery) || gallery.length === 0) {
-    gallery = a.image_hero ? [a.image_hero] : [];
+  if (!Array.isArray(gallery)) gallery = [];
+  /* Remove any null/undefined/empty entries */
+  gallery = gallery.filter(Boolean);
+
+  /* Always ensure image_hero is in the gallery so the main slot is never black */
+  if (a.image_hero && !gallery.includes(a.image_hero)) {
+    gallery.unshift(a.image_hero);
   }
+  /* Final fallback if still empty */
+  if (gallery.length === 0 && a.image_hero) gallery = [a.image_hero];
 
   const galMain = document.querySelector('.gal-main');
   if (galMain && gallery[0]) galMain.style.backgroundImage = `url('${gallery[0]}')`;
 
   document.querySelectorAll('.gal-thumb').forEach((el, i) => {
-    if (gallery[i + 1]) el.style.backgroundImage = `url('${gallery[i + 1]}')`;
+    /* i+1 so thumbs show images after the main slot */
+    const src = gallery[i + 1] || gallery[0]; /* fallback to first if not enough images */
+    if (src) el.style.backgroundImage = `url('${src}')`;
   });
 
   /* Map */
