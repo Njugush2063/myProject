@@ -120,6 +120,17 @@
       </div>
     </button>
 
+    <!-- ── SPORTS CARD (NEW) ── -->
+    <button class="type-img-btn" onclick="window.location.href='category.html?type=sports'">
+      <div class="type-img-bg" style="background-image:url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&q=80')"></div>
+      <div class="type-img-overlay"></div>
+      <div class="type-img-content">
+        <span class="type-img-icon">🏆</span>
+        <span class="type-img-label">Sports</span>
+        <span class="type-img-count">75 destinations</span>
+      </div>
+    </button>
+
   </div>
 </section>
 
@@ -350,7 +361,7 @@
 
   <div class="exp-grid fade-in">
 
-    <div class="exp-card active">
+    <div class="exp-card active" onclick="window.location.href='category.html?type=big-five'" style="cursor:pointer;">
       <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=600&q=80')"></div>
       <div class="exp-card-body">
         <div class="exp-icon">🦁</div>
@@ -363,7 +374,7 @@
       </div>
     </div>
 
-    <div class="exp-card">
+    <div class="exp-card" onclick="window.location.href='category.html?type=birds'" style="cursor:pointer;">
       <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1585389639821-a4c1c2886aab?w=600&q=80')"></div>
       <div class="exp-card-body">
         <div class="exp-icon">🦅</div>
@@ -376,7 +387,7 @@
       </div>
     </div>
 
-    <div class="exp-card">
+    <div class="exp-card" onclick="window.location.href='category.html?type=mountain'" style="cursor:pointer;">
       <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1589825743638-54a8ee3b6d67?w=600&q=80')"></div>
       <div class="exp-card-body">
         <div class="exp-icon">⛰️</div>
@@ -389,7 +400,7 @@
       </div>
     </div>
 
-    <div class="exp-card">
+    <div class="exp-card" onclick="window.location.href='category.html?type=beach'" style="cursor:pointer;">
       <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=600&q=80')"></div>
       <div class="exp-card-body">
         <div class="exp-icon">🏖️</div>
@@ -402,7 +413,7 @@
       </div>
     </div>
 
-    <div class="exp-card">
+    <div class="exp-card" onclick="window.location.href='category.html?type=cultural'" style="cursor:pointer;">
       <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=600&q=80')"></div>
       <div class="exp-card-body">
         <div class="exp-icon">🎭</div>
@@ -415,7 +426,7 @@
       </div>
     </div>
 
-    <div class="exp-card">
+    <div class="exp-card" onclick="window.location.href='category.html?type=adventure'" style="cursor:pointer;">
       <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1440342359743-84fcb8c21f21?w=600&q=80')"></div>
       <div class="exp-card-body">
         <div class="exp-icon">🪂</div>
@@ -423,6 +434,20 @@
         <div class="exp-desc">White water rafting on the Tana River, rock climbing at Hell's Gate, and hot air balloon safaris.</div>
         <div class="exp-footer">
           <span class="exp-count">7 destinations</span>
+          <span class="exp-arrow">→</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SPORTS CARD (NEW) ── -->
+    <div class="exp-card" onclick="window.location.href='category.html?type=sports'" style="cursor:pointer;">
+      <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&q=80')"></div>
+      <div class="exp-card-body">
+        <div class="exp-icon">🏆</div>
+        <div class="exp-name">Sports</div>
+        <div class="exp-desc">Football stadiums, golf courses, Safari Rally stages, basketball arenas, and swimming venues across Kenya.</div>
+        <div class="exp-footer">
+          <span class="exp-count">75 destinations</span>
           <span class="exp-arrow">→</span>
         </div>
       </div>
@@ -555,7 +580,6 @@
   <div class="regions-scroll-wrap fade-in">
     <div class="regions-scroll">
 
-      <!-- Rift Valley -->
       <div class="region-card">
         <div class="region-img-wrap">
           <div class="dest-img img-riftvalley" style="height:180px;"></div>
@@ -572,7 +596,6 @@
         </div>
       </div>
 
-      <!-- Kenyan Coast -->
       <div class="region-card region-card--featured">
         <div class="region-img-wrap">
           <div class="dest-img img-coast" style="height:180px;"></div>
@@ -589,7 +612,6 @@
         </div>
       </div>
 
-      <!-- Central Kenya -->
       <div class="region-card">
         <div class="region-img-wrap">
           <div class="dest-img img-central" style="height:180px;"></div>
@@ -606,7 +628,6 @@
         </div>
       </div>
 
-      <!-- Northern Kenya -->
       <div class="region-card">
         <div class="region-img-wrap">
           <div class="dest-img img-north" style="height:180px;"></div>
@@ -623,7 +644,6 @@
         </div>
       </div>
 
-      <!-- Nyanza -->
       <div class="region-card">
         <div class="region-img-wrap">
           <div class="dest-img img-nyanza" style="height:180px;"></div>
@@ -640,7 +660,6 @@
         </div>
       </div>
 
-      <!-- Western Kenya -->
       <div class="region-card">
         <div class="region-img-wrap">
           <div class="dest-img img-western" style="height:180px;"></div>
@@ -657,7 +676,6 @@
         </div>
       </div>
 
-      <!-- Nairobi -->
       <div class="region-card">
         <div class="region-img-wrap">
           <div class="dest-img img-nairobi" style="height:180px;"></div>
@@ -674,7 +692,6 @@
         </div>
       </div>
 
-      <!-- Eastern Kenya -->
       <div class="region-card">
         <div class="region-img-wrap">
           <div class="dest-img img-eastern" style="height:180px;"></div>
@@ -691,8 +708,8 @@
         </div>
       </div>
 
-    </div><!-- end regions-scroll -->
-  </div><!-- end regions-scroll-wrap -->
+    </div>
+  </div>
 </section>
 
 <!-- ── DESTINATION GUIDE ── -->
@@ -703,12 +720,13 @@
     <p class="section-sub">Everything you need to plan your perfect Kenyan adventure</p>
   </div>
   <div class="guide-grid fade-in">
-    <div class="guide-card"><div class="guide-card-name">Big Five Safari</div><div class="guide-card-count">8 destinations</div></div>
-    <div class="guide-card"><div class="guide-card-name">Bird Watching</div><div class="guide-card-count">10 destinations</div></div>
-    <div class="guide-card"><div class="guide-card-name">Mountain Treks</div><div class="guide-card-count">4 destinations</div></div>
-    <div class="guide-card"><div class="guide-card-name">Beach Escapes</div><div class="guide-card-count">6 destinations</div></div>
-    <div class="guide-card"><div class="guide-card-name">Cultural Tours</div><div class="guide-card-count">8 destinations</div></div>
-    <div class="guide-card"><div class="guide-card-name">Adventure Sports</div><div class="guide-card-count">7 destinations</div></div>
+    <div class="guide-card" onclick="window.location.href='category.html?type=big-five'" style="cursor:pointer;"><div class="guide-card-name">Big Five Safari</div><div class="guide-card-count">8 destinations</div></div>
+    <div class="guide-card" onclick="window.location.href='category.html?type=birds'" style="cursor:pointer;"><div class="guide-card-name">Bird Watching</div><div class="guide-card-count">10 destinations</div></div>
+    <div class="guide-card" onclick="window.location.href='category.html?type=mountain'" style="cursor:pointer;"><div class="guide-card-name">Mountain Treks</div><div class="guide-card-count">4 destinations</div></div>
+    <div class="guide-card" onclick="window.location.href='category.html?type=beach'" style="cursor:pointer;"><div class="guide-card-name">Beach Escapes</div><div class="guide-card-count">6 destinations</div></div>
+    <div class="guide-card" onclick="window.location.href='category.html?type=cultural'" style="cursor:pointer;"><div class="guide-card-name">Cultural Tours</div><div class="guide-card-count">8 destinations</div></div>
+    <div class="guide-card" onclick="window.location.href='category.html?type=adventure'" style="cursor:pointer;"><div class="guide-card-name">Adventure Sports</div><div class="guide-card-count">7 destinations</div></div>
+    <div class="guide-card" onclick="window.location.href='category.html?type=sports'" style="cursor:pointer;"><div class="guide-card-name">Sports</div><div class="guide-card-count">75 destinations</div></div>
   </div>
 </section>
 
@@ -721,10 +739,9 @@
     <input type="email" class="cta-input" placeholder="Enter your email">
     <button class="btn-fill" onclick="window.location.href='login.html'">Sign In</button>
   </div>
-</n>
-   <div class="signup-prompt">
-          New here? <a href="register.html" class="signup-link">Create an account</a> and unlock unforgettable travel experiences around the world.
-        </div>
+  <div class="signup-prompt">
+    New here? <a href="register.html" class="signup-link">Create an account</a> and unlock unforgettable travel experiences around the world.
+  </div>
   <p class="cta-note">No spam. Just amazing Kenyan safari experiences and travel tips.</p>
 </section>
 
