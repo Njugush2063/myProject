@@ -6,12 +6,189 @@
   <title>Sports Destinations — SafariQuest Kenya</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="category.css"/>
+  <link rel="stylesheet" href="destinations.css"/>
+  <style>
+    /* ── SPORT TABS ── */
+    .sport-tabs-bar {
+      position: sticky; top: var(--nav-h, 72px); z-index: 900;
+      background: var(--white, #fff);
+      border-bottom: 2px solid rgba(232,84,26,0.12);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    }
+    .sport-tabs-inner {
+      max-width: 1280px; margin: 0 auto; padding: 0 24px;
+      display: flex; overflow-x: auto; scrollbar-width: none;
+    }
+    .sport-tabs-inner::-webkit-scrollbar { display: none; }
+    .sport-tab {
+      flex-shrink: 0; padding: 18px 28px;
+      border: none; background: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem; font-weight: 600;
+      color: #6B6B6B; cursor: pointer;
+      border-bottom: 3px solid transparent; margin-bottom: -2px;
+      transition: all 0.2s; white-space: nowrap;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .sport-tab:hover { color: #E8541A; }
+    .sport-tab.active { color: #E8541A; border-bottom-color: #E8541A; }
+    .sport-tab .tab-count {
+      background: #FFF0E8; color: #E8541A;
+      font-size: 0.68rem; font-weight: 700;
+      padding: 2px 7px; border-radius: 10px;
+    }
+    .sport-tab.active .tab-count { background: #E8541A; color: #fff; }
 
+    /* ── PANEL INTRO ── */
+    .panel-intro {
+      background: #F5F3F0; padding: 40px 24px 36px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .panel-intro-inner {
+      max-width: 1280px; margin: 0 auto;
+      display: flex; align-items: center; gap: 48px;
+    }
+    .panel-intro-text { flex: 1; }
+    .panel-intro-label {
+      font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.2px;
+      color: #E8541A; margin-bottom: 8px;
+    }
+    .panel-intro-text h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 800; line-height: 1.2; margin-bottom: 10px;
+      color: #1A1A1A;
+    }
+    .panel-intro-text h2 em { color: #E8541A; font-style: normal; }
+    .panel-intro-text p {
+      color: #6B6B6B; font-size: 0.92rem;
+      line-height: 1.7; max-width: 560px;
+    }
+    .panel-stats {
+      display: flex; gap: 28px; flex-shrink: 0;
+    }
+    .stat-box { text-align: center; }
+    .stat-box strong {
+      display: block;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem; font-weight: 800; color: #E8541A;
+    }
+    .stat-box span { font-size: 0.72rem; color: #6B6B6B; font-weight: 500; }
+
+    /* ── GRID SECTION ── */
+    .category-grid-section {
+      max-width: 1280px; margin: 0 auto; padding: 40px 24px 80px;
+    }
+    .grid-header {
+      display: flex; align-items: baseline;
+      justify-content: space-between; margin-bottom: 28px;
+    }
+    .grid-header h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem; font-weight: 700; color: #1A1A1A;
+    }
+    .grid-header span { font-size: 0.82rem; color: #6B6B6B; }
+
+    /* Reuse .dest-card from destinations.css;
+       add small overrides below */
+    .dest-card {
+      cursor: pointer;
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .dest-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.13);
+    }
+
+    /* ── SKELETON ── */
+    .skeleton-card {
+      border-radius: 16px; overflow: hidden; height: 320px;
+      background: #f0ece6;
+    }
+    .skeleton-img {
+      height: 200px;
+      background: linear-gradient(90deg,#f0ece6 25%,#e8e0d8 50%,#f0ece6 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+    .skeleton-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .skeleton-line {
+      height: 11px; border-radius: 4px;
+      background: linear-gradient(90deg,#f0ece6 25%,#e8e0d8 50%,#f0ece6 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+    .skeleton-line.short { width: 55%; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* ── EMPTY / ERROR ── */
+    .state-box {
+      grid-column: 1/-1; text-align: center;
+      padding: 64px 24px;
+    }
+    .state-box .state-icon { font-size: 3rem; margin-bottom: 12px; }
+    .state-box h4 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem; margin-bottom: 8px;
+    }
+    .state-box p { color: #6B6B6B; font-size: 0.9rem; }
+
+    /* ── DIFFICULTY BADGES ── */
+    .diff-easy       { background: #22c55e; color: #fff; }
+    .diff-moderate   { background: #f59e0b; color: #fff; }
+    .diff-challenging{ background: #E8541A; color: #fff; }
+
+    /* ── HERO (sports hero, different from main destinations hero) ── */
+    .cat-hero {
+      position: relative; min-height: 320px;
+      margin-top: var(--nav-h, 72px);
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+    }
+    .cat-hero-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg,rgba(26,26,26,0.82) 0%,rgba(232,84,26,0.50) 100%);
+    }
+    .cat-hero-content {
+      position: relative; z-index: 2;
+      color: #fff; padding: 40px 24px;
+    }
+    .cat-hero-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      backdrop-filter: blur(8px);
+      padding: 6px 18px; border-radius: 24px;
+      font-size: 0.82rem; font-weight: 600; letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
+    .cat-hero-content h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800; line-height: 1.15; margin-bottom: 10px;
+    }
+    .cat-hero-content h1 em { color: #F47940; font-style: normal; }
+    .cat-hero-content p {
+      font-size: 0.95rem; opacity: 0.85; max-width: 520px;
+      margin: 0 auto; line-height: 1.6;
+    }
+    .cat-breadcrumb {
+      display: flex; align-items: center; justify-content: center;
+      gap: 6px; font-size: 0.78rem; opacity: 0.7; margin-bottom: 12px;
+    }
+    .cat-breadcrumb a { color: #fff; text-decoration: none; }
+    .cat-breadcrumb a:hover { text-decoration: underline; }
+
+    @media (max-width: 900px) {
+      .panel-intro-inner { flex-direction: column; gap: 20px; }
+      .panel-stats { gap: 16px; }
+    }
+  </style>
 </head>
 <body>
 
-<!-- ── NAVBAR ── -->
+<!-- ── NAVBAR (same as destinations.html) ── -->
 <nav class="navbar" id="navbar">
   <div class="nav-container">
     <a href="Index.html" class="nav-logo">
@@ -37,7 +214,7 @@
 </nav>
 
 <!-- ── HERO ── -->
-<section class="cat-hero">
+<section class="cat-hero" style="background-image: url('https://stadiumdb.com/pic-buildings/ken/talanta_stadium/talanta_stadium141.jpg'); background-size: cover; background-position: center top;">
   <div class="cat-hero-overlay"></div>
   <div class="cat-hero-content">
     <div class="cat-breadcrumb">
@@ -47,22 +224,32 @@
     </div>
     <span class="cat-hero-badge">🏆 Sports & Recreation</span>
     <h1>Kenya's World-Class <em>Sports Scene</em></h1>
-    <p>Football stadiums, championship golf courses, WRC rally stages, basketball arenas and Olympic swimming pools.</p>
+    <p>Home of Talanta Stadium — Africa's most anticipated AFCON 2027 venue. Explore football, golf, rally, basketball and swimming destinations across Kenya.</p>
   </div>
 </section>
 
 <!-- ── SPORT TABS ── -->
 <div class="sport-tabs-bar">
   <div class="sport-tabs-inner" id="sportTabs">
-    <button class="sport-tab" data-sport="football" onclick="switchSport('football',this)">⚽ Football <span class="tab-count" id="cnt-football">15</span></button>
-    <button class="sport-tab" data-sport="golf"     onclick="switchSport('golf',this)">⛳ Golf <span class="tab-count" id="cnt-golf">15</span></button>
-    <button class="sport-tab" data-sport="rally"    onclick="switchSport('rally',this)">🚗 Safari Rally <span class="tab-count" id="cnt-rally">15</span></button>
-    <button class="sport-tab" data-sport="basketball" onclick="switchSport('basketball',this)">🏀 Basketball <span class="tab-count" id="cnt-basketball">15</span></button>
-    <button class="sport-tab" data-sport="swimming" onclick="switchSport('swimming',this)">🏊 Swimming <span class="tab-count" id="cnt-swimming">15</span></button>
+    <button class="sport-tab" data-sport="football" onclick="switchSport('football',this)">
+      ⚽ Football <span class="tab-count" id="cnt-football">15</span>
+    </button>
+    <button class="sport-tab" data-sport="golf" onclick="switchSport('golf',this)">
+      ⛳ Golf <span class="tab-count" id="cnt-golf">15</span>
+    </button>
+    <button class="sport-tab" data-sport="rally" onclick="switchSport('rally',this)">
+      🚗 Safari Rally <span class="tab-count" id="cnt-rally">15</span>
+    </button>
+    <button class="sport-tab" data-sport="basketball" onclick="switchSport('basketball',this)">
+      🏀 Basketball <span class="tab-count" id="cnt-basketball">15</span>
+    </button>
+    <button class="sport-tab" data-sport="swimming" onclick="switchSport('swimming',this)">
+      🏊 Swimming <span class="tab-count" id="cnt-swimming">15</span>
+    </button>
   </div>
 </div>
 
-<!-- ── PANEL INTRO ── -->
+<!-- ── PANEL INTRO (updated per sport) ── -->
 <div class="panel-intro" id="panelIntro">
   <div class="panel-intro-inner">
     <div class="panel-intro-text">
@@ -74,13 +261,15 @@
   </div>
 </div>
 
-<!-- ── GRID ── -->
+<!-- ── DESTINATIONS GRID ── -->
 <div class="category-grid-section">
   <div class="grid-header">
     <h3 id="gridTitle">Loading…</h3>
     <span id="gridCount"></span>
   </div>
-  <div class="sports-grid" id="sportsGrid"></div>
+  <div class="destinations-grid" id="sportsGrid" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:24px;">
+    <!-- skeleton on load -->
+  </div>
 </div>
 
 <!-- ── FOOTER ── -->
@@ -89,9 +278,9 @@
     <div class="footer-brand">
       <div class="footer-logo-block">
         <img src="logo.png" alt="SafariQuest" class="footer-logo-img"/>
-        <div>
-          <div class="footer-logo-name">SafariQuest</div>
-          <div class="footer-logo-slogan">Discover. Explore. Experience.</div>
+        <div class="footer-logo-text">
+          <span class="footer-logo-name">SafariQuest</span>
+          <span class="footer-logo-slogan">Discover. Explore. Experience.</span>
         </div>
       </div>
       <p>Your gateway to Kenya's magic — from the savanna to the coast.</p>
@@ -107,14 +296,229 @@
     </div>
     <div class="footer-contact">
       <h4>Contact</h4>
-      <p>📧 info@safariquest.com</p>
+      <p>📧 <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="533a3d353c1320323532213a22263620277d303c3e">[email&#160;protected]</a></p>
       <p>📍 Nairobi, Kenya</p>
     </div>
   </div>
-  <div class="footer-bottom">© 2026 SafariQuest Kenya. All rights reserved.</div>
+  <div class="footer-bottom">
+    <p>© 2026 SafariQuest Kenya. All rights reserved.</p>
+  </div>
 </footer>
 
-<script src="supabase-config.js"></script>
-<script src="category.js"></script>
-</body>
-</html>
+<!-- ── SCRIPTS ── -->
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="supabase-config.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════
+   SPORT META — intro copy + stats per sport
+══════════════════════════════════════════════════════ */
+const SPORT_META = {
+  football: {
+    label:  '⚽ Football in Kenya',
+    title:  'The Beautiful Game <em>Across Kenya</em>',
+    desc:   'Kenya\'s football scene is vibrant and passionate — from Kasarani\'s 60,000-seat national stadium hosting AFCON qualifiers, to grassroots pitches in Kisumu and Mombasa producing world-class talent.',
+    stats:  [{ val:'15', lbl:'Stadiums & Venues' }, { val:'18', lbl:'KPL Clubs' }, { val:'60K+', lbl:'Max Capacity' }],
+    grid:   'Football Stadiums & Venues'
+  },
+  golf: {
+    label:  '⛳ Golf in Kenya',
+    title:  'Championship Courses <em>Under African Skies</em>',
+    desc:   'Kenya boasts some of Africa\'s finest golf courses — from Muthaiga Golf Club (est. 1913) to Vipingo Ridge on the coast with Indian Ocean panoramas. Playing golf against a backdrop of wildlife is uniquely Kenyan.',
+    stats:  [{ val:'15', lbl:'Golf Courses' }, { val:'110+', lbl:'Years of Golf' }, { val:'4.9★', lbl:'Avg Rating' }],
+    grid:   'Golf Courses & Clubs'
+  },
+  rally: {
+    label:  '🚗 Safari Rally in Kenya',
+    title:  'The World\'s Most <em>Legendary Rally</em>',
+    desc:   'The Safari Rally Kenya is a WRC round and the most iconic rally on earth. Drivers battle through red murram roads, dramatic Rift Valley stages, and unpredictable African weather.',
+    stats:  [{ val:'15', lbl:'Rally Stages' }, { val:'70+', lbl:'Years of History' }, { val:'WRC', lbl:'World Championship' }],
+    grid:   'Safari Rally Stages & Venues'
+  },
+  basketball: {
+    label:  '🏀 Basketball in Kenya',
+    title:  'Kenya\'s Rising <em>Basketball Nation</em>',
+    desc:   'Kenya\'s basketball scene has exploded in recent years. The KBF league features fierce rivalries and world-class facilities in Nairobi have helped Kenyan players earn NBA G-League contracts.',
+    stats:  [{ val:'15', lbl:'Arenas & Courts' }, { val:'KBF', lbl:'National League' }, { val:'4.7★', lbl:'Avg Rating' }],
+    grid:   'Basketball Arenas & Courts'
+  },
+  swimming: {
+    label:  '🏊 Swimming in Kenya',
+    title:  'Olympic Pools & <em>Coastal Waters</em>',
+    desc:   'From Olympic-standard pools in Nairobi to open-water swimming in the Indian Ocean and freshwater Lake Victoria — Kenya offers world-class aquatic experiences for every level.',
+    stats:  [{ val:'15', lbl:'Pools & Venues' }, { val:'50m', lbl:'Olympic Pools' }, { val:'4.8★', lbl:'Avg Rating' }],
+    grid:   'Swimming Pools & Aquatic Venues'
+  }
+};
+
+/* ══════════════════════════════════════════════════════
+   STATE
+══════════════════════════════════════════════════════ */
+let currentSport = 'football';
+
+/* ══════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  /* Navbar scroll shadow */
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  /* Read ?sport= param — default to football */
+  const urlSport = new URLSearchParams(window.location.search).get('sport') || 'football';
+  const validSports = Object.keys(SPORT_META);
+  currentSport = validSports.includes(urlSport) ? urlSport : 'football';
+
+  /* Activate correct tab */
+  const activeTab = document.querySelector(`.sport-tab[data-sport="${currentSport}"]`);
+  if (activeTab) activeTab.classList.add('active');
+
+  /* Load */
+  loadSport(currentSport);
+});
+
+/* ══════════════════════════════════════════════════════
+   SWITCH SPORT TAB
+══════════════════════════════════════════════════════ */
+window.switchSport = function(sport, btn) {
+  if (sport === currentSport) return;
+  currentSport = sport;
+
+  document.querySelectorAll('.sport-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+
+  /* Update URL param without reload */
+  history.replaceState(null, '', `?sport=${sport}`);
+
+  loadSport(sport);
+};
+
+/* ══════════════════════════════════════════════════════
+   UPDATE INTRO PANEL
+══════════════════════════════════════════════════════ */
+function updateIntro(sport) {
+  const m = SPORT_META[sport];
+  document.getElementById('introLabel').textContent = m.label;
+  document.getElementById('introTitle').innerHTML   = m.title;
+  document.getElementById('introDesc').textContent  = m.desc;
+  document.getElementById('panelStats').innerHTML   = m.stats.map(s => `
+    <div class="stat-box">
+      <strong>${s.val}</strong>
+      <span>${s.lbl}</span>
+    </div>`).join('');
+  document.getElementById('gridTitle').textContent  = m.grid;
+}
+
+/* ══════════════════════════════════════════════════════
+   LOAD DESTINATIONS FOR A SPORT
+══════════════════════════════════════════════════════ */
+async function loadSport(sport) {
+  updateIntro(sport);
+  showSkeletons();
+
+  let destinations = [];
+  try {
+    destinations = await getSportsDestinations(sport);
+  } catch (err) {
+    console.error('Failed to load sports destinations:', err);
+    showError();
+    return;
+  }
+
+  /* Update count badge on tab */
+  const cntEl = document.getElementById(`cnt-${sport}`);
+  if (cntEl) cntEl.textContent = destinations.length;
+
+  document.getElementById('gridCount').textContent =
+    `${destinations.length} destination${destinations.length !== 1 ? 's' : ''}`;
+
+  renderGrid(destinations);
+}
+
+/* ══════════════════════════════════════════════════════
+   RENDER GRID
+══════════════════════════════════════════════════════ */
+function renderGrid(destinations) {
+  const grid = document.getElementById('sportsGrid');
+
+  if (!destinations.length) {
+    grid.innerHTML = `
+      <div class="state-box">
+        <div class="state-icon">🏟️</div>
+        <h4>No venues found</h4>
+        <p>No destinations are listed for this sport yet. Check back soon!</p>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = destinations.map(d => buildCard(d)).join('');
+}
+
+/* ══════════════════════════════════════════════════════
+   BUILD CARD
+══════════════════════════════════════════════════════ */
+function buildCard(d) {
+  const diff      = (d.difficulty || 'Easy').toLowerCase();
+  const diffLabel = d.difficulty || 'Easy';
+  const fallback  = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80';
+  const highlights = Array.isArray(d.highlights) ? d.highlights : [];
+
+  return `
+    <div class="dest-card"
+         onclick="window.location.href='attraction-details.html?id=${d.slug}'">
+      <div class="dest-img-wrap" style="position:relative;overflow:hidden;height:200px;">
+        <img src="${d.image_hero || fallback}"
+             alt="${d.name}"
+             loading="lazy"
+             onerror="this.src='${fallback}'"
+             style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.4s;"/>
+        <span class="difficulty-badge diff-${diff}"
+              style="position:absolute;top:12px;left:12px;padding:4px 12px;border-radius:20px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">
+          ${diffLabel}
+        </span>
+        <span style="position:absolute;top:12px;right:12px;background:rgba(26,26,26,0.8);backdrop-filter:blur(4px);color:#fff;font-size:0.75rem;font-weight:700;padding:4px 10px;border-radius:20px;">
+          ⭐ ${d.rating}
+        </span>
+        ${d.featured ? '<span style="position:absolute;bottom:12px;left:12px;background:#E8541A;color:#fff;font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:12px;text-transform:uppercase;letter-spacing:0.5px;">⭐ Featured</span>' : ''}
+      </div>
+      <div class="dest-body">
+        <div class="dest-header">
+          <div class="dest-name">${d.name}</div>
+          <div class="dest-rating" style="color:#E8541A;font-weight:700;font-size:0.82rem;white-space:nowrap;">⭐ ${d.rating}</div>
+        </div>
+        <div class="dest-desc">${d.description}</div>
+        <div class="dest-meta">
+          <div class="dest-meta-item">📍 ${d.county} County</div>
+          <div class="dest-meta-item">🕐 Best: ${d.best_time}</div>
+        </div>
+        <div class="dest-tags">
+          ${highlights.slice(0, 3).map(h => `<span class="tag">${h}</span>`).join('')}
+        </div>
+        <div class="dest-footer">
+          <a href="attraction-details.html?id=${d.slug}"
+             class="explore-link"
+             onclick="event.stopPropagation()">⚡ Explore →</a>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ══════════════════════════════════════════════════════
+   SKELETON LOADERS
+══════════════════════════════════════════════════════ */
+function showSkeletons() {
+  document.getElementById('sportsGrid').innerHTML =
+    Array(9).fill(`
+      <div class="skeleton-card">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line short"></div>
+        </div>
+      </div>`).join('');
+}
+
+/* ══════════════════════════════════════════════════════
+   ERROR STATE
+══════════════════════════════════════════════════════ */
+function showError() {
+  document.getElementById('sportsGrid').innerHTML =
