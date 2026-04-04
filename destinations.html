@@ -59,7 +59,7 @@
     <p class="section-sub">Choose the adventure that speaks to your soul</p>
   </div>
 
-  <div class="type-image-grid" style="grid-template-rows: 260px 260px 260px;">
+  <div class="type-image-grid" style="grid-template-rows: 260px 260px;">
 
     <!-- 1. Big Five — spans 2 rows -->
     <button class="type-img-btn active" onclick="window.location.href='category.html?type=big-five'">
@@ -116,25 +116,14 @@
       </div>
     </button>
 
-    <!-- 6. Adventure Sports — FIXED IMAGE (was wine photo) -->
-    <button class="type-img-btn" onclick="window.location.href='category.html?type=adventure'">
+    <!-- 6. Adventure Sports — spans 2 cols to fill row 2 -->
+    <button class="type-img-btn" onclick="window.location.href='category.html?type=adventure'" style="grid-column: span 2;">
       <div class="type-img-bg" style="background-image:url('https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=1000&q=85')"></div>
       <div class="type-img-overlay"></div>
       <div class="type-img-content">
         <span class="type-img-icon">🪂</span>
         <span class="type-img-label">Adventure Sports</span>
         <span class="type-img-count">7 destinations</span>
-      </div>
-    </button>
-
-    <!-- 7. Sports -->
-    <button class="type-img-btn" onclick="window.location.href='category.html?type=sports'">
-      <div class="type-img-bg" style="background-image:url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&q=85')"></div>
-      <div class="type-img-overlay"></div>
-      <div class="type-img-content">
-        <span class="type-img-icon">🏆</span>
-        <span class="type-img-label">Sports</span>
-        <span class="type-img-count">75 destinations</span>
       </div>
     </button>
 
@@ -590,7 +579,6 @@
     <div class="guide-card" onclick="window.location.href='category.html?type=beach'" style="cursor:pointer;"><div class="guide-card-name">Beach Escapes</div><div class="guide-card-count">6 destinations</div></div>
     <div class="guide-card" onclick="window.location.href='category.html?type=cultural'" style="cursor:pointer;"><div class="guide-card-name">Cultural Tours</div><div class="guide-card-count">8 destinations</div></div>
     <div class="guide-card" onclick="window.location.href='category.html?type=adventure'" style="cursor:pointer;"><div class="guide-card-name">Adventure Sports</div><div class="guide-card-count">7 destinations</div></div>
-    <div class="guide-card" onclick="window.location.href='category.html?type=sports'" style="cursor:pointer;"><div class="guide-card-name">Sports</div><div class="guide-card-count">75 destinations</div></div>
   </div>
 </section>
 
