@@ -1,8 +1,94 @@
-/* ══════════════════════════════════════════════════════
-   STATIC FALLBACK DATA — 15 per sport, balanced feed
-   All cards link to attraction-details.html?id={slug}
-   Schedule links open official venue/event pages
-══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════════
+   category.js  —  SafariQuest Kenya
+   Single source of truth for the category page.
+   Reads  ?sport=football  OR  ?type=adventure  (legacy links).
+   Tries Supabase first; falls back to STATIC_SPORTS.
+══════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────────────────────────────
+   SPORT META  —  hero + intro copy + stats per sport
+───────────────────────────────────────────────────────────────────── */
+const SPORT_META = {
+  football: {
+    label:      '⚽ Football in Kenya',
+    badge:      '🏆 Sports & Recreation',
+    heroTitle:  'Kenya\'s World-Class <em>Football Scene</em>',
+    heroDesc:   'Home of Kasarani — Africa\'s most beloved football fortress. Explore stadiums, training grounds and fan culture across Kenya.',
+    heroBg:     'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1400&q=80',
+    introTitle: 'The Beautiful Game <em>Across Kenya</em>',
+    introDesc:  'Kenya\'s football scene is vibrant and passionate — from Kasarani\'s 60,000-seat national stadium hosting AFCON qualifiers, to grassroots pitches in Kisumu and Mombasa producing world-class talent.',
+    stats:      [{ val:'15', lbl:'Stadiums & Venues' }, { val:'18', lbl:'KPL Clubs' }, { val:'60K+', lbl:'Max Capacity' }],
+    grid:       'Football Stadiums & Venues',
+    breadcrumb: 'Football'
+  },
+  golf: {
+    label:      '⛳ Golf in Kenya',
+    badge:      '⛳ Golf & Country Clubs',
+    heroTitle:  'Championship Courses <em>Under African Skies</em>',
+    heroDesc:   'Kenya boasts some of Africa\'s finest golf courses — from Muthaiga Golf Club (est. 1913) to Vipingo Ridge with Indian Ocean panoramas.',
+    heroBg:     'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=1400&q=80',
+    introTitle: 'Championship Courses <em>Under African Skies</em>',
+    introDesc:  'Kenya boasts some of Africa\'s finest golf courses — from Muthaiga Golf Club (est. 1913) to Vipingo Ridge on the coast with Indian Ocean panoramas. Playing golf against a backdrop of wildlife is uniquely Kenyan.',
+    stats:      [{ val:'15', lbl:'Golf Courses' }, { val:'110+', lbl:'Years of Golf' }, { val:'4.9★', lbl:'Avg Rating' }],
+    grid:       'Golf Courses & Clubs',
+    breadcrumb: 'Golf'
+  },
+  rally: {
+    label:      '🚗 Safari Rally in Kenya',
+    badge:      '🚗 WRC Safari Rally',
+    heroTitle:  'The World\'s Most <em>Legendary Rally</em>',
+    heroDesc:   'WRC Safari Rally Kenya — drivers battle through red murram roads, dramatic Rift Valley stages and unpredictable African weather.',
+    heroBg:     'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1400&q=80',
+    introTitle: 'The World\'s Most <em>Legendary Rally</em>',
+    introDesc:  'The Safari Rally Kenya is a WRC round and the most iconic rally on earth. Drivers battle through red murram roads, dramatic Rift Valley stages, and unpredictable African weather.',
+    stats:      [{ val:'15', lbl:'Rally Stages' }, { val:'70+', lbl:'Years of History' }, { val:'WRC', lbl:'World Championship' }],
+    grid:       'Safari Rally Stages & Venues',
+    breadcrumb: 'Safari Rally'
+  },
+  basketball: {
+    label:      '🏀 Basketball in Kenya',
+    badge:      '🏀 Basketball',
+    heroTitle:  'Kenya\'s Rising <em>Basketball Nation</em>',
+    heroDesc:   'From FIBA Africa qualifiers at Nyayo Indoor Arena to university rivalries — Kenyan basketball is on the rise.',
+    heroBg:     'https://images.unsplash.com/photo-1504450758481-7338eba7524a?w=1400&q=80',
+    introTitle: 'Kenya\'s Rising <em>Basketball Nation</em>',
+    introDesc:  'Kenya\'s basketball scene has exploded in recent years. The KBF league features fierce rivalries and world-class facilities in Nairobi have helped Kenyan players earn NBA G-League contracts.',
+    stats:      [{ val:'15', lbl:'Arenas & Courts' }, { val:'KBF', lbl:'National League' }, { val:'4.7★', lbl:'Avg Rating' }],
+    grid:       'Basketball Arenas & Courts',
+    breadcrumb: 'Basketball'
+  },
+  swimming: {
+    label:      '🏊 Swimming in Kenya',
+    badge:      '🏊 Aquatics',
+    heroTitle:  'Olympic Pools & <em>Coastal Waters</em>',
+    heroDesc:   'From Olympic-standard pools in Nairobi to open-water swimming in the Indian Ocean and freshwater Lake Victoria.',
+    heroBg:     'https://images.unsplash.com/photo-1519315901367-f34ff9154487?w=1400&q=80',
+    introTitle: 'Olympic Pools & <em>Coastal Waters</em>',
+    introDesc:  'From Olympic-standard pools in Nairobi to open-water swimming in the Indian Ocean and freshwater Lake Victoria — Kenya offers world-class aquatic experiences for every level.',
+    stats:      [{ val:'15', lbl:'Pools & Venues' }, { val:'50m', lbl:'Olympic Pools' }, { val:'4.8★', lbl:'Avg Rating' }],
+    grid:       'Swimming Pools & Aquatic Venues',
+    breadcrumb: 'Swimming'
+  }
+};
+
+/* Page <title> map — covers both ?sport= and legacy ?type= values */
+const PAGE_TITLES = {
+  football:   'Football Destinations',
+  golf:       'Golf Destinations',
+  rally:      'Safari Rally Stages',
+  basketball: 'Basketball Venues',
+  swimming:   'Swimming Venues',
+  adventure:  'Adventure Destinations',
+  beach:      'Beach Destinations',
+  wildlife:   'Wildlife Destinations',
+  culture:    'Cultural Destinations',
+  nature:     'Nature Destinations',
+};
+
+/* ─────────────────────────────────────────────────────────────────────
+   STATIC FALLBACK DATA — 15 entries per sport
+   Used when Supabase is unavailable or returns no rows.
+───────────────────────────────────────────────────────────────────── */
 const STATIC_SPORTS = {
 
   football: [
@@ -62,7 +148,7 @@ const STATIC_SPORTS = {
   basketball: [
     { slug:'nyayo-indoor-arena', name:'Nyayo National Stadium Indoor Arena', county:'Nairobi', difficulty:'Easy', rating:4.7, best_time:'Year-round', description:'Kenya\'s premier indoor basketball arena hosting KBF Premier League finals and FIBA Africa qualifying rounds.', image:'https://images.unsplash.com/photo-1504450758481-7338eba7524a?w=600&q=80', highlights:['FIBA Africa Venue','KBF Finals','Premier Arena'], featured:true, schedule:'https://www.kenyabasketball.com/schedule' },
     { slug:'kasarani-indoor', name:'Kasarani Gymnasium', county:'Nairobi', difficulty:'Easy', rating:4.6, best_time:'Year-round', description:'Part of the Moi International Sports Centre complex — large indoor arena with excellent lighting and seating for major tournaments.', image:'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&q=80', highlights:['Major Tournaments','International Events','Large Capacity'], schedule:'https://www.kenyabasketball.com/schedule' },
-    { slug:'kicc-sports-hall', name:'KICC Sports & Events Hall', county:'Nairobi', difficulty:'Easy', rating:4.5, best_time:'Year-round', description:'The iconic Kenya International Conference Centre hosts basketball exhibition matches, sports galas and community leagues in its versatile indoor hall.', image:'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80', highlights:['Iconic Nairobi Venue','Exhibition Matches','Community Leagues'], schedule:'https://www.kicc.co.ke/events' },
+    { slug:'kicc-sports-hall', name:'KICC Sports & Events Hall', county:'Nairobi', difficulty:'Easy', rating:4.5, best_time:'Year-round', description:'The iconic Kenya International Conference Centre hosts basketball exhibition matches and community leagues in its versatile indoor hall.', image:'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&q=80', highlights:['Iconic Nairobi Venue','Exhibition Matches','Community Leagues'], schedule:'https://www.kicc.co.ke/events' },
     { slug:'upper-hill-courts', name:'Upper Hill School Courts', county:'Nairobi', difficulty:'Easy', rating:4.3, best_time:'Year-round', description:'Premier school basketball in Kenya — Upper Hill\'s courts produce a remarkable number of national team players each season.', image:'https://images.unsplash.com/photo-1475440197469-e367e36e7054?w=600&q=80', highlights:['School Basketball','National Players','Development Hub'], schedule:'https://www.kenyabasketball.com/schedule' },
     { slug:'strathmore-university-gym', name:'Strathmore University Sports Hall', county:'Nairobi', difficulty:'Easy', rating:4.5, best_time:'Year-round', description:'University-level basketball at its finest — Strathmore Blades dominate the Kenya University Sports Association (KUSA) league.', image:'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=600&q=80', highlights:['KUSA League','Strathmore Blades','University Basketball'], schedule:'https://www.kenyabasketball.com/schedule' },
     { slug:'uon-hall', name:'University of Nairobi Sports Hall', county:'Nairobi', difficulty:'Easy', rating:4.2, best_time:'Year-round', description:'Historic UoN gym — a cornerstone of Kenyan university basketball with decades of passionate rivalry.', image:'https://images.unsplash.com/photo-1519861531473-9200262188bf?w=600&q=80', highlights:['University Rival','Historic Venue','UoN Rockets'], schedule:'https://www.kenyabasketball.com/schedule' },
@@ -74,7 +160,7 @@ const STATIC_SPORTS = {
     { slug:'thika-sports-club-bball', name:'Thika Sports Club Court', county:'Kiambu', difficulty:'Easy', rating:4.0, best_time:'Year-round', description:'Community basketball in Thika — a well-maintained court that doubles as a development centre for youth hoops.', image:'https://images.unsplash.com/photo-1574623452334-1e0ac2b3ccb4?w=600&q=80', highlights:['Community Basketball','Youth Hoops','Development Centre'], schedule:'https://www.kenyabasketball.com/schedule' },
     { slug:'nakuru-sports-club-bball', name:'Nakuru Athletic Club Courts', county:'Nakuru', difficulty:'Easy', rating:4.1, best_time:'Year-round', description:'Rift Valley basketball hub — Nakuru\'s courts host the regional KBF Rift Valley zone league games.', image:'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=600&q=80', highlights:['KBF Rift Valley','Regional League','Athletic Club'], schedule:'https://www.kenyabasketball.com/schedule' },
     { slug:'jkuat-sports-hall', name:'JKUAT Sports Hall', county:'Kiambu', difficulty:'Easy', rating:4.2, best_time:'Year-round', description:'Technical university campus with a modern sports hall frequently hosting KBF development league and KUSA fixtures.', image:'https://images.unsplash.com/photo-1504450758481-7338eba7524a?w=600&q=80', highlights:['KBF Development','KUSA Fixtures','Modern Hall'], schedule:'https://www.kenyabasketball.com/schedule' },
-    { slug:'pwani-university-courts', name:'Pwani University Courts', county:'Kilifi', difficulty:'Easy', rating:4.1, best_time:'October – March', description:'Coastal university basketball — Pwani Univeristy\'s courts overlook the Indian Ocean, making training sessions uniquely refreshing.', image:'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=600&q=80', highlights:['Ocean Views','Coastal University','Coast Zone League'], schedule:'https://www.kenyabasketball.com/schedule' }
+    { slug:'pwani-university-courts', name:'Pwani University Courts', county:'Kilifi', difficulty:'Easy', rating:4.1, best_time:'October – March', description:'Coastal university basketball — Pwani University\'s courts overlook the Indian Ocean, making training sessions uniquely refreshing.', image:'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=600&q=80', highlights:['Ocean Views','Coastal University','Coast Zone League'], schedule:'https://www.kenyabasketball.com/schedule' }
   ],
 
   swimming: [
@@ -96,86 +182,102 @@ const STATIC_SPORTS = {
   ]
 };
 
-/* ══════════════════════════════════════════════════════
-   SPORT META — intro copy + stats per sport
-══════════════════════════════════════════════════════ */
-const SPORT_META = {
-  football: {
-    label: '⚽ Football in Kenya',
-    title: 'The Beautiful Game <em>Across Kenya</em>',
-    desc:  'Kenya\'s football scene is vibrant and passionate — from Kasarani\'s 60,000-seat national stadium hosting AFCON qualifiers, to grassroots pitches in Kisumu and Mombasa producing world-class talent.',
-    stats: [{ val:'15', lbl:'Stadiums & Venues' },{ val:'18', lbl:'KPL Clubs' },{ val:'60K+', lbl:'Max Capacity' }],
-    grid:  'Football Stadiums & Venues'
-  },
-  golf: {
-    label: '⛳ Golf in Kenya',
-    title: 'Championship Courses <em>Under African Skies</em>',
-    desc:  'Kenya boasts some of Africa\'s finest golf courses — from Muthaiga Golf Club (est. 1913) to Vipingo Ridge on the coast with Indian Ocean panoramas. Playing golf against a backdrop of wildlife is uniquely Kenyan.',
-    stats: [{ val:'15', lbl:'Golf Courses' },{ val:'110+', lbl:'Years of Golf' },{ val:'4.9★', lbl:'Avg Rating' }],
-    grid:  'Golf Courses & Clubs'
-  },
-  rally: {
-    label: '🚗 Safari Rally in Kenya',
-    title: 'The World\'s Most <em>Legendary Rally</em>',
-    desc:  'The Safari Rally Kenya is a WRC round and the most iconic rally on earth. Drivers battle through red murram roads, dramatic Rift Valley stages, and unpredictable African weather.',
-    stats: [{ val:'15', lbl:'Rally Stages' },{ val:'70+', lbl:'Years of History' },{ val:'WRC', lbl:'World Championship' }],
-    grid:  'Safari Rally Stages & Venues'
-  },
-  basketball: {
-    label: '🏀 Basketball in Kenya',
-    title: 'Kenya\'s Rising <em>Basketball Nation</em>',
-    desc:  'Kenya\'s basketball scene has exploded in recent years. The KBF league features fierce rivalries and world-class facilities in Nairobi have helped Kenyan players earn NBA G-League contracts.',
-    stats: [{ val:'15', lbl:'Arenas & Courts' },{ val:'KBF', lbl:'National League' },{ val:'4.7★', lbl:'Avg Rating' }],
-    grid:  'Basketball Arenas & Courts'
-  },
-  swimming: {
-    label: '🏊 Swimming in Kenya',
-    title: 'Olympic Pools & <em>Coastal Waters</em>',
-    desc:  'From Olympic-standard pools in Nairobi to open-water swimming in the Indian Ocean and freshwater Lake Victoria — Kenya offers world-class aquatic experiences for every level.',
-    stats: [{ val:'15', lbl:'Pools & Venues' },{ val:'50m', lbl:'Olympic Pools' },{ val:'4.8★', lbl:'Avg Rating' }],
-    grid:  'Swimming Pools & Aquatic Venues'
-  }
-};
-
-/* ══════════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────────────────────────
    STATE
-══════════════════════════════════════════════════════ */
+───────────────────────────────────────────────────────────────────── */
 let currentSport = 'football';
 
-/* ══════════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────────────────────────
    INIT
-══════════════════════════════════════════════════════ */
+───────────────────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
+
+  /* Navbar scroll shadow */
   window.addEventListener('scroll', () => {
     document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
   });
 
-  const param = new URLSearchParams(window.location.search).get('sport') ||
-                new URLSearchParams(window.location.search).get('type') || 'football';
-  const valid = Object.keys(SPORT_META);
-  currentSport = valid.includes(param) ? param : 'football';
+  /* Read URL params — accept both ?sport= (new) and ?type= (legacy) */
+  const params   = new URLSearchParams(window.location.search);
+  const param    = params.get('sport') || params.get('type') || 'football';
+  const valid    = Object.keys(SPORT_META);
+  currentSport   = valid.includes(param) ? param : 'football';
 
+  /* Update browser <title> */
+  document.title = `${PAGE_TITLES[param] || 'Destinations'} — SafariQuest Kenya`;
+
+  /* Activate correct tab */
   const activeTab = document.querySelector(`.sport-tab[data-sport="${currentSport}"]`);
   if (activeTab) activeTab.classList.add('active');
 
+  /* Update hero to match current sport */
+  updateHero(currentSport);
+
+  /* Load destinations */
   loadSport(currentSport);
 });
 
-/* ══════════════════════════════════════════════════════
-   SWITCH SPORT
-══════════════════════════════════════════════════════ */
-window.switchSport = function(sport, btn) {
+/* ─────────────────────────────────────────────────────────────────────
+   SWITCH SPORT TAB
+───────────────────────────────────────────────────────────────────── */
+window.switchSport = function (sport, btn) {
   if (sport === currentSport) return;
   currentSport = sport;
+
   document.querySelectorAll('.sport-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
+
+  /* Update URL param without page reload */
   history.replaceState(null, '', `?sport=${sport}`);
+
+  /* Update page title */
+  document.title = `${PAGE_TITLES[sport] || 'Destinations'} — SafariQuest Kenya`;
+
+  updateHero(sport);
   loadSport(sport);
 };
 
-/* ══════════════════════════════════════════════════════
-   LOAD — try Supabase first, fall back to static data
-══════════════════════════════════════════════════════ */
+/* ─────────────────────────────────────────────────────────────────────
+   UPDATE HERO SECTION
+───────────────────────────────────────────────────────────────────── */
+function updateHero(sport) {
+  const m = SPORT_META[sport];
+  const hero = document.getElementById('catHero');
+  if (hero) {
+    hero.style.backgroundImage = `url('${m.heroBg}')`;
+  }
+  const breadcrumb = document.getElementById('heroBreadcrumb');
+  if (breadcrumb) breadcrumb.textContent = m.breadcrumb;
+
+  const badge = document.getElementById('heroBadge');
+  if (badge) badge.textContent = m.badge;
+
+  const title = document.getElementById('heroTitle');
+  if (title) title.innerHTML = m.heroTitle;
+
+  const desc = document.getElementById('heroDesc');
+  if (desc) desc.textContent = m.heroDesc;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   UPDATE INTRO PANEL
+───────────────────────────────────────────────────────────────────── */
+function updateIntro(sport) {
+  const m = SPORT_META[sport];
+  document.getElementById('introLabel').textContent = m.label;
+  document.getElementById('introTitle').innerHTML   = m.introTitle;
+  document.getElementById('introDesc').textContent  = m.introDesc;
+  document.getElementById('panelStats').innerHTML   = m.stats.map(s => `
+    <div class="stat-box">
+      <strong>${s.val}</strong>
+      <span>${s.lbl}</span>
+    </div>`).join('');
+  document.getElementById('gridTitle').textContent  = m.grid;
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   LOAD DESTINATIONS  —  Supabase first, static fallback
+───────────────────────────────────────────────────────────────────── */
 async function loadSport(sport) {
   updateIntro(sport);
   showSkeletons();
@@ -191,41 +293,31 @@ async function loadSport(sport) {
       }
     }
   } catch (err) {
-    console.warn('Supabase unavailable, using static data:', err);
+    console.warn('Supabase unavailable, using static fallback:', err);
   }
 
-  /* Fall back to static */
+  /* Fall back to static data */
   if (!destinations.length) {
     destinations = STATIC_SPORTS[sport] || [];
   }
 
+  /* Update tab count badge */
   const cntEl = document.getElementById(`cnt-${sport}`);
   if (cntEl) cntEl.textContent = destinations.length;
+
+  /* Update grid header count */
   document.getElementById('gridCount').textContent =
     `${destinations.length} destination${destinations.length !== 1 ? 's' : ''}`;
 
   renderGrid(destinations);
 }
 
-/* ══════════════════════════════════════════════════════
-   UPDATE INTRO
-══════════════════════════════════════════════════════ */
-function updateIntro(sport) {
-  const m = SPORT_META[sport];
-  document.getElementById('introLabel').textContent = m.label;
-  document.getElementById('introTitle').innerHTML   = m.title;
-  document.getElementById('introDesc').textContent  = m.desc;
-  document.getElementById('panelStats').innerHTML   = m.stats.map(s =>
-    `<div class="stat-box"><strong>${s.val}</strong><span>${s.lbl}</span></div>`
-  ).join('');
-  document.getElementById('gridTitle').textContent  = m.grid;
-}
-
-/* ══════════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────────────────────────
    RENDER GRID
-══════════════════════════════════════════════════════ */
+───────────────────────────────────────────────────────────────────── */
 function renderGrid(destinations) {
   const grid = document.getElementById('sportsGrid');
+
   if (!destinations.length) {
     grid.innerHTML = `
       <div class="state-box">
@@ -235,57 +327,103 @@ function renderGrid(destinations) {
       </div>`;
     return;
   }
+
   grid.innerHTML = destinations.map(d => buildCard(d)).join('');
 }
 
-/* ══════════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────────────────────────
    BUILD CARD
-══════════════════════════════════════════════════════ */
+   Handles both Supabase shape (image_hero) and static shape (image)
+───────────────────────────────────────────────────────────────────── */
 function buildCard(d) {
   const diff     = (d.difficulty || 'Easy').toLowerCase();
   const fallback = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80';
-  const img      = d.image_hero || d.image || fallback;
-  const tags     = Array.isArray(d.highlights) ? d.highlights.slice(0,3) : [];
+
+  /* image_hero = Supabase field; image = static data field */
+  let img = d.image_hero || d.image || fallback;
+
+  /* If image_hero is a JSON string array, parse and take first element */
+  if (typeof img === 'string' && img.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(img);
+      img = Array.isArray(parsed) && parsed[0] ? parsed[0] : fallback;
+    } catch (_) {
+      img = fallback;
+    }
+  }
+
+  const tags     = Array.isArray(d.highlights) ? d.highlights.slice(0, 3) : [];
   const schedURL = d.schedule || '#';
-  const county   = d.county || '';
+  const county   = d.county   || '';
   const bestTime = d.best_time || 'Year-round';
 
   return `
     <div class="dest-card" onclick="window.location.href='attraction-details.html?id=${d.slug}'">
-      <div class="dest-img-wrap">
-        <img src="${img}" alt="${d.name}" loading="lazy" onerror="this.src='${fallback}'"/>
-        <span class="difficulty-badge diff-${diff}">${d.difficulty || 'Easy'}</span>
-        <span class="rating-badge">⭐ ${d.rating}</span>
-        ${d.featured ? '<span class="featured-badge">⭐ Featured</span>' : ''}
+      <div class="dest-img-wrap" style="position:relative;overflow:hidden;height:200px;border-radius:16px 16px 0 0;">
+        <img
+          src="${img}"
+          alt="${d.name}"
+          loading="lazy"
+          onerror="this.src='${fallback}'"
+          style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.4s;"
+        />
+        <span class="difficulty-badge diff-${diff}"
+              style="position:absolute;top:12px;left:12px;padding:4px 12px;border-radius:20px;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">
+          ${d.difficulty || 'Easy'}
+        </span>
+        <span style="position:absolute;top:12px;right:12px;background:rgba(26,26,26,0.8);backdrop-filter:blur(4px);color:#fff;font-size:0.75rem;font-weight:700;padding:4px 10px;border-radius:20px;">
+          ⭐ ${d.rating}
+        </span>
+        ${d.featured ? '<span style="position:absolute;bottom:12px;left:12px;background:#E8541A;color:#fff;font-size:0.65rem;font-weight:700;padding:3px 10px;border-radius:12px;text-transform:uppercase;letter-spacing:0.5px;">⭐ Featured</span>' : ''}
       </div>
       <div class="dest-body">
-        <div class="dest-name">${d.name}</div>
+        <div class="dest-header">
+          <div class="dest-name">${d.name}</div>
+          <div class="dest-rating" style="color:#E8541A;font-weight:700;font-size:0.82rem;white-space:nowrap;">⭐ ${d.rating}</div>
+        </div>
         <div class="dest-desc">${d.description}</div>
         <div class="dest-meta">
-          ${county ? `<div class="dest-meta-item">📍 ${county} County</div>` : ''}
+          ${county   ? `<div class="dest-meta-item">📍 ${county} County</div>` : ''}
           <div class="dest-meta-item">🕐 Best: ${bestTime}</div>
         </div>
         <div class="dest-tags">
           ${tags.map(h => `<span class="tag">${h}</span>`).join('')}
         </div>
         <div class="dest-footer">
-          <a href="attraction-details.html?id=${d.slug}" class="explore-link" onclick="event.stopPropagation()">⚡ Explore →</a>
-          <a href="${schedURL}" class="schedule-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()">📅 Schedule</a>
+          <a href="attraction-details.html?id=${d.slug}"
+             class="explore-link"
+             onclick="event.stopPropagation()">⚡ Explore →</a>
+          ${schedURL !== '#'
+            ? `<a href="${schedURL}" class="schedule-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()">📅 Schedule</a>`
+            : ''}
         </div>
       </div>
     </div>`;
 }
 
-/* ══════════════════════════════════════════════════════
-   SKELETONS
-══════════════════════════════════════════════════════ */
+/* ─────────────────────────────────────────────────────────────────────
+   SKELETON LOADERS
+───────────────────────────────────────────────────────────────────── */
 function showSkeletons() {
-  document.getElementById('sportsGrid').innerHTML = Array(9).fill(`
-    <div class="skeleton-card">
-      <div class="skeleton-img"></div>
-      <div class="skeleton-body">
-        <div class="skeleton-line"></div>
-        <div class="skeleton-line short"></div>
-      </div>
-    </div>`).join('');
+  document.getElementById('sportsGrid').innerHTML =
+    Array(9).fill(`
+      <div class="skeleton-card">
+        <div class="skeleton-img"></div>
+        <div class="skeleton-body">
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line short"></div>
+        </div>
+      </div>`).join('');
+}
+
+/* ─────────────────────────────────────────────────────────────────────
+   ERROR STATE
+───────────────────────────────────────────────────────────────────── */
+function showError() {
+  document.getElementById('sportsGrid').innerHTML = `
+    <div class="state-box">
+      <div class="state-icon">⚠️</div>
+      <h4>Failed to load destinations</h4>
+      <p>Something went wrong. Please refresh the page or try again later.</p>
+    </div>`;
 }
