@@ -59,16 +59,9 @@
     <p class="section-sub">Choose the adventure that speaks to your soul</p>
   </div>
 
-  <!--
-    Grid: 3 cols. First card spans 2 rows (CSS :first-child rule).
-    Row 1: Big Five (tall) | Birds | Mountain
-    Row 2: Big Five (tall) | Beach  | Cultural
-    Row 3: Adventure | Sports | [empty — 2-col span for balance]
-    We add a 3rd row height via inline style override.
-  -->
   <div class="type-image-grid" style="grid-template-rows: 260px 260px 260px;">
 
-    <!-- 1. Big Five — spans 2 rows (first-child CSS rule) -->
+    <!-- 1. Big Five — spans 2 rows -->
     <button class="type-img-btn active" onclick="window.location.href='category.html?type=big-five'">
       <div class="type-img-bg" style="background-image:url('https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=900&q=85')"></div>
       <div class="type-img-overlay"></div>
@@ -79,7 +72,7 @@
       </div>
     </button>
 
-    <!-- 2. Bird Watching — FIXED: was grey due to broken URL -->
+    <!-- 2. Bird Watching -->
     <button class="type-img-btn" onclick="window.location.href='category.html?type=birds'">
       <div class="type-img-bg" style="background-image:url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=85')"></div>
       <div class="type-img-overlay"></div>
@@ -90,7 +83,7 @@
       </div>
     </button>
 
-    <!-- 3. Mountain Treks — FIXED: was grey due to broken URL -->
+    <!-- 3. Mountain Treks -->
     <button class="type-img-btn" onclick="window.location.href='category.html?type=mountain'">
       <div class="type-img-bg" style="background-image:url('https://images.unsplash.com/photo-1589825743638-54a8ee3b6d67?w=800&q=85')"></div>
       <div class="type-img-overlay"></div>
@@ -123,9 +116,9 @@
       </div>
     </button>
 
-    <!-- 6. Adventure Sports — row 3, spans 2 cols to balance Sports card beside it -->
-    <button class="type-img-btn" onclick="window.location.href='category.html?type=adventure'" style="grid-column: span 2;">
-      <div class="type-img-bg" style="background-image:url('https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=1000&q=85')"></div>
+    <!-- 6. Adventure Sports — FIXED IMAGE (was wine photo) -->
+    <button class="type-img-btn" onclick="window.location.href='category.html?type=adventure'">
+      <div class="type-img-bg" style="background-image:url('https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=1000&q=85')"></div>
       <div class="type-img-overlay"></div>
       <div class="type-img-content">
         <span class="type-img-icon">🪂</span>
@@ -134,7 +127,7 @@
       </div>
     </button>
 
-    <!-- 7. Sports (NEW) — row 3, col 3 -->
+    <!-- 7. Sports -->
     <button class="type-img-btn" onclick="window.location.href='category.html?type=sports'">
       <div class="type-img-bg" style="background-image:url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&q=85')"></div>
       <div class="type-img-overlay"></div>
@@ -386,7 +379,7 @@
     </div>
 
     <div class="exp-card" onclick="window.location.href='category.html?type=adventure'" style="cursor:pointer;">
-      <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=600&q=80')"></div>
+      <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=600&q=80')"></div>
       <div class="exp-card-body">
         <div class="exp-icon">🪂</div>
         <div class="exp-name">Adventure Sports</div>
@@ -395,15 +388,7 @@
       </div>
     </div>
 
-    <div class="exp-card" onclick="window.location.href='category.html?type=sports'" style="cursor:pointer;">
-      <div class="exp-card-img" style="background-image:url('https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&q=80')"></div>
-      <div class="exp-card-body">
-        <div class="exp-icon">🏆</div>
-        <div class="exp-name">Sports</div>
-        <div class="exp-desc">Football stadiums, golf courses, Safari Rally stages, basketball arenas and swimming venues across Kenya.</div>
-        <div class="exp-footer"><span class="exp-count">75 destinations</span><span class="exp-arrow">→</span></div>
-      </div>
-    </div>
+    <!-- Sports exp-card REMOVED — Sports is already in the type-image-grid above -->
 
   </div>
 </section>
