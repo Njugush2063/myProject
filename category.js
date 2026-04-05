@@ -20,7 +20,7 @@ const SPORT_META = {
     badge:      '🏆 Sports & Recreation',
     heroTitle:  'Kenya\'s World-Class <em>Football Scene</em>',
     heroDesc:   'Home of Talanta Stadium — Africa\'s most beloved football fortress. Explore stadiums, training grounds and fan culture across Kenya.',
-    heroBg:     'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Talanta_FC_stadium_Nairobi.jpg/1280px-Talanta_FC_stadium_Nairobi.jpg',
+    heroBg:     'https://images.unsplash.com/photo-1521731978332-9e9e714bdd20?w=1400&q=90',
     introTitle: 'The Beautiful Game <em>Across Kenya</em>',
     introDesc:  'Kenya\'s football scene is vibrant and passionate — from Kasarani\'s 60,000-seat national stadium hosting AFCON qualifiers, to grassroots pitches in Kisumu and Mombasa producing world-class talent.',
     stats:      [{ val:'15', lbl:'Stadiums & Venues' }, { val:'18', lbl:'KPL Clubs' }, { val:'60K+', lbl:'Max Capacity' }],
@@ -32,7 +32,7 @@ const SPORT_META = {
     badge:      '⛳ Golf & Country Clubs',
     heroTitle:  'Championship Courses <em>Under African Skies</em>',
     heroDesc:   'Kenya boasts some of Africa\'s finest golf courses — from Muthaiga Golf Club (est. 1913) to Vipingo Ridge with Indian Ocean panoramas.',
-    heroBg:     'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Muthaiga_Golf_Club.jpg/1280px-Muthaiga_Golf_Club.jpg',
+    heroBg:     'https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=1400&q=90',
     introTitle: 'Championship Courses <em>Under African Skies</em>',
     introDesc:  'Kenya boasts some of Africa\'s finest golf courses — from Muthaiga Golf Club (est. 1913) to Vipingo Ridge on the coast with Indian Ocean panoramas. Playing golf against a backdrop of wildlife is uniquely Kenyan.',
     stats:      [{ val:'15', lbl:'Golf Courses' }, { val:'110+', lbl:'Years of Golf' }, { val:'4.9★', lbl:'Avg Rating' }],
@@ -44,7 +44,7 @@ const SPORT_META = {
     badge:      '🚗 WRC Safari Rally',
     heroTitle:  'The World\'s Most <em>Legendary Rally</em>',
     heroDesc:   'WRC Safari Rally Kenya — drivers battle through red murram roads, dramatic Rift Valley stages and unpredictable African weather.',
-    heroBg:     'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/WRC_Safari_Rally_Kenya_2021.jpg/1280px-WRC_Safari_Rally_Kenya_2021.jpg',
+    heroBg:     'https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=1400&q=90',
     introTitle: 'The World\'s Most <em>Legendary Rally</em>',
     introDesc:  'The Safari Rally Kenya is a WRC round and the most iconic rally on earth. Drivers battle through red murram roads, dramatic Rift Valley stages, and unpredictable African weather.',
     stats:      [{ val:'15', lbl:'Rally Stages' }, { val:'70+', lbl:'Years of History' }, { val:'WRC', lbl:'World Championship' }],
@@ -56,7 +56,7 @@ const SPORT_META = {
     badge:      '🏀 Basketball',
     heroTitle:  'Kenya\'s Rising <em>Basketball Nation</em>',
     heroDesc:   'From FIBA Africa qualifiers at Nyayo Indoor Arena to university rivalries — Kenyan basketball is on the rise.',
-    heroBg:     'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Nyayo_National_Stadium.jpg/1280px-Nyayo_National_Stadium.jpg',
+    heroBg:     'https://images.unsplash.com/photo-1504450758481-7338eba7524a?w=1400&q=90',
     introTitle: 'Kenya\'s Rising <em>Basketball Nation</em>',
     introDesc:  'Kenya\'s basketball scene has exploded in recent years. The KBF league features fierce rivalries and world-class facilities in Nairobi have helped Kenyan players earn NBA G-League contracts.',
     stats:      [{ val:'15', lbl:'Arenas & Courts' }, { val:'KBF', lbl:'National League' }, { val:'4.7★', lbl:'Avg Rating' }],
@@ -68,7 +68,7 @@ const SPORT_META = {
     badge:      '🏊 Aquatics',
     heroTitle:  'Olympic Pools & <em>Coastal Waters</em>',
     heroDesc:   'From Olympic-standard pools in Nairobi to open-water swimming in the Indian Ocean and freshwater Lake Victoria.',
-    heroBg:     'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Diani_Beach_Kenya.jpg/1280px-Diani_Beach_Kenya.jpg',
+    heroBg:     'https://images.unsplash.com/photo-1519315901367-f34ff9154487?w=1400&q=90',
     introTitle: 'Olympic Pools & <em>Coastal Waters</em>',
     introDesc:  'From Olympic-standard pools in Nairobi to open-water swimming in the Indian Ocean and freshwater Lake Victoria — Kenya offers world-class aquatic experiences for every level.',
     stats:      [{ val:'15', lbl:'Pools & Venues' }, { val:'50m', lbl:'Olympic Pools' }, { val:'4.8★', lbl:'Avg Rating' }],
@@ -76,20 +76,6 @@ const SPORT_META = {
     breadcrumb: 'Swimming'
   }
 };
-
-const PAGE_TITLES = {
-  football:   'Football Destinations',
-  golf:       'Golf Destinations',
-  rally:      'Safari Rally Stages',
-  basketball: 'Basketball Venues',
-  swimming:   'Swimming Venues',
-  adventure:  'Adventure Destinations',
-  beach:      'Beach Destinations',
-  wildlife:   'Wildlife Destinations',
-  culture:    'Cultural Destinations',
-  nature:     'Nature Destinations',
-};
-
 /* ─────────────────────────────────────────────────────────────────────
    STATIC FALLBACK — used only if Supabase fails completely
 ───────────────────────────────────────────────────────────────────── */
