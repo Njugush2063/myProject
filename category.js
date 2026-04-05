@@ -1,26 +1,16 @@
-/* ── SUPABASE INLINE CLIENT ── */
 const SUPABASE_URL  = 'https://cbyipmrozqsntojiartw.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_eKZx3549j8unaFOQaZNGlQ_IdVWH5BI';
 const STORAGE_BASE  = `${SUPABASE_URL}/storage/v1/object/public/destination-images`;
 
-async function getSportsDestinations(sport) {
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/sports_destinations?sport=eq.${sport}&order=featured.desc,rating.desc`,
-    {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json'
-      }
-    }
-  );
-  if (!res.ok) throw new Error(`Supabase error: ${res.status}`);
-  const data = await res.json();
-  return data.map(d => ({
-    ...d,
-    highlights: typeof d.highlights === 'string' ? JSON.parse(d.highlights) : (d.highlights || [])
-  }));
+function storageUrl(path) {
+  return `${STORAGE_BASE}/${path}`;
 }
+
+async function getSportsDestinations(sport) {
+  // ... rest of function
+}
+
+const SPORT_META = { ... }
 /* ─────────────────────────────────────────────────────────────────────
    SPORT META  —  hero copy + stats per sport
    heroBg now points to Supabase Storage (populated by setup script).
