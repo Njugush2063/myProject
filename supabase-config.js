@@ -4,7 +4,7 @@
    ============================================================ */
 
 const SUPABASE_URL = 'https://cbyipmrozqsntojiartw.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_eKZx3549j8unaFOQaZNGlQ_IdVWH5BI'; // ← your anon public key
+const SUPABASE_KEY = 'sb_publishable_eKZx3549j8unaFOQaZNGlQ_IdVWH5BI'; //
 
 /* ── Shared fetch helper ───────────────────────────────────── */
 async function sbFetch(path) {
