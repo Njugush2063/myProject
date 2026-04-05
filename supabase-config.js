@@ -1,65 +1,29 @@
 /* ══════════════════════════════════════════════════════════════════════
    supabase-config.js  —  SafariQuest Kenya
-   Initialises the Supabase client and exports helper functions used
-   by category.js (and other pages).
+   Uses the Supabase CDN library (loaded before this file in HTML).
+   NO import/export — plain global functions usable by any page script.
 ══════════════════════════════════════════════════════════════════════ */
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
 const SUPABASE_URL = 'https://cbyipmrozqsntojiartw.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_eKZx3549j8unaFOQaZNGlQ_IdVWH5BI';
+const SUPABASE_KEY = 'sb_publishable_eKZx3549j8unaFOQaZNGlQ_IdVWH5BI';
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const _supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const TABLE = 'sports_destinations';
+/* ── Sports destinations ── */
+async function getSportsDestinations(sport) {
+  const { data, error } = await _supabaseClient
+    .from('sports_destinations')
+    .select('*')
+    .eq('sport', sport)
+    .order('featured', { ascending: false })
+    .order('rating',   { ascending: false });
 
-/**
- * Fetch all destinations for a given sport from Supabase.
- * Returns an array of destination objects, or [] on error.
- *
- * @param {string} sport  e.g. 'football' | 'golf' | 'rally' | 'basketball' | 'swimming'
- * @returns {Promise<Array>}
- */
-export async function getSportsDestinations(sport) {
-  try {
-    const { data, error } = await supabase
-      .from(TABLE)
-      .select('*')
-      .eq('sport', sport)
-      .order('featured', { ascending: false })
-      .order('rating',   { ascending: false });
+  if (error) throw error;
 
-    if (error) {
-      console.warn(`[Supabase] Error fetching ${sport}:`, error.message);
-      return [];
-    }
-
-    return data || [];
-  } catch (err) {
-    console.warn('[Supabase] Unexpected error:', err);
-    return [];
-  }
+  return data.map(d => ({
+    ...d,
+    highlights: typeof d.highlights === 'string'
+      ? JSON.parse(d.highlights)
+      : (d.highlights || [])
+  }));
 }
-
-/**
- * Fetch hero image URLs for all sports from Supabase storage.
- * Returns a map of { football: 'https://...', golf: '...' ... }
- * or an empty object if unavailable.
- *
- * @returns {Promise<Object>}
- */
-export async function getHeroImages() {
-  const sports = ['football', 'golf', 'rally', 'basketball', 'swimming'];
-  const BUCKET = 'destination-images';
-  const BASE   = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}`;
-
-  const result = {};
-  for (const sport of sports) {
-    result[sport] = `${BASE}/heroes/hero-${sport}.jpg`;
-  }
-  return result;
-}
-
-/* Make getSportsDestinations available globally (for non-module scripts) */
-window.getSportsDestinations = getSportsDestinations;
-window.getHeroImages         = getHeroImages;
