@@ -8,7 +8,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="category.css"/>
   <style>
-    /* ── SPORT TABS ── */
     .sport-tabs-bar {
       position: sticky; top: var(--nav-h, 72px); z-index: 900;
       background: var(--white, #fff);
@@ -39,7 +38,6 @@
     }
     .sport-tab.active .tab-count { background: #E8541A; color: #fff; }
 
-    /* ── PANEL INTRO ── */
     .panel-intro {
       background: #F5F3F0; padding: 40px 24px 36px;
       border-bottom: 1px solid rgba(0,0,0,0.06);
@@ -65,9 +63,7 @@
       color: #6B6B6B; font-size: 0.92rem;
       line-height: 1.7; max-width: 560px;
     }
-    .panel-stats {
-      display: flex; gap: 28px; flex-shrink: 0;
-    }
+    .panel-stats { display: flex; gap: 28px; flex-shrink: 0; }
     .stat-box { text-align: center; }
     .stat-box strong {
       display: block;
@@ -76,7 +72,6 @@
     }
     .stat-box span { font-size: 0.72rem; color: #6B6B6B; font-weight: 500; }
 
-    /* ── GRID SECTION ── */
     .category-grid-section {
       max-width: 1280px; margin: 0 auto; padding: 40px 24px 80px;
     }
@@ -99,7 +94,6 @@
       box-shadow: 0 12px 40px rgba(0,0,0,0.13);
     }
 
-    /* ── SKELETON ── */
     .skeleton-card {
       border-radius: 16px; overflow: hidden; height: 320px;
       background: #f0ece6;
@@ -120,10 +114,8 @@
     .skeleton-line.short { width: 55%; }
     @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
-    /* ── EMPTY / ERROR ── */
     .state-box {
-      grid-column: 1/-1; text-align: center;
-      padding: 64px 24px;
+      grid-column: 1/-1; text-align: center; padding: 64px 24px;
     }
     .state-box .state-icon { font-size: 3rem; margin-bottom: 12px; }
     .state-box h4 {
@@ -132,17 +124,16 @@
     }
     .state-box p { color: #6B6B6B; font-size: 0.9rem; }
 
-    /* ── DIFFICULTY BADGES ── */
-    .diff-easy       { background: #22c55e; color: #fff; }
-    .diff-moderate   { background: #f59e0b; color: #fff; }
-    .diff-challenging{ background: #E8541A; color: #fff; }
+    .diff-easy        { background: #22c55e; color: #fff; }
+    .diff-moderate    { background: #f59e0b; color: #fff; }
+    .diff-challenging { background: #E8541A; color: #fff; }
 
-    /* ── HERO ── */
     .cat-hero {
       position: relative; min-height: 320px;
       margin-top: var(--nav-h, 72px);
       display: flex; align-items: center; justify-content: center;
       text-align: center;
+      background-size: cover; background-position: center;
     }
     .cat-hero-overlay {
       position: absolute; inset: 0;
@@ -186,7 +177,7 @@
 </head>
 <body>
 
-<!-- ── NAVBAR ── -->
+<!-- NAVBAR -->
 <nav class="navbar" id="navbar">
   <div class="nav-container">
     <a href="Index.html" class="nav-logo">
@@ -211,8 +202,8 @@
   </div>
 </nav>
 
-<!-- ── HERO (content updated dynamically by JS) ── -->
-<section class="cat-hero" id="catHero" style="background-size: cover; background-position: center top;">
+<!-- HERO -->
+<section class="cat-hero" id="catHero">
   <div class="cat-hero-overlay"></div>
   <div class="cat-hero-content">
     <div class="cat-breadcrumb">
@@ -226,7 +217,7 @@
   </div>
 </section>
 
-<!-- ── SPORT TABS ── -->
+<!-- SPORT TABS -->
 <div class="sport-tabs-bar">
   <div class="sport-tabs-inner" id="sportTabs">
     <button class="sport-tab" data-sport="football" onclick="switchSport('football',this)">
@@ -247,7 +238,7 @@
   </div>
 </div>
 
-<!-- ── PANEL INTRO ── -->
+<!-- PANEL INTRO -->
 <div class="panel-intro" id="panelIntro">
   <div class="panel-intro-inner">
     <div class="panel-intro-text">
@@ -259,7 +250,7 @@
   </div>
 </div>
 
-<!-- ── DESTINATIONS GRID ── -->
+<!-- DESTINATIONS GRID -->
 <div class="category-grid-section">
   <div class="grid-header">
     <h3 id="gridTitle">Loading…</h3>
@@ -270,7 +261,7 @@
   </div>
 </div>
 
-<!-- ── FOOTER ── -->
+<!-- FOOTER -->
 <footer class="footer">
   <div class="footer-container">
     <div class="footer-brand">
@@ -303,6 +294,9 @@
   </div>
 </footer>
 
+<!-- SCRIPTS: CDN Supabase first, then config, then page logic -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js"></script>
 <script src="category.js"></script>
 
 </body>
