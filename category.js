@@ -5,8 +5,7 @@
    Requires: supabase-config.js loaded first (via CDN Supabase library)
 ══════════════════════════════════════════════════════════════════════ */
 
-const SUPABASE_URL = 'https://cbyipmrozqsntojiartw.supabase.co';
-const STORAGE_BASE = `${SUPABASE_URL}/storage/v1/object/public/destination-images`;
+
 
 function storageUrl(path) {
   return `${STORAGE_BASE}/${path}`;
