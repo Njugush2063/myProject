@@ -76,6 +76,18 @@ const SPORT_META = {
     breadcrumb: 'Swimming'
   }
 };
+const PAGE_TITLES = {
+  football:   'Football Destinations',
+  golf:       'Golf Destinations',
+  rally:      'Safari Rally Stages',
+  basketball: 'Basketball Venues',
+  swimming:   'Swimming Venues',
+  adventure:  'Adventure Destinations',
+  beach:      'Beach Destinations',
+  wildlife:   'Wildlife Destinations',
+  culture:    'Cultural Destinations',
+  nature:     'Nature Destinations',
+};
 /* ─────────────────────────────────────────────────────────────────────
    STATIC FALLBACK — used only if Supabase fails completely
 ───────────────────────────────────────────────────────────────────── */
