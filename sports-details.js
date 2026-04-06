@@ -5,7 +5,7 @@
 ══════════════════════════════════════════════════════════════════════ */
 
 const SD_SUPABASE_URL = 'https://cbyipmrozqsntojiartw.supabase.co';
-const SD_SUPABASE_KEY = 'sb_publishable_eKZx3549j8unaFOQaZNGlQ_IdVWH5BI';
+const SD_SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieWlwbXJvenFzbnRvamlhcnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTkxNTQsImV4cCI6MjA4ODk3NTE1NH0.31TAhmUCV_Uh0W8FGnR2_TLCZDU4YBM1U5LMSMc5JZs';
 
 /* ══════════════════════════════════════════════════════════════════════
    FACILITY DATABASE
