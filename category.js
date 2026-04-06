@@ -283,7 +283,7 @@ function buildCard(d) {
           ${tags.map(h => `<span class="tag">${h}</span>`).join('')}
         </div>
         <div class="dest-footer">
-          <a href="attraction-details.html?id=${d.slug}"
+          <a href="sports-details.html?id=${d.slug}"
              class="explore-link"
              onclick="event.stopPropagation()">⚡ Explore →</a>
         </div>
