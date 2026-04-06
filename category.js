@@ -5,8 +5,8 @@
    Falls back to STATIC_SPORTS if Supabase is unavailable.
 ══════════════════════════════════════════════════════════════════════ */
 
-const SUPABASE_URL  = 'https://cbyipmrozqsntojiartw.supabase.co';
-const STORAGE_BASE  = `${SUPABASE_URL}/storage/v1/object/public/destination-images`;
+/* SUPABASE_URL is declared in supabase-config.js — do not redeclare here */
+const STORAGE_BASE  = 'https://cbyipmrozqsntojiartw.supabase.co/storage/v1/object/public/destination-images';
 
 /* ─────────────────────────────────────────────────────────────────────
    Helper: build a Supabase Storage public URL
