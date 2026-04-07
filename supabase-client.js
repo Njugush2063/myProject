@@ -1,41 +1,57 @@
 /* ══════════════════════════════════════════════════════════════════════
    supabase-client.js  —  SafariQuest Kenya
-   Loaded by restaurants.html BEFORE restaurants.js.
+   Loaded by restaurants.html and restaurant-details.html BEFORE their
+   respective JS files.
    Exposes:
-     - getRestaurants()          → all restaurants (up to 200)
-     - getRestaurant(slug)       → single restaurant by slug
+     - getRestaurants()    → all restaurants (up to 200)
+     - getRestaurant(slug) → single restaurant by slug
 ══════════════════════════════════════════════════════════════════════ */
 
-const SUPABASE_URL_CLIENT = 'https://cbyipmrozqsntojiartw.supabase.co';
-const SUPABASE_KEY_CLIENT = 'sb_publishable_eKZx3549j8unaFOQaZNGlQ_IdVWH5BI';
-const RESTAURANTS_TABLE   = 'restaurants';
+/* Re-use the globals already set by supabase-config.js if available,
+   otherwise define them here as fallback */
+const _SQ_URL = (typeof SUPABASE_URL !== 'undefined')
+  ? SUPABASE_URL
+  : 'https://cbyipmrozqsntojiartw.supabase.co';
 
-/* ── tiny fetch helper ── */
-async function sbClientFetch(path) {
-  const res = await fetch(`${SUPABASE_URL_CLIENT}/rest/v1/${path}`, {
+const _SQ_KEY = (typeof SUPABASE_KEY !== 'undefined')
+  ? SUPABASE_KEY
+  : 'sb_publishable_eKZx3549j8unaFOQaZNGlQ_IdVWH5BI';
+
+/* ── fetch helper with detailed error logging ── */
+async function _sqFetch(path) {
+  const url = `${_SQ_URL}/rest/v1/${path}`;
+  const res = await fetch(url, {
     headers: {
-      'apikey':        SUPABASE_KEY_CLIENT,
-      'Authorization': `Bearer ${SUPABASE_KEY_CLIENT}`,
+      'apikey':        _SQ_KEY,
+      'Authorization': `Bearer ${_SQ_KEY}`,
       'Content-Type':  'application/json',
-      /* Ask Supabase to return the full count so we can paginate if needed */
-      'Prefer':        'count=planned',
     }
   });
-  if (!res.ok) throw new Error(`Supabase ${res.status}: ${res.statusText}`);
+
+  if (!res.ok) {
+    const body = await res.text();
+    console.error(`[supabase-client] ${res.status} ${res.statusText} → ${url}`);
+    console.error(`[supabase-client] Response body:`, body);
+    if (res.status === 401 || res.status === 403) {
+      console.error('[supabase-client] ⛔ RLS is blocking this query. Go to Supabase → Table Editor → restaurants → RLS → Add policy: SELECT USING (true)');
+    }
+    throw new Error(`Supabase ${res.status}: ${res.statusText}`);
+  }
+
   return res.json();
 }
 
 /* ══════════════════════════════════════════════════════════════════════
    getRestaurants()
    Returns ALL restaurants ordered by featured desc, then rating desc.
-   Uses a high limit (200) so all 45+ rows are always returned.
+   limit=200 ensures all 45+ rows are always returned.
 ══════════════════════════════════════════════════════════════════════ */
 window.getRestaurants = async function () {
   try {
-    const data = await sbClientFetch(
-      `${RESTAURANTS_TABLE}?order=featured.desc,rating.desc&limit=200&select=*`
+    const data = await _sqFetch(
+      `restaurants?order=featured.desc,rating.desc&limit=200&select=*`
     );
-    console.log(`[supabase-client] getRestaurants → ${Array.isArray(data) ? data.length : 0} rows`);
+    console.log(`[supabase-client] ✅ getRestaurants → ${Array.isArray(data) ? data.length : 0} rows`);
     return Array.isArray(data) ? data : [];
   } catch (err) {
     console.warn('[supabase-client] getRestaurants failed:', err.message);
@@ -49,9 +65,10 @@ window.getRestaurants = async function () {
 ══════════════════════════════════════════════════════════════════════ */
 window.getRestaurant = async function (slug) {
   try {
-    const data = await sbClientFetch(
-      `${RESTAURANTS_TABLE}?slug=eq.${encodeURIComponent(slug)}&limit=1&select=*`
+    const data = await _sqFetch(
+      `restaurants?slug=eq.${encodeURIComponent(slug)}&limit=1&select=*`
     );
+    console.log(`[supabase-client] getRestaurant("${slug}") → ${Array.isArray(data) ? data.length : 0} rows`);
     return Array.isArray(data) && data.length > 0 ? data[0] : null;
   } catch (err) {
     console.warn('[supabase-client] getRestaurant failed:', err.message);
