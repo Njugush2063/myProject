@@ -87,7 +87,7 @@ nav {
 
 .hero-bg {
   position: absolute; inset: 0;
-  background-image: url('https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=1600&q=80');
+  background-image: url('https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=800&q=80');
   background-size: cover; background-position: center;
   opacity: 0.35;
 }
@@ -470,10 +470,10 @@ section { padding: 80px 80px; }
 .highlight-pill { display: flex; align-items: center; gap: 4px; font-size: 0.78rem; color: var(--gray); }
 
 /* ── REGION IMAGES ── */
-.img-nyanza { background: url('https://images.unsplash.com/photo-1504173010664-32509107de82?w=800&q=80') center/cover no-repeat; }
-.img-western { background: url('https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80') center/cover no-repeat; }
-.img-nairobi { background: url('https://images.unsplash.com/photo-1669127300649-940337f1487e?w=600&q=60') center/cover no-repeat; }
-.img-eastern { background: url('https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=80') center/cover no-repeat; }
+.img-nyanza { background: url('https://images.unsplash.com/photo-1504173010664-32509107de82?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
+.img-western { background: url('https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
+.img-nairobi { background: url('https://images.unsplash.com/photo-1669127300649-940337f1487e?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
+.img-eastern { background: url('https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
 
 /* ── DESTINATION GUIDE ── */
 .guide-section { background: var(--white); }
@@ -606,20 +606,20 @@ footer { background: #111; color: rgba(255,255,255,0.7); padding: 60px 80px 40px
 .fade-in.visible { opacity: 1; transform: translateY(0); }
 
 /* ── DESTINATION IMAGES ── */
-.img-masai { background: url('https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&q=80') center/cover no-repeat; }
-.img-amboseli { background: url('https://images.unsplash.com/photo-1504173010664-32509107de82?w=800&q=80') center/cover no-repeat; }
-.img-nakuru { background: url('https://images.unsplash.com/photo-1585389639821-a4c1c2886aab?w=800&q=80') center/cover no-repeat; }
-.img-tsavo { background: url('https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=80') center/cover no-repeat; }
-.img-mtkenyaa { background: url('https://images.unsplash.com/photo-1589825743638-54a8ee3b6d67?w=800&q=80') center/cover no-repeat; }
-.img-samburu { background: url('https://images.unsplash.com/photo-1606567595334-d39972c85dbe?w=800&q=80') center/cover no-repeat; }
-.img-diani { background: url('https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&q=80') center/cover no-repeat; }
-.img-hellsgate { background: url('https://images.unsplash.com/photo-1440342359743-84fcb8c21f21?w=800&q=80') center/cover no-repeat; }
+.img-masai { background: url('https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
+.img-amboseli { background: url('https://images.unsplash.com/photo-1504173010664-32509107de82?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
+.img-nakuru { background: url('https://images.unsplash.com/photo-1585389639821-a4c1c2886aab?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
+.img-tsavo { background: url('https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
+.img-mtkenyaa { background: url('https://images.unsplash.com/photo-1589825743638-54a8ee3b6d67?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
+.img-samburu { background: url('https://images.unsplash.com/photo-1606567595334-d39972c85dbe?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
+.img-diani { background: url('https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
+.img-hellsgate { background: url('https://images.unsplash.com/photo-1440342359743-84fcb8c21f21?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
 
 /* ── REGION IMAGES ── */
-.img-riftvalley { background: url('https://images.unsplash.com/photo-1580746738099-b2c7484f70cf?w=800&q=80') center/cover no-repeat; }
-.img-coast { background: url('https://images.unsplash.com/photo-1519046904884-53103b34b206?w=800&q=80') center/cover no-repeat; }
-.img-central { background: url('https://images.unsplash.com/photo-1589825743638-54a8ee3b6d67?w=800&q=80') center/cover no-repeat; }
-.img-north { background: url('https://images.unsplash.com/photo-1606567595334-d39972c85dbe?w=800&q=80') center/cover no-repeat; }
+.img-riftvalley { background: url('https://images.unsplash.com/photo-1580746738099-b2c7484f70cf?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
+.img-coast { background: url('https://images.unsplash.com/photo-1519046904884-53103b34b206?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
+.img-central { background: url('https://images.unsplash.com/photo-1589825743638-54a8ee3b6d67?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
+.img-north { background: url('https://images.unsplash.com/photo-1606567595334-d39972c85dbe?auto=format&fit=crop&w=800&q=80') center/cover no-repeat; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 1100px) {
