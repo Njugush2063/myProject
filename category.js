@@ -86,6 +86,19 @@ const SPORT_META = {
     stats:         [{ val:'15', lbl:'Pools & Venues' }, { val:'50m', lbl:'Olympic Pools' }, { val:'4.8★', lbl:'Avg Rating' }],
     grid:          'Swimming Pools & Aquatic Venues',
     breadcrumb:    'Swimming'
+  },
+  adventure: {
+    label:         '🪂 Adventure Sports in Kenya',
+    badge:         '🪂 Adventure Sports',
+    heroTitle:     'Kenya\'s Most Thrilling <em>Adventure Experiences</em>',
+    heroDesc:      'White water rafting on the Tana River, rock climbing at Hell\'s Gate, hot air balloon safaris and bungee jumping at Sagana.',
+    heroBg:        'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=1400&q=80&auto=format',
+    heroFallbackBg:'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=1400&q=80&auto=format',
+    introTitle:    'Adventure <em>Awaits in Kenya</em>',
+    introDesc:     'From bungee jumping at Sagana to paragliding over the Rift Valley — Kenya is Africa\'s adventure capital. The diverse landscape creates perfect conditions for every kind of thrill-seeker.',
+    stats:         [{ val:'7', lbl:'Adventure Types' }, { val:'15+', lbl:'Top Venues' }, { val:'4.7★', lbl:'Avg Rating' }],
+    grid:          'Adventure Destinations',
+    breadcrumb:    'Adventure Sports'
   }
 };
 
@@ -201,6 +214,18 @@ const STATIC_SPORTS = {
     makeStatic('swimming','eldoret-swimming-pool','Eldoret Sports Club Pool','Uasin Gishu','Easy',4.1,'Year-round',"High-altitude swimming — Eldoret's pool is a unique training advantage, with thin-air conditioning boosting swimmers' lung capacity.",['High Altitude','Lung Capacity Boost','Athletics City Pool'],false,'https://www.kenyaaquatics.org/events'),
     makeStatic('swimming','kisumu-swimming-pool','Kisumu Sports Club Pool','Kisumu','Easy',4.2,'Year-round',"Lakeside pool where the warm climate allows year-round training — home to Western Kenya's most promising young swimmers.",['Warm Climate','Year-round Training','Young Talent'],false,'https://www.kenyaaquatics.org/events'),
   ],
+  adventure: [
+    makeStatic('adventure','sagana-adventure','Sagana Outdoor Adventure','Kirinyaga','Moderate',4.9,'Year-round','Kenya\'s premier adventure hub — white water rafting on the Tana River, bungee jumping, zip-lining and kayaking in one epic location.',['White Water Rafting','Bungee Jumping','Zip-lining'],true,'https://www.saganaadventure.com'),
+    makeStatic('adventure','hells-gate-climbing','Hell\'s Gate Rock Climbing','Nakuru','Challenging',4.8,'June – October','Scale the dramatic red volcanic cliffs of Hell\'s Gate Gorge — one of East Africa\'s best natural climbing walls with routes for all levels.',['Rock Climbing','Volcanic Cliffs','Gorge Walking'],true,'https://www.kws.go.ke/parks/hells-gate'),
+    makeStatic('adventure','masai-mara-balloon','Masai Mara Hot Air Balloon','Narok','Easy',5.0,'Year-round','Float silently over the golden plains at sunrise as thousands of wildebeest move below — the ultimate Kenyan adventure experience.',['Balloon Safari','Sunrise Flight','Wildebeest Migration'],true,'https://www.balloonafrica.com'),
+    makeStatic('adventure','mount-kenya-climbing','Mount Kenya Summit Climb','Nyeri','Challenging',4.8,'January – March','Conquer Africa\'s second highest peak at 5,199m — technical routes via Batian, Nelion and Point Lenana for all skill levels.',['5,199m Summit','Technical Climbing','Glaciers & Tarns'],false,'https://www.kws.go.ke/parks/mount-kenya'),
+    makeStatic('adventure','ol-pejeta-quad','Ol Pejeta Quad Biking','Laikipia','Moderate',4.6,'Year-round','Quad bike through an African wildlife conservancy alongside rhinos and buffalo — a truly unique off-road adventure.',['Quad Biking','Wildlife Views','Conservancy Access'],false,'https://www.olpejetaconservancy.org'),
+    makeStatic('adventure','naivasha-cycling','Lake Naivasha Cycling','Nakuru','Easy',4.5,'Year-round','Cycle the scenic shores of Lake Naivasha through Hell\'s Gate and Crescent Island — hippos, giraffes and flamingos en route.',['Cycling Safari','Lake Shore Route','Wildlife Encounters'],false,'https://www.hellsgatepark.com'),
+    makeStatic('adventure','arabuko-canopy','Arabuko Sokoke Canopy Walk','Kilifi','Moderate',4.7,'October – March','Walk through the treetops of coastal Kenya\'s largest indigenous forest on a spectacular aerial canopy walkway.',['Canopy Walk','Coastal Forest','Bird Watching'],false,'https://www.arabukosokokeforest.org'),
+    makeStatic('adventure','turkana-expedition','Lake Turkana Expedition','Turkana','Challenging',4.8,'November – February','Epic overland expedition to the Jade Sea — remote desert landscapes, Loiyangalani village, and ancient archaeological sites.',['Jade Sea','Remote Expedition','Ancient Sites'],false,'#'),
+    makeStatic('adventure','rift-valley-paragliding','Rift Valley Paragliding','Nakuru','Challenging',4.7,'June – September','Launch from the escarpment edge and soar over the Great Rift Valley floor — thermals and jaw-dropping views all the way to Lake Nakuru.',['Paragliding','Rift Valley Views','Thermal Flying'],false,'https://www.kenyaskydivers.com'),
+    makeStatic('adventure','diani-kitesurfing','Diani Beach Kitesurfing','Kwale','Moderate',4.8,'January – March','Harness the reliable Indian Ocean trade winds at Diani — one of the top 10 kitesurfing spots in Africa with consistent conditions.',['Kitesurfing','Indian Ocean','Trade Winds'],false,'https://www.dianibeachkitesurf.com'),
+  ],
 };
 
 /* ─────────────────────────────────────────────────────────────────────
@@ -279,19 +304,6 @@ const ATTRACTION_META = {
     gridTitle: 'Cultural Tour Destinations',
     breadcrumb:'Cultural Tours',
     supabaseCategory: 'cultural',
-  },
-  'adventure': {
-    label:     '🪂 Adventure Sports',
-    badge:     '🪂 Adventure Sports',
-    heroTitle: 'Thrilling <em>Adventure</em> Experiences Across Kenya',
-    heroDesc:  'White water rafting on the Tana River, rock climbing at Hell\'s Gate, hot air balloon safaris.',
-    heroBg:    'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=1400&q=80&auto=format',
-    introTitle:'Adventure <em>Awaits in Kenya</em>',
-    introDesc: 'From bungee jumping at Sagana to paragliding over the Rift Valley — Kenya is Africa\'s adventure capital. The diverse landscape creates perfect conditions for every kind of thrill-seeker.',
-    stats:     [{ val:'7', lbl:'Adventure Types' }, { val:'15+', lbl:'Top Venues' }, { val:'4.7★', lbl:'Avg Rating' }],
-    gridTitle: 'Adventure Destinations',
-    breadcrumb:'Adventure Sports',
-    supabaseCategory: 'adventure',
   },
 };
 
