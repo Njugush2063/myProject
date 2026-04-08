@@ -75,3 +75,20 @@ window.getRestaurant = async function (slug) {
     return null;
   }
 };
+
+/* ══════════════════════════════════════════════════════════════════════
+   getEvents()
+   Returns upcoming events ordered by date. Limit 10.
+══════════════════════════════════════════════════════════════════════ */
+window.getEvents = async function (limit = 10) {
+  try {
+    const data = await _sqFetch(
+      `events?order=date.asc&limit=${limit}&select=*`
+    );
+    console.log(`[supabase-client] getEvents → ${Array.isArray(data) ? data.length : 0} rows`);
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.warn('[supabase-client] getEvents failed:', err.message);
+    return [];
+  }
+};
