@@ -117,42 +117,71 @@ function pinIcon() {
 /* ─────────────────────────────────────────
    RENDER: DESTINATION CARDS
 ───────────────────────────────────────── */
-function renderDestinations() {
+function buildDestCard(dest, grid) {
+  const slug  = dest.slug || dest.id || '';
+  const name  = dest.name || dest.title || 'Destination';
+  const tag   = dest.category || dest.tag || 'Safari';
+  const img   = dest.image_hero || dest.img || 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=600&q=80&auto=format';
+  const stars = dest.stars || Math.round(dest.rating || 4.5);
+  const rating = dest.rating || dest.stars || 4.5;
+
+  const card = document.createElement('div');
+  card.className = 'dest-card';
+  card.style.cursor = 'pointer';
+  card.setAttribute('role', 'button');
+  card.setAttribute('tabindex', '0');
+  card.setAttribute('aria-label', 'View ' + name);
+
+  card.innerHTML = `
+    <div class="dest-img-wrap">
+      <img src="${img}" alt="${name}" loading="lazy"
+           onerror="this.src='https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=600&q=80&auto=format'" />
+      <div class="dest-overlay">
+        <h3>${name}</h3>
+        <span>${tag}</span>
+      </div>
+    </div>
+    <div class="dest-footer">
+      <span class="stars">${renderStars(stars)}</span>
+      <span class="rating">${Number(rating).toFixed(1)}</span>
+    </div>
+  `;
+
+  const navigate = () => { window.location.href = 'attraction-details.html?id=' + slug; };
+  card.addEventListener('click', navigate);
+  card.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(); }
+  });
+  grid.appendChild(card);
+}
+
+async function renderDestinations() {
   const grid = document.getElementById('destGrid');
   if (!grid) return;
 
-  destinations.forEach(dest => {
-    const card = document.createElement('div');
-    card.className = 'dest-card';
-    card.style.cursor = 'pointer';
-    card.setAttribute('role', 'button');
-    card.setAttribute('tabindex', '0');
-    card.setAttribute('aria-label', 'View ' + dest.name);
+  /* Show skeletons while loading */
+  grid.innerHTML = Array(6).fill(
+    '<div class="dest-card" style="opacity:0.4;pointer-events:none;"><div class="dest-img-wrap" style="background:#e0e0e0;height:200px;border-radius:8px;"></div></div>'
+  ).join('');
 
-    card.innerHTML = `
-      <div class="dest-img-wrap">
-        <img src="${dest.img}" alt="${dest.name}" loading="lazy" />
-        <div class="dest-overlay">
-          <h3>${dest.name}</h3>
-          <span>${dest.tag}</span>
-        </div>
-      </div>
-      <div class="dest-footer">
-        <span class="stars">${renderStars(dest.stars)}</span>
-        <span class="rating">${dest.rating}</span>
-      </div>
-    `;
+  let data = [];
+  try {
+    if (window.db && typeof window.db.getAttractions === 'function') {
+      data = await window.db.getAttractions({ limit: 6, order: 'rating.desc' });
+    }
+  } catch (e) {
+    console.warn('[script.js] Supabase destinations failed, using fallback:', e.message);
+  }
 
-    const navigate = () => {
-      window.location.href = 'attraction-details.html?id=' + dest.slug;
-    };
-    card.addEventListener('click', navigate);
-    card.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(); }
-    });
+  grid.innerHTML = '';
 
-    grid.appendChild(card);
-  });
+  /* Fall back to hardcoded if Supabase returned nothing */
+  if (!data || data.length === 0) {
+    destinations.forEach(dest => buildDestCard(dest, grid));
+    return;
+  }
+
+  data.slice(0, 6).forEach(dest => buildDestCard(dest, grid));
 }
 
 /* ─────────────────────────────────────────
@@ -264,24 +293,46 @@ function initSearch() {
 /* ─────────────────────────────────────────
    RENDER: EVENT CARDS
 ───────────────────────────────────────── */
-function renderEvents() {
+async function renderEvents() {
   const grid = document.getElementById('eventsGrid');
   if (!grid) return;
 
-  events.forEach(event => {
+  let data = [];
+  try {
+    if (window.getEvents) {
+      data = await window.getEvents(4);
+    }
+  } catch (e) {
+    console.warn('[script.js] Supabase events failed, using fallback:', e.message);
+  }
+
+  /* Fall back to hardcoded events if Supabase returned nothing */
+  const items = (data && data.length > 0) ? data : events;
+
+  grid.innerHTML = '';
+  items.forEach(event => {
+    const title    = event.title || event.name || 'Event';
+    const date     = event.date  || event.event_date || '';
+    const location = event.location || event.city || '';
+    const desc     = event.description || event.desc || '';
+    const img      = event.image_hero || event.image || event.img ||
+                     'https://images.unsplash.com/photo-1541532713592-79a0317b272b?w=500&q=80&auto=format';
+    const slug     = event.slug || event.id || '';
+
     const card = document.createElement('div');
     card.className = 'event-card';
     card.innerHTML = `
       <div class="event-img-wrap">
-        <img class="event-img" src="${event.img}" alt="${event.title}" loading="lazy" />
-        <div class="event-date-badge">${event.date}</div>
+        <img class="event-img" src="${img}" alt="${title}" loading="lazy"
+             onerror="this.src='https://images.unsplash.com/photo-1541532713592-79a0317b272b?w=500&q=80&auto=format'" />
+        <div class="event-date-badge">${date}</div>
       </div>
       <div class="event-body">
-        <h3>${event.title}</h3>
-        <div class="event-meta">${calendarIcon()} ${event.date}</div>
-        <div class="event-meta">${pinIcon()} ${event.location}</div>
-        <p>${event.desc}</p>
-        <a href="events.html" class="learn-more-link">Learn More &#8594;</a>
+        <h3>${title}</h3>
+        <div class="event-meta">${calendarIcon()} ${date}</div>
+        <div class="event-meta">${pinIcon()} ${location}</div>
+        <p>${desc}</p>
+        <a href="${slug ? 'events.html?id=' + slug : 'events.html'}" class="learn-more-link">Learn More &#8594;</a>
       </div>
     `;
     grid.appendChild(card);
@@ -422,10 +473,10 @@ function initScrollReveal() {
 /* ─────────────────────────────────────────
    INIT
 ───────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   initSlideshow();
-  renderDestinations();
-  renderEvents();
+  await renderDestinations();
+  await renderEvents();
   initSmoothScroll();
   initNavbarScroll();
   initHamburger();
