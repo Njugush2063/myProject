@@ -211,13 +211,207 @@ let currentSport = 'football';
 /* ─────────────────────────────────────────────────────────────────────
    INIT
 ───────────────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────────────
+   ATTRACTION TYPE META  — for non-sports category pages
+───────────────────────────────────────────────────────────────────── */
+const ATTRACTION_META = {
+  'big-five': {
+    label:     '🦁 Big Five Safari',
+    badge:     '🦁 Big Five Safari',
+    heroTitle: 'Kenya\'s Greatest <em>Big Five Safari</em> Destinations',
+    heroDesc:  'Track lion, leopard, elephant, buffalo and rhino across Kenya\'s world-class game reserves.',
+    heroBg:    'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=1400&q=80&auto=format',
+    introTitle:'The Big Five <em>in Kenya</em>',
+    introDesc: 'Kenya is one of the best places on earth to see the Big Five. World-class reserves like Masai Mara, Amboseli and Tsavo offer unmatched wildlife encounters year-round.',
+    stats:     [{ val:'8', lbl:'Top Reserves' }, { val:'5', lbl:'Big Five Species' }, { val:'4.8★', lbl:'Avg Rating' }],
+    gridTitle: 'Big Five Safari Destinations',
+    breadcrumb:'Big Five Safari',
+    supabaseCategory: 'big-five',
+  },
+  'birds': {
+    label:     '🦅 Bird Watching',
+    badge:     '🦅 Bird Watching',
+    heroTitle: 'Kenya\'s Premier <em>Bird Watching</em> Destinations',
+    heroDesc:  'Discover 1,100+ bird species — from flamingos at Nakuru to eagles soaring over the Rift Valley.',
+    heroBg:    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1400&q=80&auto=format',
+    introTitle:'A Birder\'s <em>Paradise</em>',
+    introDesc: 'Kenya is one of the top birding destinations in the world with over 1,100 recorded species. Lake Nakuru, Kakamega Forest and the Maasai Mara are must-visit sites for birders.',
+    stats:     [{ val:'1,100+', lbl:'Bird Species' }, { val:'10', lbl:'Top Sites' }, { val:'4.7★', lbl:'Avg Rating' }],
+    gridTitle: 'Bird Watching Destinations',
+    breadcrumb:'Bird Watching',
+    supabaseCategory: 'birds',
+  },
+  'mountain': {
+    label:     '⛰️ Mountain Treks',
+    badge:     '⛰️ Mountain Treks',
+    heroTitle: 'Kenya\'s Most Spectacular <em>Mountain Treks</em>',
+    heroDesc:  'Conquer Mount Kenya — Africa\'s second highest peak — through lush rainforest and glacial zones.',
+    heroBg:    'https://images.unsplash.com/photo-1589825743638-54a8ee3b6d67?w=1400&q=80&auto=format',
+    introTitle:'Trekking <em>Above the Clouds</em>',
+    introDesc: 'From the glaciers of Mount Kenya to the Aberdare Ranges, Kenya offers world-class trekking experiences for all levels — from gentle forest walks to summit attempts at 5,199m.',
+    stats:     [{ val:'4', lbl:'Trekking Routes' }, { val:'5,199m', lbl:'Max Altitude' }, { val:'4.8★', lbl:'Avg Rating' }],
+    gridTitle: 'Mountain Trekking Destinations',
+    breadcrumb:'Mountain Treks',
+    supabaseCategory: 'mountain',
+  },
+  'beach': {
+    label:     '🏖️ Beach Escapes',
+    badge:     '🏖️ Beach Escapes',
+    heroTitle: 'Kenya\'s Most Beautiful <em>Beach Destinations</em>',
+    heroDesc:  'Unwind on the stunning Indian Ocean coast — Diani, Watamu, Malindi, and beyond.',
+    heroBg:    'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1400&q=80&auto=format',
+    introTitle:'Kenya\'s <em>Indian Ocean Coast</em>',
+    introDesc: 'Kenya\'s 500km coastline stretches from the border of Tanzania to Somalia, offering pristine white-sand beaches, ancient Swahili towns, and vibrant coral reefs.',
+    stats:     [{ val:'500km', lbl:'Coastline' }, { val:'6', lbl:'Top Beaches' }, { val:'4.8★', lbl:'Avg Rating' }],
+    gridTitle: 'Beach Destinations',
+    breadcrumb:'Beach Escapes',
+    supabaseCategory: 'beach',
+  },
+  'cultural': {
+    label:     '🎭 Cultural Tours',
+    badge:     '🎭 Cultural Tours',
+    heroTitle: 'Kenya\'s Rich <em>Cultural & Heritage</em> Experiences',
+    heroDesc:  'Visit Maasai villages, Swahili coastal towns, and Nairobi\'s vibrant arts and heritage scene.',
+    heroBg:    'https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=1400&q=80&auto=format',
+    introTitle:'Culture & <em>Heritage in Kenya</em>',
+    introDesc: 'Kenya is home to 42+ ethnic communities, each with unique traditions, music, dance and cuisine. From the Maasai Mara to Lamu Old Town — Kenya\'s cultural richness is extraordinary.',
+    stats:     [{ val:'42+', lbl:'Ethnic Communities' }, { val:'8', lbl:'Cultural Sites' }, { val:'4.7★', lbl:'Avg Rating' }],
+    gridTitle: 'Cultural Tour Destinations',
+    breadcrumb:'Cultural Tours',
+    supabaseCategory: 'cultural',
+  },
+  'adventure': {
+    label:     '🪂 Adventure Sports',
+    badge:     '🪂 Adventure Sports',
+    heroTitle: 'Thrilling <em>Adventure</em> Experiences Across Kenya',
+    heroDesc:  'White water rafting on the Tana River, rock climbing at Hell\'s Gate, hot air balloon safaris.',
+    heroBg:    'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=1400&q=80&auto=format',
+    introTitle:'Adventure <em>Awaits in Kenya</em>',
+    introDesc: 'From bungee jumping at Sagana to paragliding over the Rift Valley — Kenya is Africa\'s adventure capital. The diverse landscape creates perfect conditions for every kind of thrill-seeker.',
+    stats:     [{ val:'7', lbl:'Adventure Types' }, { val:'15+', lbl:'Top Venues' }, { val:'4.7★', lbl:'Avg Rating' }],
+    gridTitle: 'Adventure Destinations',
+    breadcrumb:'Adventure Sports',
+    supabaseCategory: 'adventure',
+  },
+};
+
+const ATTRACTION_TYPES = Object.keys(ATTRACTION_META);
+
+/* ─────────────────────────────────────────────────────────────────────
+   LOAD ATTRACTIONS FROM SUPABASE
+───────────────────────────────────────────────────────────────────── */
+async function loadAttractions(type) {
+  const grid = document.getElementById('sportsGrid');
+  const meta = ATTRACTION_META[type];
+
+  /* Show skeletons */
+  grid.innerHTML = Array(6).fill(`
+    <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.07);">
+      <div style="height:200px;background:#e8e8e8;animation:shimmer 1.4s infinite;"></div>
+      <div style="padding:16px;display:flex;flex-direction:column;gap:10px;">
+        <div style="height:14px;background:#e8e8e8;border-radius:6px;animation:shimmer 1.4s infinite;"></div>
+        <div style="height:12px;width:60%;background:#e8e8e8;border-radius:6px;animation:shimmer 1.4s infinite;"></div>
+      </div>
+    </div>`).join('');
+
+  let items = [];
+  try {
+    const url = `${SUPABASE_URL}/rest/v1/${ATTRACT_TABLE}?category=eq.${encodeURIComponent(meta.supabaseCategory)}&order=rating.desc&limit=50&select=*`;
+    const res = await fetch(url, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    if (!res.ok) throw new Error(`Supabase ${res.status}`);
+    const data = await res.json();
+    items = Array.isArray(data) ? data : [];
+    console.log(`[category.js] attractions type="${type}" → ${items.length} rows`);
+  } catch (err) {
+    console.warn('[category.js] Attraction fetch failed:', err.message);
+  }
+
+  document.getElementById('gridTitle').textContent = meta.gridTitle;
+  document.getElementById('gridCount').textContent = items.length ? `${items.length} destinations` : '';
+
+  if (!items.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#666;">
+      <h3 style="font-size:1.3rem;margin-bottom:8px;">No destinations found</h3>
+      <p>Check back soon or explore other categories.</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = items.map(a => {
+    const slug   = a.slug || '';
+    const name   = a.name || 'Destination';
+    const img    = a.image_hero || 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=600&q=80&auto=format';
+    const rating = a.rating ? Number(a.rating).toFixed(1) : '';
+    const diff   = a.difficulty || '';
+    const county = a.county || a.location || '';
+    const best   = a.best_time || '';
+    const desc   = a.description ? (a.description.length > 100 ? a.description.slice(0,100)+'…' : a.description) : '';
+    return `
+      <a href="attraction-details.html?id=${slug}" style="text-decoration:none;color:inherit;display:flex;flex-direction:column;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.07);transition:transform .2s,box-shadow .2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 28px rgba(0,0,0,0.13)'" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 12px rgba(0,0,0,0.07)'">
+        <div style="position:relative;height:200px;overflow:hidden;">
+          <img src="${img}" alt="${name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;"
+               onerror="this.src='https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=600&q=80&auto=format'"/>
+          ${diff ? `<span style="position:absolute;top:12px;left:12px;background:#E8541A;color:#fff;font-size:0.72rem;font-weight:600;padding:3px 10px;border-radius:50px;text-transform:uppercase;">${diff}</span>` : ''}
+          ${rating ? `<span style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.55);color:#fff;font-size:0.8rem;font-weight:600;padding:3px 9px;border-radius:50px;backdrop-filter:blur(4px);">⭐ ${rating}</span>` : ''}
+        </div>
+        <div style="padding:16px;flex:1;display:flex;flex-direction:column;gap:6px;">
+          <div style="font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;">${name}</div>
+          ${desc ? `<div style="font-size:0.85rem;color:#666;line-height:1.5;flex:1;">${desc}</div>` : ''}
+          <div style="display:flex;gap:12px;font-size:0.78rem;color:#888;flex-wrap:wrap;margin-top:4px;">
+            ${county ? `<span>📍 ${county}</span>` : ''}
+            ${best   ? `<span>🕐 ${best}</span>`   : ''}
+          </div>
+          <span style="color:#E8541A;font-size:0.85rem;font-weight:600;margin-top:8px;">Explore →</span>
+        </div>
+      </a>`;
+  }).join('');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('scroll', () => {
     document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
   });
 
-  const params   = new URLSearchParams(window.location.search);
-  const param    = params.get('sport') || params.get('type') || 'football';
+  const params = new URLSearchParams(window.location.search);
+  const param  = params.get('sport') || params.get('type') || 'football';
+
+  /* ── Attraction type: hide sports tabs, render attractions ── */
+  if (ATTRACTION_TYPES.includes(param)) {
+    const m = ATTRACTION_META[param];
+    document.title = `${m.label} — SafariQuest Kenya`;
+
+    /* Hide sports-only UI */
+    const tabsBar    = document.querySelector('.sport-tabs-bar');
+    const panelIntro = document.getElementById('panelIntro');
+    if (tabsBar)    tabsBar.style.display    = 'none';
+    if (panelIntro) panelIntro.style.display = 'none';
+
+    /* Update hero */
+    const hero = document.getElementById('catHero');
+    if (hero) hero.style.backgroundImage = `url('${m.heroBg}')`;
+    const el = id => document.getElementById(id);
+    if (el('heroBreadcrumb')) el('heroBreadcrumb').textContent = m.breadcrumb;
+    if (el('heroBadge'))      el('heroBadge').textContent      = m.badge;
+    if (el('heroTitle'))      el('heroTitle').innerHTML         = m.heroTitle;
+    if (el('heroDesc'))       el('heroDesc').textContent        = m.heroDesc;
+
+    /* Render intro manually */
+    if (panelIntro) {
+      panelIntro.style.display = 'block';
+      const statsHtml = m.stats.map(s => `<div class="stat-item"><span class="stat-val">${s.val}</span><span class="stat-lbl">${s.lbl}</span></div>`).join('');
+      document.getElementById('introLabel').textContent = m.label;
+      document.getElementById('introTitle').innerHTML   = m.introTitle;
+      document.getElementById('introDesc').textContent  = m.introDesc;
+      document.getElementById('panelStats').innerHTML   = statsHtml;
+    }
+
+    loadAttractions(param);
+    return;
+  }
+
+  /* ── Sports type: existing flow ── */
   const valid    = Object.keys(SPORT_META);
   currentSport   = valid.includes(param) ? param : 'football';
 
