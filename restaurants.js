@@ -66,9 +66,9 @@ document.addEventListener('DOMContentLoaded', async function () {
       empty.style.display = 'block';
     } else {
       empty.style.display = 'none';
-      /* If everything is featured, show them all in the main grid too
-         so the page never appears empty */
-      const mainItems = rest.length > 0 ? rest : (featured.length > 0 ? [] : filtered);
+      /* Always show all restaurants in the main grid.
+         Non-featured go here; if everything is featured they still show here too */
+      const mainItems = rest.length > 0 ? rest : filtered;
       grid.innerHTML = mainItems.map(buildCard).join('');
     }
 
