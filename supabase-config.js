@@ -10,7 +10,7 @@
 const SUPABASE_URL  = 'https://cbyipmrozqsntojiartw.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_eKZx3549j8unaFOQaZNGlQ_IdVWH5BI';
 const SPORTS_TABLE  = 'sports_destinations';
-const ATTRACT_TABLE = 'destinations';
+const ATTRACT_TABLE = 'attractions';
 
 /* ── tiny fetch helper ── */
 async function sbFetch(path) {
@@ -46,11 +46,15 @@ window.getSportsDestinations = async function (sport) {
 ══════════════════════════════════════════════════════════════════════ */
 window.db = {
 
-  getAttractions: async function (limit = 20) {
+  getAttractions: async function (options) {
     try {
-      const data = await sbFetch(
-        `${ATTRACT_TABLE}?order=rating.desc&limit=${limit}`
-      );
+      if (!options || typeof options === 'number') options = { limit: options || 20 };
+      const limit    = options.limit    || 20;
+      const order    = options.order    || 'rating.desc';
+      const category = options.category || null;
+      let path = ATTRACT_TABLE + '?order=' + order + '&limit=' + limit;
+      if (category) path += '&category=eq.' + encodeURIComponent(category);
+      const data = await sbFetch(path);
       return Array.isArray(data) ? data : [];
     } catch (err) {
       console.warn('[supabase-config] getAttractions failed:', err.message);

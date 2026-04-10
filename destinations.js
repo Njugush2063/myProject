@@ -550,20 +550,13 @@ document.addEventListener('DOMContentLoaded', async function () {
 });
 
 /* ────────────────────────────────────────
-   RENDER TYPE GRID
+   RENDER TYPE GRID — Supabase first, static fallback
 ──────────────────────────────────────── */
-function renderTypeGrid(type) {
+async function renderTypeGrid(type) {
   const grid = document.getElementById('dest-grid');
   if (!grid) return;
 
-  /* Sports has no static data — redirect handled by filterType */
   if (type === 'sports') return;
-
-  const destinations = DESTINATIONS[type];
-  if (!destinations || destinations.length === 0) {
-    grid.innerHTML = `<div class="fetch-error">No destinations found for this category.</div>`;
-    return;
-  }
 
   const typeLabels = {
     'big-five':  '🦁 Big Five Safari',
@@ -572,8 +565,32 @@ function renderTypeGrid(type) {
     'beach':     '🏖️ Beach Escapes',
     'cultural':  '🎭 Cultural Tours',
     'adventure': '🪂 Adventure Sports',
-    'sports':    '🏆 Sports'
   };
+
+  /* Show skeletons while loading */
+  grid.innerHTML = Array(6).fill(`
+    <div class="dest-card" style="opacity:0.35;pointer-events:none;">
+      <div class="dest-img-wrap" style="background:#e8e8e8;height:220px;border-radius:12px;animation:shimmer 1.4s infinite;"></div>
+    </div>`).join('');
+
+  let destinations = [];
+
+  /* Try Supabase first */
+  try {
+    if (window.db && typeof window.db.getAttractions === 'function') {
+      const supabaseData = await window.db.getAttractions({ category: type, limit: 20 });
+      if (supabaseData && supabaseData.length > 0) {
+        destinations = supabaseData;
+      }
+    }
+  } catch (err) {
+    console.warn('[destinations.js] Supabase fetch failed, using static fallback:', err.message);
+  }
+
+  /* Fall back to static data if Supabase returned nothing */
+  if (!destinations.length) {
+    destinations = DESTINATIONS[type] || [];
+  }
 
   const sectionTitle = document.querySelector('.destinations-section .section-title');
   const sectionSub   = document.querySelector('.destinations-section .section-sub');
@@ -583,31 +600,47 @@ function renderTypeGrid(type) {
   const loadMoreWrap = document.querySelector('.load-more-wrap');
   if (loadMoreWrap) loadMoreWrap.style.display = 'none';
 
-  grid.innerHTML = destinations.map(d => `
-    <div class="dest-card" onclick="window.location.href='attraction-details.html?id=${d.slug}'">
-      <div class="dest-img-wrap">
-        <div class="dest-img" style="background-image:url('${d.image}'); background-size:cover; background-position:center;"></div>
-        <span class="difficulty-badge diff-${d.difficulty.toLowerCase()}">${d.difficulty}</span>
-      </div>
-      <div class="dest-body">
-        <div class="dest-header">
-          <div class="dest-name">${d.name}</div>
-          <div class="dest-rating">⭐ ${d.rating}</div>
+  if (!destinations.length) {
+    grid.innerHTML = `<div class="fetch-error">No destinations found for this category.</div>`;
+    return;
+  }
+
+  grid.innerHTML = destinations.map(d => {
+    const slug       = d.slug || '';
+    const name       = d.name || '';
+    const county     = d.county || '';
+    const difficulty = d.difficulty || 'Easy';
+    const rating     = d.rating || 4.5;
+    const best_time  = d.best_time || 'Year-round';
+    const description= d.description || '';
+    const image      = d.image_hero || d.image || 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=800&q=80&auto=format';
+    const highlights = Array.isArray(d.highlights) ? d.highlights : [];
+
+    return `
+      <div class="dest-card" onclick="window.location.href='attraction-details.html?id=${slug}'">
+        <div class="dest-img-wrap">
+          <div class="dest-img" style="background-image:url('${image}'); background-size:cover; background-position:center;"></div>
+          <span class="difficulty-badge diff-${difficulty.toLowerCase()}">${difficulty}</span>
         </div>
-        <div class="dest-desc">${d.description}</div>
-        <div class="dest-meta">
-          <div class="dest-meta-item">📍 ${d.county} County</div>
-          <div class="dest-meta-item">🕐 Best: ${d.best_time}</div>
+        <div class="dest-body">
+          <div class="dest-header">
+            <div class="dest-name">${name}</div>
+            <div class="dest-rating">⭐ ${rating}</div>
+          </div>
+          <div class="dest-desc">${description.substring(0, 110)}${description.length > 110 ? '...' : ''}</div>
+          <div class="dest-meta">
+            <div class="dest-meta-item">📍 ${county} County</div>
+            <div class="dest-meta-item">🕐 Best: ${best_time}</div>
+          </div>
+          <div class="dest-tags">
+            ${highlights.slice(0, 2).map(h => `<span class="tag">${h}</span>`).join('')}
+          </div>
+          <div class="dest-footer">
+            <a href="attraction-details.html?id=${slug}" class="explore-link" onclick="event.stopPropagation()">⚡ Explore →</a>
+          </div>
         </div>
-        <div class="dest-tags">
-          ${d.highlights.map(h => `<span class="tag">${h}</span>`).join('')}
-        </div>
-        <div class="dest-footer">
-          <a href="attraction-details.html?id=${d.slug}" class="explore-link" onclick="event.stopPropagation()">⚡ Explore →</a>
-        </div>
-      </div>
-    </div>
-  `).join('');
+      </div>`;
+  }).join('');
 }
 
 /* ────────────────────────────────────────

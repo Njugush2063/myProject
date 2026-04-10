@@ -340,6 +340,25 @@ async function loadAttractions(type) {
     console.warn('[category.js] Attraction fetch failed:', err.message);
   }
 
+  /* ── Static fallback: use DESTINATIONS from destinations.js if loaded,
+        otherwise use a minimal built-in set ── */
+  if (!items.length) {
+    console.info(`[category.js] Supabase returned 0 rows for "${type}" — using static fallback`);
+    /* destinations.js may be loaded on the same page and exposes DESTINATIONS */
+    const staticPool = (typeof DESTINATIONS !== 'undefined' && DESTINATIONS[type]) ? DESTINATIONS[type] : [];
+    items = staticPool.map(d => ({
+      slug:        d.slug,
+      name:        d.name,
+      county:      d.county,
+      difficulty:  d.difficulty,
+      rating:      d.rating,
+      best_time:   d.best_time,
+      description: d.description,
+      image_hero:  d.image || d.image_hero || '',
+      highlights:  d.highlights || [],
+    }));
+  }
+
   document.getElementById('gridTitle').textContent = meta.gridTitle;
   document.getElementById('gridCount').textContent = items.length ? `${items.length} destinations` : '';
 
