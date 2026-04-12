@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hotels & Accommodation — SafariQuest Kenya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --green:#1a3c2e; --orange:#E8732A; --light:#f7f5f0; --white:#fff; --text:#333; --muted:#777; }
+    body { font-family:'DM Sans',sans-serif; color:var(--text); background:var(--light); }
+
+    .navbar { position:sticky;top:0;z-index:100;background:var(--white);box-shadow:0 2px 12px rgba(0,0,0,.07); }
+    .nav-container { max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:68px; }
+    .nav-logo { display:flex;align-items:center;gap:10px;text-decoration:none; }
+    .logo-name { font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--green);font-weight:800; }
+    .logo-slogan { font-size:.68rem;color:var(--muted);display:block; }
+    .nav-links { list-style:none;display:flex;gap:28px; }
+    .nav-links a { text-decoration:none;color:var(--text);font-size:.9rem;font-weight:500;transition:color .2s; }
+    .nav-links a:hover,.nav-links a.active { color:var(--orange); }
+    .nav-auth { display:flex;gap:10px; }
+    .btn-nav-login { padding:7px 18px;border:2px solid var(--green);border-radius:8px;color:var(--green);text-decoration:none;font-size:.85rem;font-weight:600; }
+    .btn-nav-login:hover { background:var(--green);color:var(--white); }
+    .btn-nav-register { padding:7px 18px;background:var(--orange);border-radius:8px;color:var(--white);text-decoration:none;font-size:.85rem;font-weight:600; }
+
+    .hero { position:relative;height:320px;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center; }
+    .hero-bg { position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1400&q=85') center/cover no-repeat;filter:brightness(.4); }
+    .hero-content { position:relative;z-index:2;color:var(--white);padding:0 20px; }
+    .hero-badge { display:inline-block;background:var(--orange);color:var(--white);padding:5px 16px;border-radius:20px;font-size:.8rem;font-weight:700;letter-spacing:.04em;margin-bottom:14px; }
+    .hero-title { font-family:'Playfair Display',serif;font-size:2.6rem;margin-bottom:10px; }
+    .hero-sub { font-size:1rem;opacity:.85;max-width:520px; }
+
+    .filter-bar { max-width:1200px;margin:30px auto 0;padding:0 24px;display:flex;gap:12px;flex-wrap:wrap; }
+    .filter-select { padding:9px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:.88rem;font-family:inherit;color:var(--text);background:var(--white);cursor:pointer; }
+    .filter-select:focus { outline:none;border-color:var(--orange); }
+    .btn-clear { padding:9px 18px;background:transparent;border:2px solid #ccc;border-radius:10px;font-size:.85rem;cursor:pointer;color:var(--muted);font-family:inherit; }
+    .btn-clear:hover { border-color:var(--orange);color:var(--orange); }
+
+    .pills { max-width:1200px;margin:16px auto 0;padding:0 24px;display:flex;gap:10px;flex-wrap:wrap; }
+    .pill { padding:7px 18px;border:2px solid #e0e0e0;border-radius:20px;font-size:.83rem;cursor:pointer;background:var(--white);font-family:inherit;font-weight:500;transition:all .2s; }
+    .pill.active,.pill:hover { background:var(--orange);border-color:var(--orange);color:var(--white); }
+
+    .main-content { max-width:1200px;margin:32px auto 60px;padding:0 24px; }
+    .section-title { font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--green);margin-bottom:24px; }
+    .hotels-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px; }
+
+    .hotel-card { background:var(--white);border-radius:16px;overflow:hidden;box-shadow:0 4px 18px rgba(0,0,0,.07);transition:transform .25s,box-shadow .25s;display:flex;flex-direction:column; }
+    .hotel-card:hover { transform:translateY(-5px);box-shadow:0 10px 30px rgba(0,0,0,.13); }
+    .hotel-img { width:100%;height:200px;object-fit:cover; }
+    .hotel-body { padding:18px;flex:1;display:flex;flex-direction:column; }
+    .hotel-top { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px; }
+    .hotel-name { font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--green);line-height:1.3; }
+    .hotel-stars { color:#f59e0b;font-size:.9rem; }
+    .hotel-loc { font-size:.82rem;color:var(--muted);margin-bottom:10px; }
+    .hotel-desc { font-size:.85rem;color:var(--muted);line-height:1.55;margin-bottom:14px;flex:1; }
+    .hotel-amenities { display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px; }
+    .amenity { font-size:.73rem;background:#f0f9f4;color:#2e7d32;padding:3px 8px;border-radius:6px; }
+    .hotel-footer { display:flex;justify-content:space-between;align-items:center; }
+    .hotel-price { font-weight:700;color:var(--green);font-size:.95rem; }
+    .hotel-price span { font-size:.72rem;color:var(--muted);font-weight:400; }
+    .btn-book-hotel { padding:8px 18px;background:var(--orange);color:var(--white);border:none;border-radius:8px;font-size:.83rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s; }
+    .btn-book-hotel:hover { background:#c9621e; }
+
+    .empty-state { text-align:center;padding:60px 20px;color:var(--muted); }
+    .empty-state .icon { font-size:3.5rem;margin-bottom:12px; }
+
+    .modal-backdrop { position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:20px; }
+    .modal-backdrop.open { display:flex; }
+    .modal { background:var(--white);border-radius:20px;max-width:420px;width:100%;padding:28px;animation:slideUp .3s ease; }
+    @keyframes slideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+    .modal h3 { font-family:'Playfair Display',serif;color:var(--green);margin-bottom:4px;font-size:1.3rem; }
+    .modal label { display:block;font-size:.82rem;font-weight:600;color:#555;margin-bottom:4px;margin-top:12px; }
+    .modal input,.modal select { width:100%;padding:10px 12px;border:2px solid #e0e0e0;border-radius:9px;font-size:.9rem;font-family:inherit; }
+    .modal input:focus,.modal select:focus { outline:none;border-color:var(--orange); }
+    .modal-actions { display:flex;gap:10px;margin-top:20px; }
+    .btn-confirm { flex:1;padding:12px;background:var(--orange);color:var(--white);border:none;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit; }
+    .btn-cancel  { flex:1;padding:12px;background:#f0f0f0;color:#555;border:none;border-radius:10px;font-size:.9rem;cursor:pointer;font-family:inherit; }
+    .mpesa-box { background:#e8f5e9;border-radius:10px;padding:14px;margin-top:14px;display:none;text-align:center; }
+    .mpesa-box .mpesa-title { font-weight:700;color:#2e7d32;margin-bottom:4px; }
+    .mpesa-box .mpesa-sub { font-size:.8rem;color:#555; }
+    .mpesa-box .tx-id { font-size:1.1rem;font-weight:800;letter-spacing:2px;color:#1b5e20;margin-top:8px; }
+
+    .footer { background:var(--green);color:rgba(255,255,255,.8);padding:40px 24px 20px; }
+    .footer-container { max-width:1200px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr;gap:32px;margin-bottom:28px; }
+    .footer h4 { color:var(--white);font-size:.95rem;margin-bottom:14px; }
+    .footer ul { list-style:none; }
+    .footer ul li { margin-bottom:8px; }
+    .footer ul a { color:rgba(255,255,255,.7);text-decoration:none;font-size:.88rem; }
+    .footer ul a:hover { color:var(--white); }
+    .footer-logo-name { font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--white);font-weight:800; }
+    .footer p { font-size:.85rem;line-height:1.6; }
+    .footer-bottom { border-top:1px solid rgba(255,255,255,.15);padding-top:16px;text-align:center;font-size:.8rem;color:rgba(255,255,255,.5); }
+
+    @media(max-width:768px){ .nav-links,.nav-auth{display:none;} .hero-title{font-size:1.8rem;} .footer-container{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="Index.html" class="nav-logo">
+      <div class="logo-text">
+        <span class="logo-name">SafariQuest</span>
+        <span class="logo-slogan">Discover. Explore. Experience.</span>
+      </div>
+    </a>
+    <ul class="nav-links">
+      <li><a href="Index.html">Home</a></li>
+      <li><a href="destinations.html">Destinations</a></li>
+      <li><a href="hotels.html" class="active">Hotels</a></li>
+      <li><a href="restaurants.html">Restaurants</a></li>
+      <li><a href="events.html">Events</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-auth">
+      <a href="login.html" class="btn-nav-login">Login</a>
+      <a href="register.html" class="btn-nav-register">Sign Up</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🏨 Verified Accommodations</div>
+    <h1 class="hero-title">Hotels & Lodges in Kenya</h1>
+    <p class="hero-sub">From luxury safari lodges to budget-friendly guesthouses — find your perfect stay</p>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <select class="filter-select" id="cityFilter" onchange="applyFilters()">
+    <option value="all">All Cities</option>
+    <option value="Nairobi">Nairobi</option>
+    <option value="Mombasa">Mombasa</option>
+    <option value="Maasai Mara">Maasai Mara</option>
+    <option value="Diani">Diani</option>
+    <option value="Amboseli">Amboseli</option>
+    <option value="Nakuru">Nakuru</option>
+    <option value="Samburu">Samburu</option>
+  </select>
+  <select class="filter-select" id="typeFilter" onchange="applyFilters()">
+    <option value="all">All Types</option>
+    <option value="Luxury">Luxury</option>
+    <option value="Lodge">Safari Lodge</option>
+    <option value="Beach">Beach Resort</option>
+    <option value="Budget">Budget</option>
+    <option value="Boutique">Boutique</option>
+  </select>
+  <select class="filter-select" id="starFilter" onchange="applyFilters()">
+    <option value="all">All Star Ratings</option>
+    <option value="5">5 Stars</option>
+    <option value="4">4 Stars</option>
+    <option value="3">3 Stars</option>
+  </select>
+  <button class="btn-clear" onclick="clearFilters()">Clear Filters</button>
+</div>
+
+<div class="pills" id="pillsRow">
+  <button class="pill active" onclick="setPill(this,'all')">All Hotels</button>
+  <button class="pill" onclick="setPill(this,'Luxury')">⭐ Luxury</button>
+  <button class="pill" onclick="setPill(this,'Lodge')">🦁 Safari Lodges</button>
+  <button class="pill" onclick="setPill(this,'Beach')">🏖️ Beach Resorts</button>
+  <button class="pill" onclick="setPill(this,'Budget')">💰 Budget</button>
+  <button class="pill" onclick="setPill(this,'Boutique')">🌿 Boutique</button>
+</div>
+
+<div class="main-content">
+  <h2 class="section-title" id="gridTitle">All Hotels & Accommodation</h2>
+  <div class="hotels-grid" id="hotelsGrid"></div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div class="modal-backdrop" id="bookingModal">
+  <div class="modal">
+    <h3>🏨 Reserve Your Room</h3>
+    <p id="modalHotelName" style="color:#E8732A;font-weight:600;margin-bottom:4px;font-size:.9rem"></p>
+    <label>Check-in Date</label>
+    <input type="date" id="modalCheckIn">
+    <label>Check-out Date</label>
+    <input type="date" id="modalCheckOut">
+    <label>Number of Guests</label>
+    <select id="modalGuests">
+      <option>1</option><option value="2" selected>2</option><option>3</option><option>4</option><option>5+</option>
+    </select>
+    <label>Your Name</label>
+    <input type="text" id="modalName" placeholder="Full name">
+    <label>Email</label>
+    <input type="email" id="modalEmail" placeholder="your@email.com">
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmBooking()">Confirm & Pay</button>
+    </div>
+    <div class="mpesa-box" id="mpesaBox">
+      <div class="mpesa-title">🟢 M-Pesa Payment Request Sent</div>
+      <div class="mpesa-sub">Check your phone and enter your M-Pesa PIN to complete payment</div>
+      <div class="tx-id" id="mpesaTxId"></div>
+      <div style="margin-top:12px">
+        <a href="dashboard.html" style="display:inline-block;padding:8px 20px;background:#2e7d32;color:#fff;border-radius:8px;text-decoration:none;font-size:.82rem;font-weight:600">View My Bookings →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-container">
+    <div>
+      <div class="footer-logo-name">SafariQuest</div>
+      <p style="margin-top:8px">Your gateway to Kenya's magic — from the savanna to the coast.</p>
+    </div>
+    <div>
+      <h4>Explore</h4>
+      <ul>
+        <li><a href="destinations.html">Destinations</a></li>
+        <li><a href="hotels.html">Hotels</a></li>
+        <li><a href="restaurants.html">Restaurants</a></li>
+        <li><a href="events.html">Events</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p>📧 hello@safariquest.co.ke</p>
+      <p style="margin-top:6px">📍 Nairobi, Kenya</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 SafariQuest. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+var HOTELS = [
+  { id:'hemingways-nairobi', name:'Hemingways Nairobi', city:'Nairobi', type:'Luxury', stars:5, pricePerNight:32000, description:'A stunning all-suite luxury hotel in the leafy suburb of Karen, offering butler service, spa, and panoramic views of the Ngong Hills.', amenities:['Free WiFi','Spa','Pool','Butler Service','Restaurant'], image:'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80' },
+  { id:'fairmont-norfolk', name:'Fairmont The Norfolk', city:'Nairobi', type:'Luxury', stars:5, pricePerNight:28000, description:'Nairobi\'s most historic hotel, open since 1904. Colonial grandeur meets modern luxury in the heart of the city, steps from museums and parks.', amenities:['Free WiFi','Pool','Spa','Bar','Gardens'], image:'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&q=80' },
+  { id:'sarova-mara', name:'Sarova Mara Game Camp', city:'Maasai Mara', type:'Lodge', stars:4, pricePerNight:45000, description:'A luxury tented camp set in the heart of the Maasai Mara with full board, game drives, and panoramic savannah views from every tent.', amenities:['Full Board','Game Drives','Swimming Pool','Wi-Fi','Bush Dinners'], image:'https://images.unsplash.com/photo-1535941339077-2dd1c7963098?w=600&q=80' },
+  { id:'ol-tukai-amboseli', name:'Ol Tukai Lodge', city:'Amboseli', type:'Lodge', stars:4, pricePerNight:38000, description:'Perfectly positioned at the foot of Mount Kilimanjaro, Ol Tukai offers breathtaking elephant views from the open-sided dining area and infinity pool.', amenities:['Full Board','Pool','Game Drives','Wi-Fi','Bar'], image:'https://images.unsplash.com/photo-1612099197788-bde7f41d9710?w=600&q=80' },
+  { id:'diani-reef', name:'Diani Reef Beach Resort & Spa', city:'Diani', type:'Beach', stars:5, pricePerNight:25000, description:'The ultimate Indian Ocean beach resort with pristine white sand beach, multiple pools, world-class spa, and a full range of water sports.', amenities:['Beachfront','Spa','5 Pools','Water Sports','Kids Club'], image:'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&q=80' },
+  { id:'baobab-beach', name:'Baobab Beach Resort & Spa', city:'Diani', type:'Beach', stars:4, pricePerNight:18000, description:'Set amongst ancient baobab trees on Diani Beach, this resort blends natural beauty with modern amenities and exceptional marine activities.', amenities:['Beachfront','Pool','Diving Centre','Wi-Fi','Restaurant'], image:'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=600&q=80' },
+  { id:'serena-mombasa', name:'Serena Beach Resort & Spa', city:'Mombasa', type:'Beach', stars:5, pricePerNight:22000, description:'A Swahili-inspired luxury beach resort on Shanzu Beach, Mombasa, featuring stunning architecture, private beach, and authentic coastal cuisine.', amenities:['Private Beach','Spa','Pool','Restaurant','Cultural Tours'], image:'https://images.unsplash.com/photo-1510784722466-f2aa240d9562?w=600&q=80' },
+  { id:'nairobi-serena', name:'Serena Hotel Nairobi', city:'Nairobi', type:'Luxury', stars:5, pricePerNight:26000, description:'Set within beautifully landscaped gardens adjacent to Uhuru Park, Nairobi Serena is a city oasis blending African heritage with five-star luxury.', amenities:['Pool','Spa','Wi-Fi','Business Centre','Multiple Restaurants'], image:'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=80' },
+  { id:'sarova-nakuru', name:'Sarova Lion Hill Game Lodge', city:'Nakuru', type:'Lodge', stars:4, pricePerNight:20000, description:'Perched on a hill overlooking Lake Nakuru National Park, this lodge offers spectacular flamingo and rhino viewing from its elevated terrace.', amenities:['Full Board','Game Drives','Pool','Wi-Fi','Flamingo Views'], image:'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=600&q=80' },
+  { id:'samburu-serian', name:'Serian Samburu Camp', city:'Samburu', type:'Lodge', stars:5, pricePerNight:55000, description:'An intimate luxury camp on the Ewaso Ng\'iro riverbank in Samburu. Six private tents with plunge pools, superb guiding, and unmatched exclusivity.', amenities:['Private Plunge Pool','Game Drives','Full Board','River Views','Expert Guides'], image:'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=600&q=80' },
+  { id:'urban-eatery-nairobi', name:'The Boma Nairobi', city:'Nairobi', type:'Boutique', stars:4, pricePerNight:12000, description:'A modern boutique hotel in the heart of Nairobi\'s Upper Hill business district, offering stylish rooms, rooftop bar, and exceptional service.', amenities:['Rooftop Bar','Pool','Wi-Fi','Gym','Business Centre'], image:'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=600&q=80' },
+  { id:'backpackers-nairobi', name:'Wildebeest Eco Camp', city:'Nairobi', type:'Budget', stars:3, pricePerNight:3500, description:'A popular backpacker favourite in Karen, Nairobi — eco-friendly bandas, great communal areas, and the best budget breakfast in the city.', amenities:['Free WiFi','Communal Kitchen','Garden','Bar','Safari Bookings'], image:'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=600&q=80' }
+];
+
+var filtered = HOTELS.slice();
+var currentHotel = null;
+
+function stars(n) {
+  return '★'.repeat(n) + '☆'.repeat(5-n);
+}
+
+function renderGrid() {
+  var grid = document.getElementById('hotelsGrid');
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="icon">🏨</div><p>No hotels match your filters. Try clearing them.</p></div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(function(h) {
+    return '<div class="hotel-card">' +
+      '<img class="hotel-img" src="' + h.image + '" alt="' + h.name + '" loading="lazy">' +
+      '<div class="hotel-body">' +
+        '<div class="hotel-top">' +
+          '<div class="hotel-name">' + h.name + '</div>' +
+          '<div class="hotel-stars">' + stars(h.stars) + '</div>' +
+        '</div>' +
+        '<div class="hotel-loc">📍 ' + h.city + ' &nbsp;·&nbsp; ' + h.type + '</div>' +
+        '<div class="hotel-desc">' + h.description + '</div>' +
+        '<div class="hotel-amenities">' + h.amenities.map(function(a){ return '<span class="amenity">✓ ' + a + '</span>'; }).join('') + '</div>' +
+        '<div class="hotel-footer">' +
+          '<div class="hotel-price">KSh ' + h.pricePerNight.toLocaleString() + ' <span>/ night</span></div>' +
+          '<button class="btn-book-hotel" onclick="openModal(\'' + h.id + '\')">Book Now</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function applyFilters() {
+  var city  = document.getElementById('cityFilter').value;
+  var type  = document.getElementById('typeFilter').value;
+  var stars_f = document.getElementById('starFilter').value;
+  filtered = HOTELS.filter(function(h) {
+    return (city    === 'all' || h.city  === city)  &&
+           (type    === 'all' || h.type  === type)  &&
+           (stars_f === 'all' || String(h.stars) === stars_f);
+  });
+  var label = [];
+  if (city    !== 'all') label.push(city);
+  if (type    !== 'all') label.push(type);
+  if (stars_f !== 'all') label.push(stars_f + '-Star');
+  document.getElementById('gridTitle').textContent = label.length ? label.join(' · ') + ' Hotels' : 'All Hotels & Accommodation';
+  renderGrid();
+}
+
+function setPill(el, type) {
+  document.querySelectorAll('.pill').forEach(function(p){ p.classList.remove('active'); });
+  el.classList.add('active');
+  document.getElementById('typeFilter').value = type;
+  applyFilters();
+}
+
+function clearFilters() {
+  ['cityFilter','typeFilter','starFilter'].forEach(function(id){ document.getElementById(id).value = 'all'; });
+  document.querySelectorAll('.pill').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelector('.pill').classList.add('active');
+  filtered = HOTELS.slice();
+  document.getElementById('gridTitle').textContent = 'All Hotels & Accommodation';
+  renderGrid();
+}
+
+function openModal(id) {
+  currentHotel = HOTELS.find(function(h){ return h.id === id; });
+  if (!currentHotel) return;
+  document.getElementById('modalHotelName').textContent = currentHotel.name + ' — KSh ' + currentHotel.pricePerNight.toLocaleString() + '/night';
+  document.getElementById('mpesaBox').style.display = 'none';
+  document.querySelector('.modal-actions').style.display = '';
+  // Default dates
+  var today = new Date();
+  var tomorrow = new Date(today); tomorrow.setDate(today.getDate()+1);
+  var fmt = function(d){ return d.toISOString().split('T')[0]; };
+  document.getElementById('modalCheckIn').value  = fmt(today);
+  document.getElementById('modalCheckOut').value = fmt(tomorrow);
+  document.getElementById('bookingModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('bookingModal').classList.remove('open');
+  currentHotel = null;
+}
+
+function confirmBooking() {
+  var name    = document.getElementById('modalName').value.trim();
+  var email   = document.getElementById('modalEmail').value.trim();
+  var checkIn = document.getElementById('modalCheckIn').value;
+  var checkOut= document.getElementById('modalCheckOut').value;
+  var guests  = document.getElementById('modalGuests').value;
+  if (!name || !email || !checkIn || !checkOut) { alert('Please fill in all fields.'); return; }
+  if (checkIn >= checkOut) { alert('Check-out must be after check-in.'); return; }
+
+  var nights = Math.max(1, Math.ceil((new Date(checkOut) - new Date(checkIn)) / 86400000));
+  var total  = nights * currentHotel.pricePerNight;
+
+  var booking = {
+    id: 'SQ' + Math.floor(100000 + Math.random() * 900000),
+    attraction: currentHotel.name,
+    slug: currentHotel.id,
+    checkIn: checkIn,
+    checkOut: checkOut,
+    guests: guests,
+    nights: nights,
+    total: 'KSh ' + total.toLocaleString(),
+    status: 'Confirmed',
+    bookedAt: new Date().toISOString()
+  };
+
+  var existing = [];
+  try { existing = JSON.parse(localStorage.getItem('sq_bookings') || '[]'); } catch(e){}
+  existing.unshift(booking);
+  localStorage.setItem('sq_bookings', JSON.stringify(existing));
+
+  document.getElementById('mpesaTxId').textContent = 'MP' + booking.id;
+  document.getElementById('mpesaBox').style.display = 'block';
+  document.querySelector('.modal-actions').style.display = 'none';
+}
+
+document.getElementById('bookingModal').addEventListener('click', function(e){
+  if (e.target === this) closeModal();
+});
+
+window.addEventListener('scroll', function(){
+  document.getElementById('navbar').style.boxShadow = window.scrollY > 10 ? '0 4px 20px rgba(0,0,0,.12)' : '0 2px 12px rgba(0,0,0,.07)';
+});
+
+renderGrid();
+</script>
+</body>
+</html>

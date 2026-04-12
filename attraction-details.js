@@ -364,14 +364,39 @@ function initBooking(a, toast) {
       toast('Please select your travel dates', 'info');
       return;
     }
-    const orig = this.innerHTML;
-    this.textContent = '🎉 Redirecting...';
-    this.style.background = '#1ec99a';
+
+    const btn = this;
+    const orig = btn.innerHTML;
+    btn.textContent = '⏳ Processing...';
+    btn.disabled = true;
+    btn.style.background = '#1ec99a';
+
     setTimeout(() => {
-      this.innerHTML = orig;
-      this.style.background = '';
-      window.location.href = 'login.html';
-    }, 1800);
+      // Save booking to localStorage
+      const user = JSON.parse(localStorage.getItem('sq_user') || '{}');
+      const booking = {
+        id: 'SQ' + Math.floor(100000 + Math.random() * 900000),
+        attraction: attraction ? attraction.name : document.title,
+        slug: slug,
+        checkIn: ci.value,
+        checkOut: co.value,
+        guests: document.getElementById('guestsSelect')?.value || '2',
+        total: document.querySelector('.price-total')?.textContent || 'KSh —',
+        status: 'Confirmed',
+        bookedAt: new Date().toISOString(),
+        userName: user.name || 'Guest'
+      };
+
+      const existing = JSON.parse(localStorage.getItem('sq_bookings') || '[]');
+      existing.unshift(booking);
+      localStorage.setItem('sq_bookings', JSON.stringify(existing));
+
+      btn.innerHTML = orig;
+      btn.disabled = false;
+      btn.style.background = '';
+
+      showBookingConfirmation(booking);
+    }, 1500);
   });
 
   update();
@@ -490,4 +515,83 @@ function showError(message) {
         <a href="destinations.html" class="btn-book" style="display:inline-flex;text-decoration:none">← Back to Destinations</a>
       </div>`;
   }
+}
+
+/* ══════════════════════════════════════
+   BOOKING CONFIRMATION MODAL
+   Shows M-Pesa simulation after booking saved to localStorage
+══════════════════════════════════════ */
+function showBookingConfirmation(booking) {
+  // Remove any existing modal
+  document.getElementById('sq-booking-modal')?.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'sq-booking-modal';
+  modal.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,.6);
+    display:flex;align-items:center;justify-content:center;
+    z-index:9999;padding:20px;backdrop-filter:blur(4px);
+  `;
+
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:20px;max-width:420px;width:100%;padding:32px;text-align:center;animation:slideUp .3s ease">
+      <div style="font-size:3rem;margin-bottom:8px">🎉</div>
+      <h2 style="color:#1a3c2e;margin:0 0 6px">Booking Confirmed!</h2>
+      <p style="color:#666;margin:0 0 20px;font-size:.9rem">Booking ref: <strong>${booking.id}</strong></p>
+
+      <div style="background:#f0f9f4;border-radius:12px;padding:16px;margin-bottom:24px;text-align:left">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:#666;font-size:.85rem">Destination</span>
+          <span style="font-weight:600;font-size:.85rem">${booking.attraction}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:#666;font-size:.85rem">Check-in</span>
+          <span style="font-weight:600;font-size:.85rem">${booking.checkIn}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:#666;font-size:.85rem">Check-out</span>
+          <span style="font-weight:600;font-size:.85rem">${booking.checkOut}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:#666;font-size:.85rem">Guests</span>
+          <span style="font-weight:600;font-size:.85rem">${booking.guests}</span>
+        </div>
+      </div>
+
+      <!-- M-Pesa simulation -->
+      <div style="background:#4caf50;border-radius:12px;padding:16px;margin-bottom:20px;color:#fff">
+        <div style="font-size:1.1rem;font-weight:700;margin-bottom:4px">🟢 M-Pesa Payment</div>
+        <div style="font-size:.82rem;opacity:.9">A payment request has been sent to your M-Pesa.</div>
+        <div style="font-size:.82rem;opacity:.9;margin-top:4px">Enter your PIN to complete the transaction.</div>
+        <div style="background:rgba(255,255,255,.2);border-radius:8px;padding:10px;margin-top:12px">
+          <div style="font-size:.78rem;opacity:.85">Transaction ID</div>
+          <div style="font-size:1rem;font-weight:700;letter-spacing:2px">MP${booking.id}</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px">
+        <button onclick="document.getElementById('sq-booking-modal').remove()"
+          style="flex:1;padding:12px;border:2px solid #e0e0e0;border-radius:10px;background:#fff;cursor:pointer;font-size:.9rem">
+          Close
+        </button>
+        <a href="dashboard.html"
+          style="flex:1;padding:12px;background:#E8732A;color:#fff;border-radius:10px;text-decoration:none;font-size:.9rem;font-weight:600;display:inline-flex;align-items:center;justify-content:center">
+          View My Bookings
+        </a>
+      </div>
+    </div>
+    <style>
+      @keyframes slideUp {
+        from { opacity:0; transform:translateY(30px); }
+        to   { opacity:1; transform:translateY(0); }
+      }
+    </style>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Close on backdrop click
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) modal.remove();
+  });
 }

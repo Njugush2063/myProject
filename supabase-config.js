@@ -68,10 +68,12 @@ window.db = {
         `${ATTRACT_TABLE}?slug=eq.${encodeURIComponent(slug)}&limit=1`
       );
       if (Array.isArray(data) && data.length > 0) return data[0];
-      return null;
+      // Supabase returned empty — use local fallback
+      console.warn('[supabase-config] Supabase empty for slug:', slug, '— using local data');
+      return window.getAttractionBySlug ? window.getAttractionBySlug(slug) : null;
     } catch (err) {
-      console.warn('[supabase-config] getAttraction failed:', err.message);
-      return null;
+      console.warn('[supabase-config] getAttraction failed:', err.message, '— using local data');
+      return window.getAttractionBySlug ? window.getAttractionBySlug(slug) : null;
     }
   },
 
@@ -80,10 +82,12 @@ window.db = {
       const data = await sbFetch(
         `${ATTRACT_TABLE}?category=eq.${encodeURIComponent(category)}&slug=neq.${encodeURIComponent(currentSlug)}&order=rating.desc&limit=4`
       );
-      return Array.isArray(data) ? data : [];
+      if (Array.isArray(data) && data.length > 0) return data;
+      // Fallback to local similar
+      return window.getSimilarAttractions ? window.getSimilarAttractions(category, currentSlug) : [];
     } catch (err) {
       console.warn('[supabase-config] getSimilar failed:', err.message);
-      return [];
+      return window.getSimilarAttractions ? window.getSimilarAttractions(category, currentSlug) : [];
     }
   }
 

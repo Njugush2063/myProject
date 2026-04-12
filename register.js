@@ -283,19 +283,27 @@ form.addEventListener('submit', async (e) => {
   submitBtn.classList.add('loading');
   submitBtn.disabled = true;
 
-  // Simulate API call (replace with real fetch/XHR)
+  // Simulate API call
   await new Promise(resolve => setTimeout(resolve, 1800));
 
   submitBtn.classList.remove('loading');
   submitBtn.disabled = false;
 
-  // Success feedback
-  showToast('Account created! Welcome aboard 🌍', 'success');
+  // Save user to localStorage
+  const userData = {
+    name: firstInput.value.trim() + ' ' + lastInput.value.trim(),
+    email: emailInput.value.trim().toLowerCase(),
+    password: pw1Input.value,
+    registeredAt: new Date().toISOString()
+  };
+  localStorage.setItem('sq_user', JSON.stringify(userData));
+  localStorage.setItem('sq_session', 'active');
 
-  // Optionally reset the form
-  // form.reset();
-  // [firstInput, lastInput, emailInput, pw1Input, pw2Input].forEach(resetField);
-  // strengthBarWrap.classList.remove('visible');
+  // Success feedback and redirect
+  showToast('Account created! Welcome to SafariQuest 🌍', 'success');
+  setTimeout(function () {
+    window.location.href = 'dashboard.html';
+  }, 1800);
 });
 
 // ── Social Buttons (placeholder handlers) ──────────────────────────────────

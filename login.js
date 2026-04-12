@@ -1,196 +1,166 @@
 /* ============================================================
    TRAVEL PORTAL — login.js
-   ============================================================ */
+   Authenticates users against localStorage (sq_user).
+============================================================ */
 
 document.addEventListener('DOMContentLoaded', function () {
 
-  /* ── Element references ── */
   const form        = document.getElementById('loginForm');
   const emailInput  = document.getElementById('email');
   const pwInput     = document.getElementById('password');
   const emailError  = document.getElementById('emailError');
   const pwError     = document.getElementById('passwordError');
   const togglePwBtn = document.getElementById('togglePw');
-  const eyeOpen     = togglePwBtn.querySelector('.eye-open');
-  const eyeClosed   = togglePwBtn.querySelector('.eye-closed');
   const loginBtn    = document.getElementById('loginBtn');
-  const btnText     = loginBtn.querySelector('.btn-text');
+  const btnText     = loginBtn ? loginBtn.querySelector('.btn-text') : null;
   const btnSpinner  = document.getElementById('btnSpinner');
 
-  /* ═══════════════════════════════════════
-     AUTHORISED CREDENTIALS
-     Add or edit entries here as needed.
-  ════════════════════════════════════════ */
-  loginBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    // Direct login without checking credentials
-    window.location.href = "dashboard.html";
-});
+  /* Redirect if already logged in */
+  if (localStorage.getItem('sq_session') === 'active') {
+    window.location.href = 'dashboard.html';
+    return;
+  }
 
-  /* ═══════════════════════════════════════
-     PASSWORD VISIBILITY TOGGLE
-  ════════════════════════════════════════ */
-  togglePwBtn.addEventListener('click', function () {
-    const isPassword = pwInput.type === 'password';
-    pwInput.type = isPassword ? 'text' : 'password';
-    eyeOpen.style.display   = isPassword ? 'none'  : 'block';
-    eyeClosed.style.display = isPassword ? 'block' : 'none';
-  });
+  /* Password toggle */
+  if (togglePwBtn) {
+    togglePwBtn.addEventListener('click', function () {
+      const isPassword = pwInput.type === 'password';
+      pwInput.type = isPassword ? 'text' : 'password';
+      const eyeOpen   = togglePwBtn.querySelector('.eye-open');
+      const eyeClosed = togglePwBtn.querySelector('.eye-closed');
+      if (eyeOpen)   eyeOpen.style.display   = isPassword ? 'none'  : 'block';
+      if (eyeClosed) eyeClosed.style.display = isPassword ? 'block' : 'none';
+    });
+  }
 
-  /* ═══════════════════════════════════════
-     VALIDATION HELPERS
-  ════════════════════════════════════════ */
+  /* Validation */
   function isValidEmail(val) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
   }
 
-  function showError(inputWrap, errorEl, message) {
-    inputWrap.classList.add('error');
-    errorEl.textContent = message;
+  function showFieldError(inputEl, errorEl, msg) {
+    if (!inputEl || !errorEl) return;
+    var wrap = inputEl.closest('.input-wrap');
+    if (wrap) wrap.classList.add('error');
+    errorEl.textContent = msg;
   }
 
-  function clearError(inputWrap, errorEl) {
-    inputWrap.classList.remove('error');
+  function clearFieldError(inputEl, errorEl) {
+    if (!inputEl || !errorEl) return;
+    var wrap = inputEl.closest('.input-wrap');
+    if (wrap) wrap.classList.remove('error');
     errorEl.textContent = '';
   }
 
-  /* ── Live validation: clear error as user types ── */
-  emailInput.addEventListener('input', function () {
-    clearError(emailInput.closest('.input-wrap'), emailError);
-  });
+  if (emailInput) emailInput.addEventListener('input', function () { clearFieldError(emailInput, emailError); });
+  if (pwInput)    pwInput.addEventListener('input',    function () { clearFieldError(pwInput, pwError); });
 
-  pwInput.addEventListener('input', function () {
-    clearError(pwInput.closest('.input-wrap'), pwError);
-  });
-
-  /* ═══════════════════════════════════════
-     FORM VALIDATION
-  ════════════════════════════════════════ */
   function validateForm() {
-    let isValid = true;
-
-    const emailWrap = emailInput.closest('.input-wrap');
-    const pwWrap    = pwInput.closest('.input-wrap');
-
-    // Email checks
+    var ok = true;
     if (!emailInput.value.trim()) {
-      showError(emailWrap, emailError, 'Email address is required.');
-      isValid = false;
+      showFieldError(emailInput, emailError, 'Email address is required.'); ok = false;
     } else if (!isValidEmail(emailInput.value)) {
-      showError(emailWrap, emailError, 'Please enter a valid email address.');
-      isValid = false;
-    } else {
-      clearError(emailWrap, emailError);
-    }
+      showFieldError(emailInput, emailError, 'Please enter a valid email address.'); ok = false;
+    } else { clearFieldError(emailInput, emailError); }
 
-    // Password checks
     if (!pwInput.value) {
-      showError(pwWrap, pwError, 'Password is required.');
-      isValid = false;
+      showFieldError(pwInput, pwError, 'Password is required.'); ok = false;
     } else if (pwInput.value.length < 6) {
-      showError(pwWrap, pwError, 'Password must be at least 6 characters.');
-      isValid = false;
-    } else {
-      clearError(pwWrap, pwError);
-    }
-
-    return isValid;
+      showFieldError(pwInput, pwError, 'Password must be at least 6 characters.'); ok = false;
+    } else { clearFieldError(pwInput, pwError); }
+    return ok;
   }
 
-  /* ═══════════════════════════════════════
-     TOAST NOTIFICATIONS
-  ════════════════════════════════════════ */
+  /* Toast */
   function showToast(message, type, duration) {
     duration = duration || 3000;
-
-    const existing = document.querySelector('.toast');
+    var existing = document.querySelector('.toast');
     if (existing) existing.remove();
-
-    const toast = document.createElement('div');
+    var toast = document.createElement('div');
     toast.className = 'toast ' + type;
     toast.textContent = message;
     document.body.appendChild(toast);
-
     requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        toast.classList.add('show');
-      });
+      requestAnimationFrame(function () { toast.classList.add('show'); });
     });
-
     setTimeout(function () {
       toast.classList.remove('show');
       setTimeout(function () { toast.remove(); }, 350);
     }, duration);
   }
 
-  /* ═══════════════════════════════════════
-     LOADING STATE
-  ════════════════════════════════════════ */
-  function setLoading(isLoading) {
-    loginBtn.disabled        = isLoading;
-    btnText.style.display    = isLoading ? 'none'        : 'inline';
-    btnSpinner.style.display = isLoading ? 'inline-flex' : 'none';
+  /* Loading state */
+  function setLoading(on) {
+    if (!loginBtn) return;
+    loginBtn.disabled = on;
+    if (btnText)    btnText.style.display    = on ? 'none'        : 'inline';
+    if (btnSpinner) btnSpinner.style.display = on ? 'inline-flex' : 'none';
   }
 
-  /* ═══════════════════════════════════════
-     FORM SUBMIT
-  ════════════════════════════════════════ */
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    if (!validateForm()) return;
-
-    setLoading(true);
-
-    // Simulate network delay
-    setTimeout(function () {
-      setLoading(false);
-
-      const enteredEmail    = emailInput.value.trim().toLowerCase();
-      const enteredPassword = pwInput.value;
-
-      // Check against valid users list
-      const match = VALID_USERS.find(function (user) {
-        return user.email.toLowerCase() === enteredEmail &&
-               user.password            === enteredPassword;
-      });
-
-      if (match) {
-        showToast('Login successful! Redirecting...', 'success');
-        setTimeout(function () {
-          window.location.href = 'dashboard.html';
-        }, 1500);
-      } else {
-        showToast('Invalid email or password. Please try again.', 'error');
+  /* Auth from localStorage + demo bypass */
+  function authenticate(email, password) {
+    var stored = localStorage.getItem('sq_user');
+    if (stored) {
+      try {
+        var user = JSON.parse(stored);
+        if (user.email && user.email.toLowerCase() === email.toLowerCase() && user.password === password) {
+          return { success: true, name: user.name };
+        }
+      } catch (e) {}
+    }
+    /* Demo account */
+    if (email.toLowerCase() === 'demo@safariquest.com' && password === 'demo1234') {
+      if (!stored) {
+        localStorage.setItem('sq_user', JSON.stringify({ name: 'Demo Traveller', email: 'demo@safariquest.com', password: 'demo1234' }));
       }
+      return { success: true, name: 'Demo Traveller' };
+    }
+    return { success: false };
+  }
 
-    }, 1200);
-  });
+  /* Form submit */
+  if (form) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!validateForm()) return;
+      setLoading(true);
+      setTimeout(function () {
+        setLoading(false);
+        var result = authenticate(emailInput.value.trim(), pwInput.value);
+        if (result.success) {
+          localStorage.setItem('sq_session', 'active');
+          showToast('Welcome back, ' + result.name + '! Redirecting...', 'success');
+          setTimeout(function () { window.location.href = 'dashboard.html'; }, 1400);
+        } else {
+          showToast('Invalid credentials. Try demo@safariquest.com / demo1234', 'error', 4000);
+        }
+      }, 1200);
+    });
+  }
 
-  /* ═══════════════════════════════════════
-     SOCIAL BUTTON FEEDBACK
-  ════════════════════════════════════════ */
+  /* Social buttons */
   document.querySelectorAll('.btn-social').forEach(function (btn) {
     btn.addEventListener('click', function () {
-      const provider = btn.textContent.trim();
-      showToast('Connecting to ' + provider + '...', 'success', 2000);
+      showToast('Social login coming soon — use email/password or demo account', 'success', 3000);
     });
   });
 
-  /* ═══════════════════════════════════════
-     FORGOT PASSWORD LINK
-  ════════════════════════════════════════ */
-  document.querySelector('.forgot-link').addEventListener('click', function (e) {
-    e.preventDefault();
-    showToast('Password reset link sent to your email.', 'success', 3000);
-  });
+  /* Forgot password */
+  var forgotLink = document.querySelector('.forgot-link');
+  if (forgotLink) {
+    forgotLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      showToast('Tip: Register a new account or use demo@safariquest.com / demo1234', 'success', 4000);
+    });
+  }
 
-  /* ═══════════════════════════════════════
-     SIGN UP LINK
-  ════════════════════════════════════════ */
-  document.querySelector('.signup-link').addEventListener('click', function (e) {
-    e.preventDefault();
-    window.location.href = 'register.html';
-  });
+  /* Sign up link */
+  var signupLink = document.querySelector('.signup-link');
+  if (signupLink) {
+    signupLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      window.location.href = 'register.html';
+    });
+  }
 
 });
