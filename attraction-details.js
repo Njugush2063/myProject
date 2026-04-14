@@ -359,44 +359,67 @@ function initBooking(a, toast) {
   });
   co?.addEventListener('change', () => update());
 
+  function buildBookingSelection() {
+    return {
+      attractionSlug: a.slug,
+      attractionName: a.name,
+      checkIn: ci?.value || '',
+      checkOut: co?.value || '',
+      guests: document.getElementById('guestsSelect')?.value || String(count),
+      packageType: document.getElementById('packageType')?.value || 'standard',
+    };
+  }
+
+  const resumed = Auth.readResumedData();
+  if (resumed?.data) {
+    if (resumed.data.checkIn && ci) ci.value = resumed.data.checkIn;
+    if (resumed.data.checkOut && co) co.value = resumed.data.checkOut;
+    if (resumed.data.guests && document.getElementById('guestsSelect')) {
+      document.getElementById('guestsSelect').value = resumed.data.guests;
+    }
+    if (resumed.data.packageType && document.getElementById('packageType')) {
+      document.getElementById('packageType').value = resumed.data.packageType;
+    }
+  }
+
   document.getElementById('bookNowBtn')?.addEventListener('click', function () {
     if (!ci?.value || !co?.value) {
       toast('Please select your travel dates', 'info');
       return;
     }
 
-    const btn = this;
-    const orig = btn.innerHTML;
-    btn.textContent = '⏳ Processing...';
-    btn.disabled = true;
-    btn.style.background = '#1ec99a';
+    Auth.requireAuth({ action: 'pay', data: buildBookingSelection() }, () => {
+      const btn = document.getElementById('bookNowBtn');
+      const orig = btn.innerHTML;
+      btn.textContent = '⏳ Processing...';
+      btn.disabled = true;
+      btn.style.background = '#1ec99a';
 
-    setTimeout(() => {
-      // Save booking to localStorage
-      const user = JSON.parse(localStorage.getItem('sq_user') || '{}');
-      const booking = {
-        id: 'SQ' + Math.floor(100000 + Math.random() * 900000),
-        attraction: attraction ? attraction.name : document.title,
-        slug: slug,
-        checkIn: ci.value,
-        checkOut: co.value,
-        guests: document.getElementById('guestsSelect')?.value || '2',
-        total: document.querySelector('.price-total')?.textContent || 'KSh —',
-        status: 'Confirmed',
-        bookedAt: new Date().toISOString(),
-        userName: user.name || 'Guest'
-      };
+      setTimeout(() => {
+        const user = Auth.getUser() || {};
+        const booking = {
+          id: 'SQ' + Math.floor(100000 + Math.random() * 900000),
+          attraction: attraction ? attraction.name : document.title,
+          slug: slug,
+          checkIn: ci.value,
+          checkOut: co.value,
+          guests: document.getElementById('guestsSelect')?.value || '2',
+          total: document.querySelector('.price-total')?.textContent || 'KSh —',
+          status: 'Confirmed',
+          bookedAt: new Date().toISOString(),
+          userName: user.name || 'Guest'
+        };
 
-      const existing = JSON.parse(localStorage.getItem('sq_bookings') || '[]');
-      existing.unshift(booking);
-      localStorage.setItem('sq_bookings', JSON.stringify(existing));
+        const existing = JSON.parse(localStorage.getItem('sq_bookings') || '[]');
+        existing.unshift(booking);
+        localStorage.setItem('sq_bookings', JSON.stringify(existing));
 
-      btn.innerHTML = orig;
-      btn.disabled = false;
-      btn.style.background = '';
-
-      showBookingConfirmation(booking);
-    }, 1500);
+        btn.innerHTML = orig;
+        btn.disabled = false;
+        btn.style.background = '';
+        showBookingConfirmation(booking);
+      }, 1500);
+    });
   });
 
   update();

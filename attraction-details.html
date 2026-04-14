@@ -15,17 +15,20 @@
 <!-- ── NAV ── -->
 <!-- FIX 2: id="navbar" is required — attraction-details.js targets it for the scroll shadow effect -->
 <nav id="navbar">
-  <a class="logo" href="Index.html">
-    <img src="logo.png" alt="SafariQuest" class="logo-img"/>
+  <a class="logo" href="index.html">
+    <img src="logo.jpeg" alt="SafariQuest" class="logo-img"/>
     <div class="logo-text">
       <span class="logo-name">SafariQuest</span>
       <span class="logo-slogan">Discover. Explore. Experience.</span>
     </div>
   </a>
   <ul class="nav-links">
-    <li><a href="destinations.html">Destinations</a></li>
-    <li><a href="Index.html#regions">Regions</a></li>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="destinations.html" class="active">Destinations</a></li>
+    <li><a href="hotels.html">Hotels</a></li>
+    <li><a href="restaurants.html">Restaurants</a></li>
     <li><a href="events.html">Events</a></li>
+    <li><a href="about.html">About Us</a></li>
     <li><a href="contact.html">Contact</a></li>
   </ul>
   <div class="nav-actions">
@@ -41,7 +44,7 @@
   <div class="hero-content">
     <!-- Breadcrumb -->
     <nav class="breadcrumb">
-      <a href="Index.html">Home</a>
+      <a href="index.html">Home</a>
       <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
       <a href="destinations.html">Destinations</a>
       <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
@@ -285,10 +288,10 @@
   <div class="footer-grid">
     <div class="footer-brand">
       <div class="footer-logo">
-        <img src="logo.png" alt="SafariQuest" class="logo-img logo-img-sm"/>
+        <img src="logo.jpeg" alt="SafariQuest" class="logo-img logo-img-sm"/>
         <span>SafariQuest</span>
       </div>
-      <p>Your trusted digital gateway to Kenya's most breathtaking destinations, events, and experiences.</p>
+      <p>Your gateway to Kenya's magic — from the savanna to the coast.</p>
       <div class="footer-socials">
         <button class="fsoc">
           <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/></svg>
@@ -302,11 +305,14 @@
       </div>
     </div>
     <div class="footer-col">
-      <h4>Quick Links</h4>
+      <h4>Explore</h4>
       <ul class="footer-links">
+        <li><a href="index.html">Home</a></li>
         <li><a href="destinations.html">Destinations</a></li>
+        <li><a href="hotels.html">Hotels</a></li>
+        <li><a href="restaurants.html">Restaurants</a></li>
         <li><a href="events.html">Events</a></li>
-        <li><a href="#">Accommodations</a></li>
+        <li><a href="about.html">About Us</a></li>
         <li><a href="contact.html">Contact</a></li>
       </ul>
     </div>
@@ -354,6 +360,7 @@
 </div>
 
 <script src="attractions-data.js"></script>
+<script src="auth.js"></script>
 <script src="supabase-config.js"></script>
 <script src="attraction-details.js"></script>
 </body>

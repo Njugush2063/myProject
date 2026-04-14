@@ -14,21 +14,20 @@
  */
 
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
-const SUPABASE_URL    = 'https://cbyipmrozqsntojiartw.supabase.co';
-const SUPABASE_ANON   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieWlwbXJvenFzbnRvamlhcnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTkxNTQsImV4cCI6MjA4ODk3NTE1NH0.31TAhmUCV_Uh0W8FGnR2_TLCZDU4YBM1U5LMSMc5JZs';
+const SUPABASE_URL  = 'https://cbyipmrozqsntojiartw.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieWlwbXJvenFzbnRvamlhcnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTkxNTQsImV4cCI6MjA4ODk3NTE1NH0.31TAhmUCV_Uh0W8FGnR2_TLCZDU4YBM1U5LMSMc5JZs';
+const DEV_USERS_KEY = 'sq_dev_users';
+const DEV_BYPASS_FLAG_KEY = 'sq_enable_dev_auth_bypass';
+const DEV_AUTH_BYPASS =
+  localStorage.getItem(DEV_BYPASS_FLAG_KEY) === '1' ||
+  window.location.protocol === 'file:' ||
+  window.location.hostname === 'localhost' ||
+  window.location.hostname === '127.0.0.1';
 
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
-
-/**
- * Lightweight Supabase REST + Auth helper.
- * We avoid a full SDK bundle so the script stays tiny on every page.
- */
+// ─── SUPABASE HELPER ─────────────────────────────────────────────────────────
 const SQ = (() => {
-  const headers = () => ({
-    'apikey': SUPABASE_ANON,
-    'Authorization': `Bearer ${getAccessToken() || SUPABASE_ANON}`,
-    'Content-Type': 'application/json',
-  });
+
+  // ── Session storage ────────────────────────────────────────────────────────
 
   function saveSession(session) {
     if (!session) { localStorage.removeItem('sq_session'); return; }
@@ -48,96 +47,231 @@ const SQ = (() => {
     return getSession()?.user || null;
   }
 
-  /** Parse and persist a session from the URL hash (OAuth / magic-link callbacks) */
+  function isLoggedIn() {
+    return !!getAccessToken();
+  }
+
+  function getDevUsers() {
+    try { return JSON.parse(localStorage.getItem(DEV_USERS_KEY) || '{}'); }
+    catch { return {}; }
+  }
+
+  function saveDevUser(email, password, meta = {}) {
+    const users = getDevUsers();
+    users[email.toLowerCase()] = {
+      password,
+      full_name: meta.full_name || '',
+      created_at: new Date().toISOString(),
+    };
+    localStorage.setItem(DEV_USERS_KEY, JSON.stringify(users));
+  }
+
+  function createDevSession(email, meta = {}) {
+    const fullName = meta.full_name || email.split('@')[0];
+    const session = {
+      access_token: 'dev_' + Date.now(),
+      refresh_token: 'dev_refresh',
+      expires_at: Date.now() + 24 * 60 * 60 * 1000,
+      user: {
+        id: 'dev_' + email.toLowerCase(),
+        email: email.toLowerCase(),
+        user_metadata: { full_name: fullName }
+      },
+      is_dev_auth: true
+    };
+    saveSession(session);
+    return session;
+  }
+
+  // ── OAuth hash handling ────────────────────────────────────────────────────
+
   function handleHashSession() {
     const hash = window.location.hash;
     if (!hash.includes('access_token')) return false;
 
-    const params = new URLSearchParams(hash.slice(1));
+    const params  = new URLSearchParams(hash.slice(1));
     const session = {
       access_token:  params.get('access_token'),
       refresh_token: params.get('refresh_token'),
       expires_at:    Date.now() + Number(params.get('expires_in') || 3600) * 1000,
-      user: null, // fetched below
+      user: null,
     };
     saveSession(session);
-
-    // Clean the URL
     history.replaceState(null, '', window.location.pathname + window.location.search);
     return true;
   }
 
-  /** Fetch the logged-in user profile from Supabase */
+  // ── Remote user fetch ──────────────────────────────────────────────────────
+
   async function fetchUser() {
     const token = getAccessToken();
     if (!token) return null;
     try {
       const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
         headers: {
-          'apikey': SUPABASE_ANON,
+          'apikey':        SUPABASE_ANON,
           'Authorization': `Bearer ${token}`,
         },
       });
       if (!res.ok) { saveSession(null); return null; }
-      const user = await res.json();
-      // Merge user into existing session
+      const user    = await res.json();
       const session = getSession();
       if (session) { session.user = user; saveSession(session); }
       return user;
     } catch { return null; }
   }
 
+  // ── Sign In ────────────────────────────────────────────────────────────────
+
   async function signInWithEmail(email, password) {
     const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
+      method:  'POST',
       headers: { 'apikey': SUPABASE_ANON, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body:    JSON.stringify({ email, password }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error_description || data.msg || 'Login failed');
+    if (!res.ok) {
+      if (DEV_AUTH_BYPASS) {
+        const users = getDevUsers();
+        const devUser = users[email.toLowerCase()];
+        if (devUser && devUser.password === password) {
+          createDevSession(email, { full_name: devUser.full_name });
+          return { user: getUser(), access_token: getAccessToken(), dev_bypass: true };
+        }
+      }
+      throw new Error(data.error_description || data.msg || 'Login failed');
+    }
     saveSession(data);
     return data;
   }
 
+  // ── Sign Up ────────────────────────────────────────────────────────────────
+  /**
+   * Registers a new user via Supabase Auth, then writes a matching row into
+   * the `profiles` table so credentials/metadata are stored in the DB.
+   *
+   * Supabase Auth already stores email + hashed password automatically;
+   * the profiles upsert adds full_name and any extra metadata you want to
+   * persist server-side.
+   */
   async function signUp(email, password, meta = {}) {
+    // 1. Create the auth account
     const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
-      method: 'POST',
+      method:  'POST',
       headers: { 'apikey': SUPABASE_ANON, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, data: meta }),
+      body:    JSON.stringify({ email, password, data: meta }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error_description || data.msg || 'Sign-up failed');
-    if (data.access_token) saveSession(data);
+
+    if (!res.ok) {
+      if (DEV_AUTH_BYPASS) {
+        saveDevUser(email, password, meta);
+        createDevSession(email, meta);
+        return { user: getUser(), access_token: getAccessToken(), dev_bypass: true };
+      }
+      throw new Error(data.error_description || data.msg || 'Sign-up failed');
+    }
+
+    // 2. Persist session if Supabase returned one immediately
+    //    (happens when "Confirm email" is disabled in your project settings)
+    if (data.access_token) {
+      saveSession(data);
+
+      // 3. Write profile row to `profiles` table
+      //    Uses the access token so RLS policies can identify the user.
+      try {
+        await upsertProfile({
+          id:         data.user?.id,
+          email:      email,
+          full_name:  meta.full_name || '',
+          created_at: new Date().toISOString(),
+        }, data.access_token);
+      } catch (profileErr) {
+        // Non-fatal — auth succeeded even if profile write fails
+        console.warn('SafariQuest: profile upsert failed', profileErr);
+      }
+    } else if (DEV_AUTH_BYPASS) {
+      // Local dev shortcut when Supabase requires email confirmation.
+      saveDevUser(email, password, meta);
+      createDevSession(email, meta);
+    }
+
     return data;
   }
+
+  // ── Profile upsert ────────────────────────────────────────────────────────
+  /**
+   * Writes (or updates) a row in the public.profiles table.
+   * Your Supabase table should have at minimum: id (uuid), email, full_name.
+   *
+   * Make sure you have an RLS policy that allows:
+   *   INSERT / UPDATE for authenticated users WHERE id = auth.uid()
+   */
+  async function upsertProfile(profile, accessToken) {
+    if (!profile.id) return; // no-op if no user id
+    const token = accessToken || getAccessToken();
+    if (!token) return;
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
+      method:  'POST',
+      headers: {
+        'apikey':        SUPABASE_ANON,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type':  'application/json',
+        'Prefer':        'resolution=merge-duplicates', // upsert behaviour
+      },
+      body: JSON.stringify(profile),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Profile write failed');
+    }
+  }
+
+  // ── Sign Out ───────────────────────────────────────────────────────────────
 
   async function signOut() {
     const token = getAccessToken();
     if (token) {
       await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
-        method: 'POST',
+        method:  'POST',
         headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${token}` },
       }).catch(() => {});
     }
     saveSession(null);
   }
 
-  return { saveSession, getSession, getAccessToken, getUser, handleHashSession, fetchUser, signInWithEmail, signUp, signOut };
+  // ── OAuth (Google / Facebook) ─────────────────────────────────────────────
+  /**
+   * Redirects to Supabase's OAuth flow.
+   * provider: 'google' | 'facebook'
+   */
+  function signInWithOAuth(provider) {
+    const redirectTo = encodeURIComponent(window.location.origin + '/register.html');
+    window.location.href =
+      `${SUPABASE_URL}/auth/v1/authorize?provider=${provider}&redirect_to=${redirectTo}`;
+  }
+
+  return {
+    setSession: saveSession,
+    saveSession,
+    getSession,
+    getAccessToken,
+    getUser,
+    isLoggedIn,
+    handleHashSession,
+    fetchUser,
+    signInWithEmail,
+    signUp,
+    upsertProfile,
+    signOut,
+    signInWithOAuth,
+  };
 })();
 
 
 // ─── INTENT STORAGE ──────────────────────────────────────────────────────────
-/**
- * "Pending intent" — what the user was trying to do before we forced login.
- * Stored in sessionStorage so it survives a redirect but not a new browser tab.
- *
- * Shape:
- * {
- *   returnUrl: '/tours/maasai-mara.html',
- *   action: 'book',          // 'book' | 'pay' | 'enquire'
- *   data: { tourId, date, travelers, ... }   // any serialisable payload
- * }
- */
 const PendingIntent = {
   save(intent) {
     sessionStorage.setItem('sq_pending_intent', JSON.stringify(intent));
@@ -151,57 +285,86 @@ const PendingIntent = {
   },
 };
 
+const AvatarStore = {
+  key: 'sq_profile_avatars',
+  getAll() {
+    try { return JSON.parse(localStorage.getItem(this.key) || '{}'); }
+    catch { return {}; }
+  },
+  get(email) {
+    if (!email) return '';
+    return this.getAll()[email.toLowerCase()] || '';
+  },
+  set(email, dataUrl) {
+    if (!email) return;
+    const all = this.getAll();
+    all[email.toLowerCase()] = dataUrl;
+    localStorage.setItem(this.key, JSON.stringify(all));
+  }
+};
+
 
 // ─── NAV UPDATE ──────────────────────────────────────────────────────────────
-/**
- * Swap the header's login/register buttons for an avatar menu when logged in.
- * Expects the existing HTML to have:
- *   <a class="nav-login"  href="/login.html">Login</a>
- *   <a class="nav-register" href="/register.html">Register</a>
- *
- * Works with ANY page that includes those two elements.
- */
 function updateNavForUser(user) {
-  const loginBtn    = document.querySelector('.nav-login, a[href*="login.html"]');
-  const registerBtn = document.querySelector('.nav-register, a[href*="register.html"]');
+  document.querySelectorAll('.sq-avatar-menu').forEach(node => node.remove());
+  const loginBtn =
+    document.querySelector('.nav-login, a[href*="login.html"], button[onclick*="login.html"]') ||
+    Array.from(document.querySelectorAll('button,a')).find(el => {
+      const t = (el.textContent || '').trim().toLowerCase();
+      return t === 'sign in' || t === 'login' || t === 'log in';
+    });
+  const registerBtn =
+    document.querySelector('.nav-register, a[href*="register.html"], button[onclick*="register.html"]') ||
+    Array.from(document.querySelectorAll('button,a')).find(el => {
+      const t = (el.textContent || '').trim().toLowerCase();
+      return t.includes('sign up') || t.includes('register');
+    });
 
-  if (!loginBtn && !registerBtn) return; // nav not found on this page
+  if (!loginBtn && !registerBtn) return;
 
   if (user) {
-    // Build avatar dropdown
-    const initials = getInitials(user);
+    const displayName = getDisplayName(user);
+    const avatarUrl   = getAvatarUrl(user);
+    const initials   = getInitials(user);
     const avatarMenu = document.createElement('div');
     avatarMenu.className = 'sq-avatar-menu';
     avatarMenu.innerHTML = `
       <button class="sq-avatar-btn" aria-label="My account" aria-expanded="false">
-        <span class="sq-avatar-initials">${initials}</span>
-        <span class="sq-avatar-name">${user.user_metadata?.full_name || user.email.split('@')[0]}</span>
+        <span class="sq-avatar-initials sq-avatar-wrap" title="${displayName}">
+          ${avatarUrl
+            ? `<img src="${avatarUrl}" alt="${displayName}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+            : `<span>${initials}</span>`
+          }
+        </span>
+        <span class="sq-avatar-name">My Account</span>
         <svg class="sq-chevron" viewBox="0 0 20 20" fill="currentColor" width="14" height="14">
           <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"/>
         </svg>
       </button>
       <ul class="sq-avatar-dropdown" role="menu">
-        <li><a href="/dashboard.html" role="menuitem">🧭 My Dashboard</a></li>
-        <li><a href="/bookings.html"  role="menuitem">🎟️ My Bookings</a></li>
-        <li><a href="/profile.html"   role="menuitem">👤 Profile</a></li>
+        <li style="padding:8px 10px;font-size:.83rem;color:#6b7280;">${displayName}</li>
+        <li><a href="/dashboard.html" role="menuitem">My Dashboard</a></li>
+        <li><a href="/bookings.html" role="menuitem">My Bookings</a></li>
+        <li><a href="/profile.html" role="menuitem">Profile</a></li>
+        <li><button id="sq-upload-avatar-btn" type="button" role="menuitem">Upload Photo</button></li>
         <li class="sq-divider"></li>
-        <li><button id="sq-logout-btn" role="menuitem">🚪 Log Out</button></li>
+        <li><button id="sq-logout-btn" role="menuitem">Logout</button></li>
       </ul>`;
 
-    // Replace both buttons with the menu
     const parent = loginBtn?.parentNode || registerBtn?.parentNode;
     loginBtn?.remove();
     registerBtn?.remove();
     parent?.appendChild(avatarMenu);
 
-    // Toggle dropdown
     const btn      = avatarMenu.querySelector('.sq-avatar-btn');
     const dropdown = avatarMenu.querySelector('.sq-avatar-dropdown');
+
     btn.addEventListener('click', () => {
       const open = btn.getAttribute('aria-expanded') === 'true';
       btn.setAttribute('aria-expanded', String(!open));
       dropdown.classList.toggle('sq-open', !open);
     });
+
     document.addEventListener('click', e => {
       if (!avatarMenu.contains(e.target)) {
         btn.setAttribute('aria-expanded', 'false');
@@ -209,49 +372,75 @@ function updateNavForUser(user) {
       }
     });
 
-    // Logout
     document.getElementById('sq-logout-btn')?.addEventListener('click', async () => {
       await SQ.signOut();
-      window.location.href = '/Index.html';
+      window.location.href = '/index.html';
+    });
+
+    const uploadInput = document.createElement('input');
+    uploadInput.type = 'file';
+    uploadInput.accept = 'image/*';
+    uploadInput.style.display = 'none';
+    avatarMenu.appendChild(uploadInput);
+
+    document.getElementById('sq-upload-avatar-btn')?.addEventListener('click', () => {
+      uploadInput.click();
+    });
+
+    uploadInput.addEventListener('change', async () => {
+      const file = uploadInput.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const dataUrl = String(reader.result || '');
+        AvatarStore.set(user.email, dataUrl);
+        if (user.user_metadata) user.user_metadata.avatar_url = dataUrl;
+        const session = SQ.getSession();
+        if (session?.user) {
+          session.user.user_metadata = session.user.user_metadata || {};
+          session.user.user_metadata.avatar_url = dataUrl;
+          SQ.saveSession(session);
+        }
+        try {
+          await SQ.upsertProfile({
+            id: session?.user?.id,
+            email: user.email,
+            full_name: displayName,
+            avatar_url: dataUrl
+          }, SQ.getAccessToken());
+        } catch (_) {}
+        updateNavForUser(session?.user || user);
+      };
+      reader.readAsDataURL(file);
     });
 
   } else {
-    // Ensure login/register buttons are visible (no change needed normally)
     loginBtn?.style.removeProperty('display');
     registerBtn?.style.removeProperty('display');
   }
 }
 
 function getInitials(user) {
-  const name = user.user_metadata?.full_name || user.email || '';
+  const name = getDisplayName(user);
   return name.split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2) || '?';
 }
 
+function getDisplayName(user) {
+  return user?.user_metadata?.full_name || user?.name || user?.email?.split('@')[0] || 'User';
+}
 
-// ─── BOOKING GATE ────────────────────────────────────────────────────────────
-/**
- * Call this from any "Book Now" / "Pay" button handler.
- *
- * If the user is logged in  → runs `proceedFn()` immediately.
- * If the user is NOT logged in → saves intent, shows login modal (or redirects).
- *
- * @param {Object} intent   - { action, data } — what to resume after login
- * @param {Function} proceedFn - called if/once the user is authenticated
- */
+function getAvatarUrl(user) {
+  return user?.user_metadata?.avatar_url || AvatarStore.get(user?.email) || '';
+}
+
+
+// ─── AUTH GATE ────────────────────────────────────────────────────────────────
 function requireAuth(intent, proceedFn) {
   const user = SQ.getUser();
-  if (user) {
-    proceedFn(user);
-    return;
-  }
+  if (user) { proceedFn(user); return; }
 
-  // Save current URL + intent
-  PendingIntent.save({
-    returnUrl: window.location.href,
-    ...intent,
-  });
+  PendingIntent.save({ returnUrl: window.location.href, ...intent });
 
-  // Try to show an inline modal first; fallback to redirect
   const modal = document.getElementById('sq-login-modal');
   if (modal) {
     modal.classList.add('sq-modal-open');
@@ -263,21 +452,12 @@ function requireAuth(intent, proceedFn) {
   }
 }
 
-/**
- * After a successful login (called from login.html / register.html),
- * restore the pending intent and redirect the user back.
- */
 async function resumePendingIntent() {
   const intent = PendingIntent.get();
   PendingIntent.clear();
 
-  if (!intent?.returnUrl) {
-    window.location.href = '/dashboard.html';
-    return;
-  }
+  if (!intent?.returnUrl) { window.location.href = '/dashboard.html'; return; }
 
-  // Build the return URL; pass the serialised data as a search param so the
-  // target page can read it without needing a backend.
   const url = new URL(intent.returnUrl);
   if (intent.data) {
     url.searchParams.set('sq_resume', btoa(JSON.stringify(intent.data)));
@@ -286,19 +466,29 @@ async function resumePendingIntent() {
   window.location.href = url.toString();
 }
 
-/**
- * On the booking/payment page, call this once to read back any saved data
- * that was in the URL and re-populate the form.
- *
- * Returns the decoded object, or null if nothing was saved.
- */
+function handlePostLoginRedirect(defaultUrl = 'dashboard.html') {
+  const intent = PendingIntent.get();
+  PendingIntent.clear();
+
+  if (!intent?.returnUrl) {
+    window.location.href = defaultUrl;
+    return;
+  }
+
+  const url = new URL(intent.returnUrl, window.location.origin);
+  if (intent.data) {
+    url.searchParams.set('sq_resume', btoa(JSON.stringify(intent.data)));
+    url.searchParams.set('sq_action', intent.action || 'book');
+  }
+  window.location.href = url.toString();
+}
+
 function readResumedData() {
   const params = new URLSearchParams(window.location.search);
   const raw    = params.get('sq_resume');
   const action = params.get('sq_action');
   if (!raw) return null;
 
-  // Clean the URL (optional — keeps it tidy)
   params.delete('sq_resume');
   params.delete('sq_action');
   const clean = params.toString();
@@ -308,31 +498,44 @@ function readResumedData() {
   catch { return null; }
 }
 
+function ensureAuthStyles() {
+  const hasStyles = !!document.querySelector('link[href*="auth-ui.css"]');
+  if (hasStyles) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'auth-ui.css';
+  document.head.appendChild(link);
+}
 
-// ─── BOOTSTRAP ───────────────────────────────────────────────────────────────
+
+// ─── BOOTSTRAP ────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
-  // 1. Handle OAuth/magic-link callback
+  ensureAuthStyles();
   const fromHash = SQ.handleHashSession();
 
-  // 2. Get session + user
   let user = SQ.getUser();
   if (!user || fromHash) {
-    user = await SQ.fetchUser(); // verify token is still valid
+    user = await SQ.fetchUser();
   }
 
-  // 3. Update nav on every page
   updateNavForUser(user);
 
-  // 4. If we just came back from OAuth, resume any pending intent
   if (fromHash && user) {
     await resumePendingIntent();
   }
 });
 
-// ─── PUBLIC API ──────────────────────────────────────────────────────────────
-// Expose on window so any inline script can use it.
-window.SQ             = SQ;
-window.PendingIntent  = PendingIntent;
-window.requireAuth    = requireAuth;
+
+// ─── PUBLIC API ───────────────────────────────────────────────────────────────
+window.SQ                  = SQ;
+window.Auth                = {
+  ...SQ,
+  requireAuth,
+  resumePendingIntent,
+  handlePostLoginRedirect,
+  readResumedData,
+};
+window.PendingIntent       = PendingIntent;
+window.requireAuth         = requireAuth;
 window.resumePendingIntent = resumePendingIntent;
 window.readResumedData     = readResumedData;

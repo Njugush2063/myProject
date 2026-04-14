@@ -27,19 +27,13 @@ var SEARCH_DATA = [
 document.addEventListener('DOMContentLoaded', function () {
 
   /* ── 1. AUTH GUARD ──────────────────────────────────────── */
-  /* Uncomment the block below when login.html is in place.
-     Currently left commented so the dashboard is viewable
-     without a session (useful during development).
-
-  if (localStorage.getItem('sq_session') !== 'active') {
-    window.location.href = 'login.html';
+  if (!Auth.isLoggedIn()) {
+    Auth.requireAuth({ action: 'dashboard' });
     return;
   }
-  */
 
   /* ── 2. LOAD USER FROM localStorage ────────────────────── */
-  var user = {};
-  try { user = JSON.parse(localStorage.getItem('sq_user') || '{}'); } catch (e) {}
+  var user = Auth.getUser() || {};
 
   var userName  = user.name || 'Traveller';
   var firstName = userName.split(' ')[0];
@@ -145,8 +139,8 @@ document.addEventListener('DOMContentLoaded', function () {
   /* ── 16. LOGOUT BUTTON ──────────────────────────────────── */
   var logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
-    logoutBtn.addEventListener('click', function () {
-      localStorage.removeItem('sq_session');
+    logoutBtn.addEventListener('click', async function () {
+      await Auth.signOut();
       window.location.href = 'login.html';
     });
   }
