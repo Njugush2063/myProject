@@ -1,63 +1,59 @@
-/**
- * auth.js — SafariQuest Shared Auth Utility
- * Add this file to your myProject/ root folder.
- * Load it as the FIRST script in every HTML page's <head>.
- *
- * Usage on protected pages:
- *   <script src="auth.js"></script>
- *   <script>Auth.guard();</script>
- *
- * Usage on login page after successful login:
- *   Auth.login({ name: 'Jane', email: 'jane@email.com' });
- *
- * Usage for logout button:
- *   Auth.logout();
- */
+/* ============================================================
+   auth.js — SafariQuest Shared Auth Utility (Supabase)
+   Place this file in your myProject/ root folder.
+   Load it as the FIRST <script> in every page's <head>.
+   ============================================================
+
+   HOW TO USE:
+   - Protected pages:  <script src="auth.js"></script>
+                       <script>Auth.guard();</script>
+   - After login:      Auth.setSession(supabaseSession);
+   - Logout button:    Auth.logout();
+   - Get user info:    Auth.getUser(); // returns { email, name, ... }
+*/
 
 const Auth = {
   SESSION_KEY: 'sqi_auth_session',
 
   /**
-   * Call this after a successful login.
-   * @param {object} userData - any user info you want to store
+   * Store a Supabase session object after successful login.
+   * @param {object} session - the session object from Supabase
    */
-  login(userData = {}) {
-    const session = {
-      user: userData,
+  setSession(session) {
+    if (!session) return;
+    const data = {
+      access_token: session.access_token,
+      user: {
+        id:    session.user?.id,
+        email: session.user?.email,
+        name:  session.user?.user_metadata?.full_name
+               || session.user?.user_metadata?.name
+               || session.user?.email?.split('@')[0]
+               || 'Traveller'
+      },
       ts: Date.now()
     };
-    sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
-    // Also mirror to localStorage for persistence across tabs
-    localStorage.setItem(this.SESSION_KEY, JSON.stringify(session));
+    sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(data));
+    localStorage.setItem(this.SESSION_KEY, JSON.stringify(data));
   },
 
   /**
-   * Returns true if the user is considered authenticated.
-   * Checks (in order):
-   *  1. sessionStorage (set when dashboard loads or login occurs)
-   *  2. localStorage (persistent login)
-   *  3. ?skipAuth=true URL param (dashboard navigation bypass)
+   * Returns true if the user is authenticated.
+   * Checks sessionStorage -> localStorage -> ?skipAuth URL param.
    */
   isLoggedIn() {
-    // 1. Check sessionStorage
     if (sessionStorage.getItem(this.SESSION_KEY)) return true;
 
-    // 2. Check localStorage
-    if (localStorage.getItem(this.SESSION_KEY)) {
-      // Promote to sessionStorage so subsequent checks are faster
-      sessionStorage.setItem(
-        this.SESSION_KEY,
-        localStorage.getItem(this.SESSION_KEY)
-      );
+    const stored = localStorage.getItem(this.SESSION_KEY);
+    if (stored) {
+      sessionStorage.setItem(this.SESSION_KEY, stored);
       return true;
     }
 
-    // 3. Check URL param (used when navigating from dashboard)
+    // Dashboard navigation bypass
     const params = new URLSearchParams(window.location.search);
     if (params.get('skipAuth') === 'true') {
-      // Stamp the session so further page navigations also pass
-      this.login({ bypass: true });
-      // Clean the URL (remove ?skipAuth=true from address bar)
+      sessionStorage.setItem(this.SESSION_KEY, JSON.stringify({ bypass: true, ts: Date.now() }));
       window.history.replaceState({}, '', window.location.pathname);
       return true;
     }
@@ -76,18 +72,15 @@ const Auth = {
   },
 
   /**
-   * Get the stored user object (or null).
+   * Get the stored user object.
+   * @returns {{ id, email, name } | null}
    */
   getUser() {
-    const raw =
-      sessionStorage.getItem(this.SESSION_KEY) ||
-      localStorage.getItem(this.SESSION_KEY);
+    const raw = sessionStorage.getItem(this.SESSION_KEY)
+             || localStorage.getItem(this.SESSION_KEY);
     if (!raw) return null;
-    try {
-      return JSON.parse(raw).user || null;
-    } catch {
-      return null;
-    }
+    try { return JSON.parse(raw).user || null; }
+    catch { return null; }
   },
 
   /**
@@ -96,6 +89,9 @@ const Auth = {
   logout() {
     sessionStorage.removeItem(this.SESSION_KEY);
     localStorage.removeItem(this.SESSION_KEY);
+    // Also clear the old localStorage keys from previous system
+    localStorage.removeItem('sq_session');
+    localStorage.removeItem('sq_user');
     window.location.href = 'login.html';
   }
 };

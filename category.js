@@ -8,19 +8,10 @@
 /* SUPABASE_URL is declared in supabase-config.js — do not redeclare here */
 const STORAGE_BASE  = 'https://cbyipmrozqsntojiartw.supabase.co/storage/v1/object/public/destination-images';
 
-/* ─────────────────────────────────────────────────────────────────────
-   Helper: build a Supabase Storage public URL
-   e.g. storageUrl('football/kasarani-stadium.jpg')
-───────────────────────────────────────────────────────────────────── */
 function storageUrl(path) {
   return `${STORAGE_BASE}/${path}`;
 }
 
-/* ─────────────────────────────────────────────────────────────────────
-   SPORT META  —  hero copy + stats per sport
-   heroBg now points to Supabase Storage (populated by setup script).
-   heroFallbackBg is used if the Supabase image hasn't loaded yet.
-───────────────────────────────────────────────────────────────────── */
 const SPORT_META = {
   football: {
     label:         '⚽ Football in Kenya',
@@ -116,9 +107,7 @@ const PAGE_TITLES = {
 };
 
 /* ─────────────────────────────────────────────────────────────────────
-   STATIC FALLBACK DATA  —  used when Supabase returns nothing.
-   image_hero field now points to Supabase Storage paths so both
-   live DB data and static fallback render via the same img tag.
+   STATIC FALLBACK DATA
 ───────────────────────────────────────────────────────────────────── */
 function makeStatic(sport, slug, name, county, difficulty, rating, best_time, description, highlights, featured, schedule) {
   return {
@@ -163,23 +152,56 @@ const STATIC_SPORTS = {
     makeStatic('golf','kisumu-golf-club','Kisumu Golf Club','Kisumu','Easy',4.2,'Year-round','Lakeside golf on the shores of Lake Victoria — the only golf club in Kenya with lake views from every hole.',['Lake Victoria Views','Unique Setting','9 Holes'],false,'https://www.kisumugolfclub.co.ke'),
     makeStatic('golf','mountain-lodge-golf','Fairmont Mount Kenya Safari Club Golf','Nyeri','Moderate',4.7,'January – March','Golf against the breathtaking backdrop of Mount Kenya — a 9-hole course at altitude with wildlife on the fairways.',['Mt Kenya Views','Wildlife on Fairways','Altitude Golf'],false,'https://www.fairmont.com/mount-kenya-safari'),
   ],
+
+  /* ── SAFARI RALLY: 3 locations only, no destinations detail link ── */
   rally: [
-    makeStatic('rally','naivasha-rally-stage','Naivasha Rally Hub','Nakuru','Moderate',4.9,'June – July','The beating heart of the WRC Safari Rally — service park, super-special stages and fan zones in the stunning Rift Valley.',['WRC Safari Rally','Service Park','Fan Zones'],true,'https://www.wrc.com/en/events/safari-rally-kenya'),
-    makeStatic('rally','kedong-stage','Kedong Valley Stage','Nakuru','Challenging',4.8,'June – July','Legendary Kedong stage through the Great Rift Valley floor — fast, flat and spectacularly wild terrain.',['Rift Valley Floor','Fast Flat Stage','WRC Speed'],false,'https://www.wrc.com/en/events/safari-rally-kenya'),
-    makeStatic('rally','soysambu-stage','Soysambu Conservancy Stage','Nakuru','Challenging',4.7,'June – July','Rally through a wildlife conservancy — drivers navigate murram roads as giraffes and zebras watch on.',['Wildlife Stage','Murram Roads','Unique Experience'],false,'https://www.wrc.com/en/events/safari-rally-kenya'),
-    makeStatic('rally','kasarani-sss','Kasarani Super Special Stage','Nairobi','Easy',4.6,'June – July','The crowd-pleasing Kasarani Super Special Stage brings WRC action to 40,000 fans in the national stadium.',['Stadium Stage','40,000 Fans','Head-to-Head Duel'],false,'https://www.wrc.com/en/events/safari-rally-kenya'),
-    makeStatic('rally','sleeping-warrior-stage','Sleeping Warrior Stage','Nakuru','Challenging',4.7,'June – July','Technical twisting stage around the flanks of the Sleeping Warrior extinct volcano near Lake Naivasha.',['Volcanic Terrain','Technical Stage','WRC Challenge'],false,'https://www.wrc.com/en/events/safari-rally-kenya'),
-    makeStatic('rally','oserian-stage','Oserian Stage','Nakuru','Challenging',4.6,'June – July','The infamous Oserian stage through flower farms and rough volcanic rock — one of the most feared in WRC.',['Volcanic Rock','Feared Stage','Flower Farm Backdrop'],false,'https://www.wrc.com/en/events/safari-rally-kenya'),
-    makeStatic('rally','hell-gate-rally-stage',"Hell's Gate Rally Stage",'Nakuru','Challenging',4.8,'June – July',"Through Hell's Gate gorge — dramatic red volcanic cliffs tower over drivers as they navigate one of rally's most photogenic stages.",['Volcanic Cliffs','Most Photogenic','Dramatic Scenery'],false,'https://www.wrc.com/en/events/safari-rally-kenya'),
-    makeStatic('rally','elmenteita-stage','Lake Elmenteita Stage','Nakuru','Moderate',4.6,'June – July','Flanking a flamingo lake — this stage offers surreal scenery with pink birds in the background and rally cars in the foreground.',['Flamingo Lake Views','Surreal Scenery','Rift Valley'],false,'https://www.wrc.com/en/events/safari-rally-kenya'),
-    makeStatic('rally','gilgil-stage','Gilgil Military Stage','Nakuru','Moderate',4.4,'June – July','Through the Gilgil military area — fast and flowing with wide murram roads through classic African bush.',['Fast & Flowing','Wide Murram Roads','African Bush'],false,'https://www.wrc.com/en/events/safari-rally-kenya'),
-    makeStatic('rally','safari-rally-museum','Safari Rally Heritage Museum','Nairobi','Easy',4.5,'Year-round','Relive 70+ years of Safari Rally history — vintage cars, legendary driver trophies and immersive rally exhibits.',['70+ Year History','Vintage Cars','Rally Legends'],false,'https://www.kenyasafari.com'),
-    makeStatic('rally','maai-mahiu-stage','Mai Mahiu Descent Stage','Nakuru','Challenging',4.7,'June – July',"The terrifying descent from the Rift Valley escarpment — blind crests and sharp drops make this a driver's nightmare.",['Escarpment Descent','Blind Crests',"Driver's Nightmare"],false,'https://www.wrc.com/en/events/safari-rally-kenya'),
-    makeStatic('rally','nakuru-super-stage','Nakuru Town Super Stage','Nakuru','Easy',4.5,'June – July','Rally action in Nakuru town centre — street stage where thousands of fans pack the barriers for close-up action.',['Street Stage','Town Centre','Close-up Action'],false,'https://www.wrc.com/en/events/safari-rally-kenya'),
-    makeStatic('rally','delamere-stage','Delamere Estate Stage','Nakuru','Moderate',4.4,'June – July','Historic farmland stage across the iconic Delamere Estate — wide open roads through golden wheat fields.',['Historic Farmland','Wheat Field Roads','Delamere Legacy'],false,'https://www.wrc.com/en/events/safari-rally-kenya'),
-    makeStatic('rally','longonot-stage','Mount Longonot Stage','Nakuru','Challenging',4.8,'June – July','Volcanic stage circling the base of Mount Longonot — jagged terrain and loose gravel push cars to their limits.',['Volcanic Terrain','Loose Gravel','Longonot Crater'],false,'https://www.wrc.com/en/events/safari-rally-kenya'),
-    makeStatic('rally','naivasha-power-stage','Naivasha Power Stage','Nakuru','Challenging',4.9,'June – July','The final WRC Power Stage — bonus points and maximum drama as drivers push absolutely everything on the last test.',['Power Stage','Bonus Points','Maximum Drama'],true,'https://www.wrc.com/en/events/safari-rally-kenya'),
+    {
+      sport: 'rally',
+      slug: 'naivasha-wrc-hub',
+      name: 'Naivasha WRC Safari Rally Hub',
+      county: 'Nakuru',
+      difficulty: 'Moderate',
+      rating: 4.9,
+      best_time: 'June – July',
+      description: 'The beating heart of the WRC Safari Rally — the service park, ceremonial start, super-special stages and massive fan zones are all centred around Lake Naivasha in the stunning Great Rift Valley.',
+      highlights: ['WRC Service Park','Super Special Stage','Fan Zones & Camps'],
+      featured: true,
+      schedule: 'https://www.wrc.com/en/events/safari-rally-kenya',
+      image_hero: storageUrl('rally/naivasha-rally-stage.jpg'),
+      noDetail: true,
+    },
+    {
+      sport: 'rally',
+      slug: 'kasarani-super-special',
+      name: 'Kasarani Super Special Stage',
+      county: 'Nairobi',
+      difficulty: 'Easy',
+      rating: 4.6,
+      best_time: 'June – July',
+      description: 'The crowd-pleasing Kasarani Super Special Stage brings WRC action to 40,000 roaring fans inside the national stadium — side-by-side head-to-head duels that thrill even non-rally fans.',
+      highlights: ['Stadium Rally Stage','40,000 Fans','Head-to-Head Duels'],
+      featured: false,
+      schedule: 'https://www.wrc.com/en/events/safari-rally-kenya',
+      image_hero: storageUrl('rally/kasarani-sss.jpg'),
+      noDetail: true,
+    },
+    {
+      sport: 'rally',
+      slug: 'naivasha-power-stage',
+      name: 'Naivasha Power Stage',
+      county: 'Nakuru',
+      difficulty: 'Challenging',
+      rating: 4.9,
+      best_time: 'June – July',
+      description: 'The final WRC Power Stage — bonus championship points and maximum drama as drivers push absolutely everything on the last gruelling test through the Rift Valley\'s iconic murram roads.',
+      highlights: ['WRC Power Stage','Bonus Points','Maximum Drama'],
+      featured: true,
+      schedule: 'https://www.wrc.com/en/events/safari-rally-kenya',
+      image_hero: storageUrl('rally/naivasha-power-stage.jpg'),
+      noDetail: true,
+    },
   ],
+
   basketball: [
     makeStatic('basketball','nyayo-indoor-arena','Nyayo National Stadium Indoor Arena','Nairobi','Easy',4.7,'Year-round',"Kenya's premier indoor basketball arena hosting KBF Premier League finals and FIBA Africa qualifying rounds.",['FIBA Africa Venue','KBF Finals','Premier Arena'],true,'https://www.kenyabasketball.com/schedule'),
     makeStatic('basketball','kasarani-indoor','Kasarani Gymnasium','Nairobi','Easy',4.6,'Year-round','Part of the Moi International Sports Centre complex — large indoor arena with excellent lighting and seating for major tournaments.',['Major Tournaments','International Events','Large Capacity'],false,'https://www.kenyabasketball.com/schedule'),
@@ -234,10 +256,7 @@ const STATIC_SPORTS = {
 let currentSport = 'football';
 
 /* ─────────────────────────────────────────────────────────────────────
-   INIT
-───────────────────────────────────────────────────────────────────── */
-/* ─────────────────────────────────────────────────────────────────────
-   ATTRACTION TYPE META  — for non-sports category pages
+   ATTRACTION TYPE META
 ───────────────────────────────────────────────────────────────────── */
 const ATTRACTION_META = {
   'big-five': {
@@ -251,7 +270,7 @@ const ATTRACTION_META = {
     stats:     [{ val:'8', lbl:'Top Reserves' }, { val:'5', lbl:'Big Five Species' }, { val:'4.8★', lbl:'Avg Rating' }],
     gridTitle: 'Big Five Safari Destinations',
     breadcrumb:'Big Five Safari',
-    supabaseCategory: 'big-five',
+    supabaseCategory: 'Big Five Safari',
   },
   'birds': {
     label:     '🦅 Bird Watching',
@@ -264,7 +283,7 @@ const ATTRACTION_META = {
     stats:     [{ val:'1,100+', lbl:'Bird Species' }, { val:'10', lbl:'Top Sites' }, { val:'4.7★', lbl:'Avg Rating' }],
     gridTitle: 'Bird Watching Destinations',
     breadcrumb:'Bird Watching',
-    supabaseCategory: 'birds',
+    supabaseCategory: 'Bird Watching',
   },
   'mountain': {
     label:     '⛰️ Mountain Treks',
@@ -277,7 +296,7 @@ const ATTRACTION_META = {
     stats:     [{ val:'4', lbl:'Trekking Routes' }, { val:'5,199m', lbl:'Max Altitude' }, { val:'4.8★', lbl:'Avg Rating' }],
     gridTitle: 'Mountain Trekking Destinations',
     breadcrumb:'Mountain Treks',
-    supabaseCategory: 'mountain',
+    supabaseCategory: 'Mountain Treks',
   },
   'beach': {
     label:     '🏖️ Beach Escapes',
@@ -290,7 +309,7 @@ const ATTRACTION_META = {
     stats:     [{ val:'500km', lbl:'Coastline' }, { val:'6', lbl:'Top Beaches' }, { val:'4.8★', lbl:'Avg Rating' }],
     gridTitle: 'Beach Destinations',
     breadcrumb:'Beach Escapes',
-    supabaseCategory: 'beach',
+    supabaseCategory: 'Beach Escapes',
   },
   'cultural': {
     label:     '🎭 Cultural Tours',
@@ -303,7 +322,7 @@ const ATTRACTION_META = {
     stats:     [{ val:'42+', lbl:'Ethnic Communities' }, { val:'8', lbl:'Cultural Sites' }, { val:'4.7★', lbl:'Avg Rating' }],
     gridTitle: 'Cultural Tour Destinations',
     breadcrumb:'Cultural Tours',
-    supabaseCategory: 'cultural',
+    supabaseCategory: 'Cultural Tours',
   },
 };
 
@@ -316,7 +335,6 @@ async function loadAttractions(type) {
   const grid = document.getElementById('sportsGrid');
   const meta = ATTRACTION_META[type];
 
-  /* Show skeletons */
   grid.innerHTML = Array(6).fill(`
     <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.07);">
       <div style="height:200px;background:#e8e8e8;animation:shimmer 1.4s infinite;"></div>
@@ -340,11 +358,8 @@ async function loadAttractions(type) {
     console.warn('[category.js] Attraction fetch failed:', err.message);
   }
 
-  /* ── Static fallback: use DESTINATIONS from destinations.js if loaded,
-        otherwise use a minimal built-in set ── */
   if (!items.length) {
     console.info(`[category.js] Supabase returned 0 rows for "${type}" — using static fallback`);
-    /* destinations.js may be loaded on the same page and exposes DESTINATIONS */
     const staticPool = (typeof DESTINATIONS !== 'undefined' && DESTINATIONS[type]) ? DESTINATIONS[type] : [];
     items = staticPool.map(d => ({
       slug:        d.slug,
@@ -400,26 +415,27 @@ async function loadAttractions(type) {
   }).join('');
 }
 
+/* ─────────────────────────────────────────────────────────────────────
+   DOMContentLoaded — DEFAULT TO FOOTBALL TAB
+───────────────────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('scroll', () => {
     document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
   });
 
   const params = new URLSearchParams(window.location.search);
-  const param  = params.get('sport') || params.get('type') || 'football';
+  const param  = params.get('sport') || params.get('type');
 
   /* ── Attraction type: hide sports tabs, render attractions ── */
-  if (ATTRACTION_TYPES.includes(param)) {
+  if (param && ATTRACTION_TYPES.includes(param)) {
     const m = ATTRACTION_META[param];
     document.title = `${m.label} — SafariQuest Kenya`;
 
-    /* Hide sports-only UI */
     const tabsBar    = document.querySelector('.sport-tabs-bar');
     const panelIntro = document.getElementById('panelIntro');
     if (tabsBar)    tabsBar.style.display    = 'none';
     if (panelIntro) panelIntro.style.display = 'none';
 
-    /* Update hero */
     const hero = document.getElementById('catHero');
     if (hero) hero.style.backgroundImage = `url('${m.heroBg}')`;
     const el = id => document.getElementById(id);
@@ -428,7 +444,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el('heroTitle'))      el('heroTitle').innerHTML         = m.heroTitle;
     if (el('heroDesc'))       el('heroDesc').textContent        = m.heroDesc;
 
-    /* Render intro manually */
     if (panelIntro) {
       panelIntro.style.display = 'block';
       const statsHtml = m.stats.map(s => `<div class="stat-item"><span class="stat-val">${s.val}</span><span class="stat-lbl">${s.lbl}</span></div>`).join('');
@@ -442,12 +457,20 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  /* ── Sports type: existing flow ── */
-  const valid    = Object.keys(SPORT_META);
-  currentSport   = valid.includes(param) ? param : 'football';
+  /* ── Sports type: always default to football tab ── */
+  const valid  = Object.keys(SPORT_META);
+  /* Only honour the URL param if it's a known sport; otherwise force football */
+  currentSport = (param && valid.includes(param)) ? param : 'football';
 
-  document.title = `${PAGE_TITLES[param] || 'Destinations'} — SafariQuest Kenya`;
+  /* If URL had a non-football sport param, update URL to reflect actual tab shown */
+  if (!param || !valid.includes(param)) {
+    history.replaceState(null, '', `?sport=football`);
+  }
 
+  document.title = `${PAGE_TITLES[currentSport] || 'Destinations'} — SafariQuest Kenya`;
+
+  /* Activate the correct tab button */
+  document.querySelectorAll('.sport-tab').forEach(t => t.classList.remove('active'));
   const activeTab = document.querySelector(`.sport-tab[data-sport="${currentSport}"]`);
   if (activeTab) activeTab.classList.add('active');
 
@@ -471,20 +494,15 @@ window.switchSport = function (sport, btn) {
 
 /* ─────────────────────────────────────────────────────────────────────
    UPDATE HERO SECTION
-   Sets hero background to the Supabase-stored image for this sport.
-   Uses heroFallbackBg until the image loads, then transitions in.
 ───────────────────────────────────────────────────────────────────── */
 function updateHero(sport) {
   const m    = SPORT_META[sport];
   const hero = document.getElementById('catHero');
 
   if (hero) {
-    /* Start with fallback, then load the Supabase image */
     hero.style.backgroundImage = `url('${m.heroFallbackBg}')`;
     const img = new Image();
-    img.onload = () => {
-      hero.style.backgroundImage = `url('${m.heroBg}')`;
-    };
+    img.onload = () => { hero.style.backgroundImage = `url('${m.heroBg}')`; };
     img.onerror = () => { /* keep fallback */ };
     img.src = m.heroBg;
   }
@@ -564,16 +582,13 @@ function renderGrid(destinations) {
 
 /* ─────────────────────────────────────────────────────────────────────
    BUILD CARD
-   image_hero: Supabase Storage URL (set by setup script or makeStatic)
+   noDetail flag (rally) → card shows WRC schedule button only, no explore link
 ───────────────────────────────────────────────────────────────────── */
 function buildCard(d) {
   const diff     = (d.difficulty || 'Easy').toLowerCase();
-
-  /* Resolve image: image_hero (DB/static) → fallback */
   const fallback  = `${STORAGE_BASE}/football/kasarani-stadium.jpg`;
   let img         = d.image_hero || fallback;
 
-  /* Handle legacy JSON-array image_hero just in case */
   if (typeof img === 'string' && img.startsWith('[')) {
     try { img = JSON.parse(img)[0] || fallback; } catch (_) { img = fallback; }
   }
@@ -583,8 +598,16 @@ function buildCard(d) {
   const county   = d.county   || '';
   const bestTime = d.best_time || 'Year-round';
 
+  /* For rally (noDetail: true) — no clickable card nav, no Explore link */
+  const cardClick = d.noDetail ? '' : `onclick="window.location.href='sports-details.html?id=${d.slug}'"`;
+  const cardStyle = d.noDetail ? 'cursor:default;' : 'cursor:pointer;';
+
+  const exploreLink = d.noDetail
+    ? ''
+    : `<a href="sports-details.html?id=${d.slug}" class="explore-link" onclick="event.stopPropagation()">⚡ Explore →</a>`;
+
   return `
-    <div class="dest-card" onclick="window.location.href='sports-details.html?id=${d.slug}'">
+    <div class="dest-card" ${cardClick} style="${cardStyle}">
       <div class="dest-img-wrap" style="position:relative;overflow:hidden;height:200px;border-radius:16px 16px 0 0;">
         <img
           src="${img}"
@@ -616,11 +639,9 @@ function buildCard(d) {
           ${tags.map(h => `<span class="tag">${h}</span>`).join('')}
         </div>
         <div class="dest-footer">
-          <a href="sports-details.html?id=${d.slug}"
-             class="explore-link"
-             onclick="event.stopPropagation()">⚡ Explore →</a>
+          ${exploreLink}
           ${schedURL !== '#'
-            ? `<a href="${schedURL}" class="schedule-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()">📅 Schedule</a>`
+            ? `<a href="${schedURL}" class="schedule-btn" target="_blank" rel="noopener" onclick="event.stopPropagation()">📅 WRC Schedule</a>`
             : ''}
         </div>
       </div>

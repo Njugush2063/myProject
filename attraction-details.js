@@ -1,80 +1,81 @@
 /* ============================================================
    ATTRACTION DETAILS — attraction-details.js
-   SafariQuest Kenya
-   Reads from window.ATTRACTIONS_DATA (local, attractions-data.js).
-   NO Supabase dependency — works fully on GitHub Pages.
+   Reads ?id=slug from URL, fetches from Supabase, populates page.
    ============================================================ */
 
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', async function () {
 
   /* ── Navbar scroll shadow ── */
-  var navbar = document.getElementById('navbar');
-  window.addEventListener('scroll', function () {
+  const navbar = document.getElementById('navbar');
+  const heroBg = document.querySelector('.hero-bg');
+
+  function onScroll() {
     if (navbar) {
       navbar.style.boxShadow = window.scrollY > 10
         ? '0 4px 20px rgba(0,0,0,.12)'
         : '0 2px 12px rgba(0,0,0,.07)';
     }
-    var st = document.getElementById('scrollTop');
+    const st = document.getElementById('scrollTop');
     if (st) st.classList.toggle('visible', window.scrollY > 400);
-  }, { passive: true });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
 
-  document.getElementById('scrollTop') &&
-    document.getElementById('scrollTop').addEventListener('click', function () {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+  /* Trigger hero bg slow-zoom after a tiny delay */
+  if (heroBg) setTimeout(() => heroBg.classList.add('loaded'), 100);
 
-  /* ── Hero bg zoom ── */
-  var heroBg = document.querySelector('.hero-bg');
-  if (heroBg) setTimeout(function () { heroBg.classList.add('loaded'); }, 100);
+  document.getElementById('scrollTop')?.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 
   /* ── Intersection observer for fade-in ── */
-  var observer = new IntersectionObserver(function (entries) {
-    entries.forEach(function (entry) {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
       if (entry.isIntersecting) entry.target.classList.add('visible');
     });
   }, { threshold: 0.08 });
-  document.querySelectorAll('.fade-in').forEach(function (el) { observer.observe(el); });
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
   /* ── Toast helper ── */
   function toast(msg, type) {
-    var t = document.getElementById('toast');
+    const t = document.getElementById('toast');
     if (!t) return;
     t.textContent = msg;
     t.className = 'toast ' + (type || 'info') + ' show';
     clearTimeout(t._timer);
-    t._timer = setTimeout(function () { t.classList.remove('show'); }, 3000);
+    t._timer = setTimeout(() => t.classList.remove('show'), 3000);
   }
 
   /* ══════════════════════════════════════
      1. READ SLUG FROM URL
   ══════════════════════════════════════ */
-  var params = new URLSearchParams(window.location.search);
-  var slug   = params.get('id');
+  const params = new URLSearchParams(window.location.search);
+  const slug   = params.get('id');
 
   if (!slug) {
     showError('No attraction specified. Please go back and select a destination.');
     return;
   }
 
-  /* Immediate breadcrumb fallback from slug */
-  var bc = document.querySelector('.breadcrumb span');
+  /* FIX: Set a readable breadcrumb immediately from the slug as a fallback,
+     so it never stays as "Loading..." if data is slow or fails. */
+  const bc = document.querySelector('.breadcrumb span');
   if (bc) {
-    bc.textContent = slug.replace(/-/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+    bc.textContent = slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
   /* ══════════════════════════════════════
-     2. FIND IN LOCAL DATA
+     2. FETCH FROM SUPABASE
   ══════════════════════════════════════ */
-  if (!window.ATTRACTIONS_DATA || !Array.isArray(window.ATTRACTIONS_DATA)) {
-    showError('Attraction data could not be loaded. Please refresh the page.');
-    return;
-  }
-
-  var attraction = window.ATTRACTIONS_DATA.find(function (d) { return d.slug === slug; });
-
-  if (!attraction) {
-    showError('Destination "' + slug + '" was not found. Please go back and select a valid destination.');
+  let attraction;
+  try {
+    attraction = await db.getAttraction(slug);
+    if (!attraction) {
+      showError('Attraction not found. The link may be incorrect.');
+      return;
+    }
+  } catch (err) {
+    console.error('Fetch error:', err);
+    showError('Could not load details. Check your connection and try again.');
     return;
   }
 
@@ -84,23 +85,28 @@ document.addEventListener('DOMContentLoaded', function () {
   populatePage(attraction);
 
   /* ══════════════════════════════════════
-     4. SIMILAR DESTINATIONS (from local data)
+     4. FETCH SIMILAR DESTINATIONS
   ══════════════════════════════════════ */
-  var similar = window.ATTRACTIONS_DATA
-    .filter(function (d) { return d.slug !== attraction.slug && d.category === attraction.category; })
-    .slice(0, 3);
-  renderSimilar(similar);
+  try {
+    const similar = await db.getSimilar(attraction.category, attraction.slug);
+    renderSimilar(similar);
+  } catch (err) {
+    console.error('Similar fetch error:', err);
+  }
 
   /* ══════════════════════════════════════
      5. INIT INTERACTIVE FEATURES
   ══════════════════════════════════════ */
-  var gallery = attraction.image_gallery || [];
+
+  /* Parse image_gallery safely — Supabase may return it as a JSON string.
+     Always ensure image_hero is present so lightbox has at least one image. */
+  let gallery = attraction.image_gallery;
   if (typeof gallery === 'string') {
-    try { gallery = JSON.parse(gallery); } catch (e) { gallery = []; }
+    try { gallery = JSON.parse(gallery); } catch { gallery = []; }
   }
   if (!Array.isArray(gallery)) gallery = [];
   gallery = gallery.filter(Boolean);
-  if (attraction.image_hero && gallery.indexOf(attraction.image_hero) === -1) {
+  if (attraction.image_hero && !gallery.includes(attraction.image_hero)) {
     gallery.unshift(attraction.image_hero);
   }
   if (gallery.length === 0 && attraction.image_hero) gallery = [attraction.image_hero];
@@ -110,229 +116,234 @@ document.addEventListener('DOMContentLoaded', function () {
   initWishlist(toast);
   initShare(attraction, toast);
   initNewsletter(toast);
+
 });
 
 /* ────────────────────────────────────────
-   POPULATE PAGE
+   POPULATE PAGE WITH SUPABASE DATA
 ──────────────────────────────────────── */
 function populatePage(a) {
-  function set(id, val) {
-    var el = document.getElementById(id);
-    if (el && val !== undefined && val !== null) el.textContent = val;
-  }
-  function setHTML(id, val) {
-    var el = document.getElementById(id);
-    if (el && val !== undefined) el.innerHTML = val;
-  }
-  function setQ(sel, val) {
-    var el = document.querySelector(sel);
-    if (el && val !== undefined && val !== null) el.textContent = val;
-  }
-  function setQHTML(sel, val) {
-    var el = document.querySelector(sel);
-    if (el && val !== undefined) el.innerHTML = val;
-  }
+  const set    = (id, val)  => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  const setHTML = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML   = val; };
 
-  document.title = a.name + ' — SafariQuest Kenya';
+  /* Page title */
+  document.title = `${a.name} — SafariQuest Kenya`;
 
   /* Hero background */
-  var heroBg = document.querySelector('.hero-bg');
+  const heroBg = document.querySelector('.hero-bg');
   if (heroBg && a.image_hero) {
-    heroBg.style.backgroundImage = "url('" + a.image_hero + "')";
+    heroBg.style.backgroundImage = `url('${a.image_hero}')`;
   }
 
-  /* Badges */
-  var diffBadge = document.querySelector('.badge-difficulty');
+  /* Hero badges */
+  const diffBadge = document.querySelector('.badge-difficulty');
   if (diffBadge) {
-    diffBadge.textContent = a.difficulty || '';
-    diffBadge.className   = 'badge-difficulty ' + (a.difficulty || '').toLowerCase();
+    diffBadge.textContent = a.difficulty;
+    diffBadge.className   = `badge-difficulty ${(a.difficulty || '').toLowerCase()}`;
   }
-  var catBadge = document.querySelector('.badge-category');
-  if (catBadge) catBadge.textContent = '🌍 ' + (a.category || 'Safari');
+  const catBadge = document.querySelector('.badge-category');
+  if (catBadge) catBadge.textContent = `🌍 ${a.category || 'Safari'}`;
 
   /* Hero title */
-  var h1 = document.querySelector('.hero-content h1');
+  const h1 = document.querySelector('.hero-content h1');
   if (h1) h1.textContent = a.name;
 
-  /* Hero meta */
-  setQHTML('.meta-location', '📍 ' + (a.region || a.location || 'Kenya'));
-  setQHTML('.meta-rating',   '⭐ ' + a.rating + ' (' + ((a.reviewCount || a.review_count || 128)) + ' reviews)');
-  setQHTML('.meta-time',     '🕐 Best: ' + (a.bestTime || a.best_time || 'Year-round'));
+  /* Hero meta spans */
+  const metaLoc    = document.querySelector('.meta-location');
+  const metaRating = document.querySelector('.meta-rating');
+  const metaTime   = document.querySelector('.meta-time');
+  if (metaLoc)    metaLoc.innerHTML    = `📍 ${a.location || 'Kenya'}`;
+  if (metaRating) metaRating.innerHTML = `⭐ ${a.rating} (${(a.review_count || 0).toLocaleString()} reviews)`;
+  if (metaTime)   metaTime.innerHTML   = `🕐 Best: ${a.best_time || 'Year-round'}`;
 
-  /* Breadcrumb */
-  var bc = document.querySelector('.breadcrumb span');
+  /* Breadcrumb — update with actual name now data has loaded */
+  const bc = document.querySelector('.breadcrumb span');
   if (bc) bc.textContent = a.name;
 
   /* Quick info bar */
-  set('info-best-time',  a.bestTime || a.best_time || '—');
+  set('info-best-time', a.best_time  || '—');
   set('info-difficulty', a.difficulty || '—');
-  set('info-climate',    a.climate || '—');
+  set('info-climate',    a.climate    || '—');
 
   /* Sidebar rating */
   set('sidebar-rating-score', a.rating || '—');
-  set('sidebar-rating-count', '(' + (a.reviewCount || a.review_count || 128) + ' reviews)');
+  set('sidebar-rating-count', `(${(a.review_count || 0).toLocaleString()} reviews)`);
 
   /* Sidebar quick details */
-  set('sidebar-duration',    a.duration   || '3–7 days');
-  set('sidebar-group',       a.group_size || a.groupSize || 'Any size');
+  set('sidebar-duration',    a.duration   || '—');
+  set('sidebar-group',       a.group_size || '—');
+  set('sidebar-price-range', `KSh ${(a.price_min || 0).toLocaleString('en-KE')} – KSh ${(a.price_max || 0).toLocaleString('en-KE')}`);
 
-  var priceMin = a.price_from || a.price_min || 0;
-  var priceMax = a.price_max  || Math.round(priceMin * 2.5);
-  set('sidebar-price-range', 'KSh ' + Number(priceMin).toLocaleString() + ' – KSh ' + Number(priceMax).toLocaleString());
-
-  var priceKsh = document.querySelector('.price-ksh');
-  if (priceKsh) priceKsh.textContent = 'KSh ' + Number(priceMin).toLocaleString();
+  /* Price display in sidebar header */
+  const priceKsh = document.querySelector('.price-ksh');
+  if (priceKsh) priceKsh.textContent = `KSh ${(a.price_min || 0).toLocaleString('en-KE')}`;
 
   /* Overview */
-  var overviewEl = document.getElementById('overview-text');
-  if (overviewEl) overviewEl.innerHTML = '<strong>' + a.name + '</strong> — ' + (a.description || '');
+  const overviewEl = document.getElementById('overview-text');
+  if (overviewEl) overviewEl.innerHTML = `<strong>${a.name}</strong> — ${a.description || ''}`;
 
   /* Highlights */
-  var hlList = document.getElementById('highlights-list');
+  const hlList = document.getElementById('highlights-list');
   if (hlList) {
-    var highlights = a.highlights || [];
+    /* FIX: highlights may be a JSON string in Supabase */
+    let highlights = a.highlights;
     if (typeof highlights === 'string') {
-      try { highlights = JSON.parse(highlights); } catch (e) { highlights = []; }
+      try { highlights = JSON.parse(highlights); } catch { highlights = []; }
     }
     if (Array.isArray(highlights) && highlights.length) {
-      hlList.innerHTML = highlights.map(function (h) {
-        return '<div class="highlight-item"><div class="hl-dot"></div><span>' + h + '</span></div>';
-      }).join('');
+      hlList.innerHTML = highlights.map(h => `
+        <div class="highlight-item">
+          <div class="hl-dot"></div>
+          <span>${h}</span>
+        </div>
+      `).join('');
     } else {
       hlList.innerHTML = '<p style="color:#999;font-size:.9rem">No highlights listed.</p>';
     }
   }
 
-  /* Gallery */
-  var gallery = a.image_gallery || [];
-  if (typeof gallery === 'string') { try { gallery = JSON.parse(gallery); } catch (e) { gallery = []; } }
+  /* Gallery images */
+  /* FIX: parse safely in case Supabase returns image_gallery as a JSON string */
+  let gallery = a.image_gallery;
+  if (typeof gallery === 'string') {
+    try { gallery = JSON.parse(gallery); } catch { gallery = []; }
+  }
   if (!Array.isArray(gallery)) gallery = [];
+  /* Remove any null/undefined/empty entries */
   gallery = gallery.filter(Boolean);
-  if (a.image_hero && gallery.indexOf(a.image_hero) === -1) gallery.unshift(a.image_hero);
+
+  /* Always ensure image_hero is in the gallery so the main slot is never black */
+  if (a.image_hero && !gallery.includes(a.image_hero)) {
+    gallery.unshift(a.image_hero);
+  }
+  /* Final fallback if still empty */
   if (gallery.length === 0 && a.image_hero) gallery = [a.image_hero];
 
-  var galMain = document.querySelector('.gal-main');
-  if (galMain && gallery[0]) galMain.style.backgroundImage = "url('" + gallery[0] + "')";
-  document.querySelectorAll('.gal-thumb').forEach(function (el, i) {
-    var src = gallery[i + 1] || gallery[0];
-    if (src) el.style.backgroundImage = "url('" + src + "')";
+  const galMain = document.querySelector('.gal-main');
+  if (galMain && gallery[0]) galMain.style.backgroundImage = `url('${gallery[0]}')`;
+
+  document.querySelectorAll('.gal-thumb').forEach((el, i) => {
+    /* i+1 so thumbs show images after the main slot */
+    const src = gallery[i + 1] || gallery[0]; /* fallback to first if not enough images */
+    if (src) el.style.backgroundImage = `url('${src}')`;
   });
 
   /* Map */
   set('map-pin-title', a.name);
-  set('location-note', 'Located in ' + (a.region || 'Kenya') + '. Duration: ' + (a.duration || '—') + '. Best visited: ' + (a.bestTime || a.best_time || '—') + '.');
-  var mapsLink = document.getElementById('maps-link');
-  if (mapsLink) mapsLink.href = 'https://maps.google.com/?q=' + encodeURIComponent(a.name + ' ' + (a.region || 'Kenya'));
+  set('location-note', `Located in ${a.location || 'Kenya'}. Duration: ${a.duration || '—'}. Best visited: ${a.best_time || '—'}.`);
+  const mapsLink = document.getElementById('maps-link');
+  if (mapsLink) mapsLink.href = `https://maps.google.com/?q=${encodeURIComponent(a.name + ' ' + (a.location || 'Kenya'))}`;
 
-  /* Reviews */
+  /* Reviews section */
   set('rating-score', a.rating || '—');
-  set('rating-count', (a.reviewCount || a.review_count || 128) + ' reviews');
+  set('rating-count', `${(a.review_count || 0).toLocaleString()} reviews`);
+
+  /* FIX: removed dead set('display-price') and set('sidebar-rating') calls —
+     those element IDs do not exist in the HTML */
 }
 
 /* ────────────────────────────────────────
    RENDER SIMILAR DESTINATIONS
 ──────────────────────────────────────── */
 function renderSimilar(similar) {
-  var grid = document.getElementById('similar-grid');
-  if (!grid) return;
-  if (!similar || similar.length === 0) {
-    grid.innerHTML = '<p style="color:#999;font-size:.9rem">No similar destinations found.</p>';
+  const grid = document.getElementById('similar-grid');
+  if (!grid || !similar || similar.length === 0) {
+    if (grid) grid.innerHTML = '<p style="color:#999;font-size:.9rem">No similar destinations found.</p>';
     return;
   }
-  grid.innerHTML = similar.map(function (a) {
-    var priceMin = a.price_from || a.price_min || 0;
-    var priceMax = a.price_max  || Math.round(priceMin * 2.5);
-    return '<div class="sim-card fade-in">' +
-      '<div class="sim-img" style="background-image:url(\'' + (a.image_hero || '') + '\')">' +
-        '<span class="sim-badge ' + (a.difficulty || '').toLowerCase() + '">' + (a.difficulty || '') + '</span>' +
-      '</div>' +
-      '<div class="sim-body">' +
-        '<div class="sim-name">' + a.name + '</div>' +
-        '<div class="sim-loc">📍 ' + (a.region || '') + '</div>' +
-        '<div class="sim-row">' +
-          '<span class="sim-stars">★★★★★ ' + a.rating + '</span>' +
-          '<span class="sim-price">KSh ' + Number(priceMin).toLocaleString() + '–' + Number(priceMax).toLocaleString() + '</span>' +
-        '</div>' +
-        '<a href="attraction-details.html?id=' + a.slug + '" class="sim-link">Explore →</a>' +
-      '</div>' +
-    '</div>';
-  }).join('');
 
-  var obs = new IntersectionObserver(function (entries) {
-    entries.forEach(function (e) { if (e.isIntersecting) e.target.classList.add('visible'); });
+  grid.innerHTML = similar.map(a => `
+    <div class="sim-card fade-in">
+      <div class="sim-img" style="background-image:url('${a.image_hero || ''}')">
+        <span class="sim-badge ${(a.difficulty || '').toLowerCase()}">${a.difficulty || ''}</span>
+      </div>
+      <div class="sim-body">
+        <div class="sim-name">${a.name}</div>
+        <div class="sim-loc">📍 ${a.county || ''} County</div>
+        <div class="sim-row">
+          <span class="sim-stars">★★★★★ ${a.rating || ''}</span>
+          <span class="sim-price">KSh ${(a.price_min || 0).toLocaleString('en-KE')}–${(a.price_max || 0).toLocaleString('en-KE')}</span>
+        </div>
+        <a href="attraction-details.html?id=${a.slug}" class="sim-link">Explore →</a>
+      </div>
+    </div>
+  `).join('');
+
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
   }, { threshold: 0.1 });
-  grid.querySelectorAll('.fade-in').forEach(function (el) { obs.observe(el); });
+  grid.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
 }
 
 /* ────────────────────────────────────────
    BOOKING PANEL
 ──────────────────────────────────────── */
 function initBooking(a, toast) {
-  var count    = 2;
-  var priceMin = a.price_from || a.price_min || 0;
-  var basePrice = priceMin;
-  var nights   = 3;
+  let count     = 2;
+  let basePrice = a.price_min || 0;
+  let nights    = 3;
 
-  var packages = {
-    standard: { price: priceMin,                        nights: 3 },
-    premium:  { price: Math.round(priceMin * 1.5),      nights: 5 },
-    luxury:   { price: a.price_max || Math.round(priceMin * 2.5), nights: 7 },
-    budget:   { price: Math.round(priceMin * 0.7),      nights: 2 }
+  const packages = {
+    standard: { price: a.price_min,                          nights: 3 },
+    premium:  { price: Math.round((a.price_min || 0) * 1.5), nights: 5 },
+    luxury:   { price: a.price_max,                          nights: 7 },
+    budget:   { price: Math.round((a.price_min || 0) * 0.7), nights: 2 }
   };
 
-  function fmtK(n)  { return 'KSh ' + Math.round(n).toLocaleString(); }
-  function fmtD(d)  { return d.toISOString().split('T')[0]; }
+  const fmtK  = n => 'KSh ' + Math.round(n).toLocaleString('en-KE');
+  const fmtD  = d => d.toISOString().split('T')[0];
+  const today = new Date();
+  const w1    = new Date(today); w1.setDate(today.getDate() + 7);
+  const w2    = new Date(today); w2.setDate(today.getDate() + 10);
 
-  var today = new Date();
-  var w1 = new Date(today); w1.setDate(today.getDate() + 7);
-  var w2 = new Date(today); w2.setDate(today.getDate() + 10);
+  const ci = document.getElementById('checkIn');
+  const co = document.getElementById('checkOut');
 
-  var ci = document.getElementById('checkIn');
-  var co = document.getElementById('checkOut');
   if (ci) { ci.value = fmtD(w1); ci.min = fmtD(today); }
+  /* FIX: checkOut was missing a min attribute, allowing invalid past/same-day dates */
   if (co) { co.value = fmtD(w2); co.min = fmtD(w1); }
 
   function getNights() {
-    if (ci && co && ci.value && co.value) {
-      var diff = (new Date(co.value) - new Date(ci.value)) / 86400000;
+    if (ci?.value && co?.value) {
+      const diff = (new Date(co.value) - new Date(ci.value)) / 86400000;
       return diff > 0 ? Math.round(diff) : nights;
     }
     return nights;
   }
 
-  function el(id) { return document.getElementById(id); }
-
   function update() {
-    var n     = getNights();
-    var base  = basePrice * n * count;
-    var tax   = Math.round(base * 0.0333);
-    var total = base + tax;
+    const n     = getNights();
+    const base  = basePrice * n * count;
+    const tax   = Math.round(base * 0.0333);
+    const total = base + tax;
 
-    var priceKsh = document.querySelector('.price-ksh');
-    if (priceKsh) priceKsh.textContent = 'KSh ' + Math.round(basePrice).toLocaleString();
+    const priceKsh = document.querySelector('.price-ksh');
+    if (priceKsh) priceKsh.textContent = `KSh ${Math.round(basePrice).toLocaleString('en-KE')}`;
+
+    const el = id => document.getElementById(id);
     if (el('travCount'))  el('travCount').textContent  = count;
-    if (el('pb-nights'))  el('pb-nights').textContent  = n + ' nights × ' + count + ' traveler' + (count !== 1 ? 's' : '');
-    if (el('pb-label'))   el('pb-label').textContent   = fmtK(basePrice) + ' × ' + n + ' nights × ' + count;
+    if (el('pb-nights'))  el('pb-nights').textContent  = `${n} nights × ${count} traveler${count !== 1 ? 's' : ''}`;
+    if (el('pb-label'))   el('pb-label').textContent   = `${fmtK(basePrice)} × ${n} nights × ${count}`;
     if (el('pbBase'))     el('pbBase').textContent     = fmtK(base);
     if (el('pb-tax'))     el('pb-tax').textContent     = fmtK(tax);
     if (el('pbTotal'))    el('pbTotal').textContent    = fmtK(total);
 
-    var minus = el('travMinus');
-    var plus  = el('travPlus');
+    const minus = el('travMinus');
+    const plus  = el('travPlus');
     if (minus) minus.disabled = count <= 1;
     if (plus)  plus.disabled  = count >= 12;
   }
 
-  el('travMinus') && el('travMinus').addEventListener('click', function () { if (count > 1)  { count--; update(); } });
-  el('travPlus')  && el('travPlus').addEventListener('click',  function () { if (count < 12) { count++; update(); } });
+  document.getElementById('travMinus')?.addEventListener('click', () => { if (count > 1)  { count--; update(); } });
+  document.getElementById('travPlus')?.addEventListener('click',  () => { if (count < 12) { count++; update(); } });
 
-  el('packageType') && el('packageType').addEventListener('change', function () {
-    var pkg = packages[this.value];
+  document.getElementById('packageType')?.addEventListener('change', function () {
+    const pkg = packages[this.value];
     if (pkg) {
       basePrice = pkg.price || 0;
       nights    = pkg.nights;
-      if (ci && ci.value) {
-        var d = new Date(ci.value);
+      if (ci?.value) {
+        const d = new Date(ci.value);
         d.setDate(d.getDate() + pkg.nights);
         if (co) { co.min = ci.value; co.value = fmtD(d); }
       }
@@ -340,48 +351,43 @@ function initBooking(a, toast) {
     update();
   });
 
-  ci && ci.addEventListener('change', function () {
-    var d = new Date(this.value);
+  ci?.addEventListener('change', function () {
+    const d = new Date(this.value);
     d.setDate(d.getDate() + nights);
     if (co) { co.min = this.value; co.value = fmtD(d); }
     update();
   });
+  co?.addEventListener('change', () => update());
 
-  co && co.addEventListener('change', function () { update(); });
-
-  el('bookNowBtn') && el('bookNowBtn').addEventListener('click', function () {
-    if (!ci || !ci.value || !co || !co.value) {
+  document.getElementById('bookNowBtn')?.addEventListener('click', function () {
+    if (!ci?.value || !co?.value) {
       toast('Please select your travel dates', 'info');
       return;
     }
 
-    var btn  = this;
-    var orig = btn.innerHTML;
+    const btn = this;
+    const orig = btn.innerHTML;
     btn.textContent = '⏳ Processing...';
     btn.disabled = true;
     btn.style.background = '#1ec99a';
 
-    setTimeout(function () {
-      var n     = getNights();
-      var base  = basePrice * n * count;
-      var tax   = Math.round(base * 0.0333);
-      var total = base + tax;
-
-      var booking = {
+    setTimeout(() => {
+      // Save booking to localStorage
+      const user = JSON.parse(localStorage.getItem('sq_user') || '{}');
+      const booking = {
         id: 'SQ' + Math.floor(100000 + Math.random() * 900000),
-        attraction: a.name,
-        slug: a.slug,
-        checkIn:  ci.value,
+        attraction: attraction ? attraction.name : document.title,
+        slug: slug,
+        checkIn: ci.value,
         checkOut: co.value,
-        guests:   count,
-        nights:   n,
-        total:    'KSh ' + total.toLocaleString(),
-        status:   'Confirmed',
-        bookedAt: new Date().toISOString()
+        guests: document.getElementById('guestsSelect')?.value || '2',
+        total: document.querySelector('.price-total')?.textContent || 'KSh —',
+        status: 'Confirmed',
+        bookedAt: new Date().toISOString(),
+        userName: user.name || 'Guest'
       };
 
-      var existing = [];
-      try { existing = JSON.parse(localStorage.getItem('sq_bookings') || '[]'); } catch (e) {}
+      const existing = JSON.parse(localStorage.getItem('sq_bookings') || '[]');
       existing.unshift(booking);
       localStorage.setItem('sq_bookings', JSON.stringify(existing));
 
@@ -401,51 +407,40 @@ function initBooking(a, toast) {
 ──────────────────────────────────────── */
 function initLightbox(images) {
   if (!images || images.length === 0) return;
-  var current = 0;
-  var lb    = document.getElementById('lightbox');
-  var lbImg = document.getElementById('lbImg');
-  var lbDots = document.getElementById('lbDots');
+
+  let current  = 0;
+  const lb     = document.getElementById('lightbox');
+  const lbImg  = document.getElementById('lbImg');
+  const lbDots = document.getElementById('lbDots');
   if (!lb || !lbImg) return;
 
-  if (lbDots) {
-    lbDots.innerHTML = '';
-    images.forEach(function (_, i) {
-      var dot = document.createElement('button');
-      dot.className = 'lb-dot' + (i === 0 ? ' active' : '');
-      dot.addEventListener('click', function () { setImg(i); });
-      lbDots.appendChild(dot);
-    });
-  }
-
-  function setImg(idx) {
-    current = (idx + images.length) % images.length;
-    lbImg.src = images[current];
-    document.querySelectorAll('.lb-dot').forEach(function (d, i) {
-      d.classList.toggle('active', i === current);
-    });
-  }
-
-  function open(idx)  { setImg(idx); lb.classList.add('open'); document.body.style.overflow = 'hidden'; }
-  function close()    { lb.classList.remove('open'); document.body.style.overflow = ''; }
-
-  var og  = document.getElementById('openGallery');
-  var og2 = document.getElementById('openGallery2');
-  if (og)  og.addEventListener('click',  function () { open(0); });
-  if (og2) og2.addEventListener('click', function () { open(0); });
-
-  document.querySelectorAll('.gal-thumb').forEach(function (el, i) {
-    el.addEventListener('click', function () { open(i + 1); });
+  /* Build dot navigation */
+  lbDots.innerHTML = '';
+  images.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'lb-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => setImg(i));
+    lbDots.appendChild(dot);
   });
 
-  var lbClose = document.getElementById('lbClose');
-  var lbPrev  = document.getElementById('lbPrev');
-  var lbNext  = document.getElementById('lbNext');
-  if (lbClose) lbClose.addEventListener('click', close);
-  if (lbPrev)  lbPrev.addEventListener('click',  function () { setImg(current - 1); });
-  if (lbNext)  lbNext.addEventListener('click',  function () { setImg(current + 1); });
+  function setImg(idx) {
+    current  = (idx + images.length) % images.length;
+    lbImg.src = images[current];
+    document.querySelectorAll('.lb-dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  }
 
-  lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
-  document.addEventListener('keydown', function (e) {
+  const open  = idx => { setImg(idx); lb.classList.add('open'); document.body.style.overflow = 'hidden'; };
+  const close = ()  => { lb.classList.remove('open'); document.body.style.overflow = ''; };
+
+  document.getElementById('openGallery')?.addEventListener('click',  () => open(0));
+  document.getElementById('openGallery2')?.addEventListener('click', () => open(0));
+  document.querySelectorAll('.gal-thumb').forEach((el, i) => el.addEventListener('click', () => open(i + 1)));
+  document.getElementById('lbClose')?.addEventListener('click', close);
+  document.getElementById('lbPrev')?.addEventListener('click',  () => setImg(current - 1));
+  document.getElementById('lbNext')?.addEventListener('click',  () => setImg(current + 1));
+  lb.addEventListener('click', e => { if (e.target === lb) close(); });
+
+  document.addEventListener('keydown', e => {
     if (!lb.classList.contains('open')) return;
     if (e.key === 'ArrowLeft')  setImg(current - 1);
     if (e.key === 'ArrowRight') setImg(current + 1);
@@ -457,15 +452,14 @@ function initLightbox(images) {
    WISHLIST
 ──────────────────────────────────────── */
 function initWishlist(toast) {
-  var saved = false;
-  var btn = document.getElementById('wishlistBtn');
-  if (!btn) return;
-  btn.addEventListener('click', function () {
+  let saved = false;
+  document.getElementById('wishlistBtn')?.addEventListener('click', function () {
     saved = !saved;
-    btn.classList.toggle('saved', saved);
-    btn.innerHTML = saved
-      ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Saved!'
-      : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Save to Wishlist';
+    this.classList.toggle('saved', saved);
+    /* FIX: removed <br> tag from innerHTML — it caused icon + text misalignment */
+    this.innerHTML = saved
+      ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Saved!`
+      : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Save to Wishlist`;
     toast(saved ? '❤️ Added to your wishlist!' : 'Removed from wishlist', saved ? 'success' : 'info');
   });
 }
@@ -474,17 +468,14 @@ function initWishlist(toast) {
    SHARE
 ──────────────────────────────────────── */
 function initShare(a, toast) {
-  var btn = document.querySelector('.btn-share');
-  if (!btn) return;
-  btn.addEventListener('click', function () {
+  document.querySelector('.btn-share')?.addEventListener('click', function () {
     if (navigator.share) {
       navigator.share({ title: a.name, url: window.location.href });
-    } else if (navigator.clipboard) {
-      var self = this;
-      var orig = self.innerHTML;
-      navigator.clipboard.writeText(window.location.href).then(function () {
-        self.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
-        setTimeout(function () { self.innerHTML = orig; }, 2000);
+    } else {
+      navigator.clipboard?.writeText(window.location.href).then(() => {
+        const orig = this.innerHTML;
+        this.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+        setTimeout(() => { this.innerHTML = orig; }, 2000);
       });
     }
   });
@@ -494,78 +485,113 @@ function initShare(a, toast) {
    NEWSLETTER
 ──────────────────────────────────────── */
 function initNewsletter(toast) {
-  var newsBtn = document.querySelector('.newsletter-btn');
-  if (newsBtn) {
-    newsBtn.addEventListener('click', function () {
-      var input = document.querySelector('.newsletter-input');
-      if (input && input.value.includes('@')) {
-        toast('✓ Subscribed! Welcome aboard.', 'success');
-        input.value = '';
-      } else if (input) {
-        input.classList.add('input-error');
-        setTimeout(function () { input.classList.remove('input-error'); }, 1500);
-      }
-    });
-  }
-  var reviewsBtn = document.querySelector('.btn-all-reviews');
-  if (reviewsBtn) {
-    reviewsBtn.addEventListener('click', function () {
-      toast('Full reviews coming soon!', 'info');
-    });
-  }
+  document.querySelector('.newsletter-btn')?.addEventListener('click', function () {
+    const input = document.querySelector('.newsletter-input');
+    if (input?.value.includes('@')) {
+      toast('✓ Subscribed! Welcome aboard.', 'success');
+      input.value = '';
+    } else if (input) {
+      input.classList.add('input-error');
+      setTimeout(() => input.classList.remove('input-error'), 1500);
+    }
+  });
+
+  document.querySelector('.btn-all-reviews')?.addEventListener('click', () => {
+    toast('Full reviews coming soon!', 'info');
+  });
 }
 
 /* ────────────────────────────────────────
    ERROR STATE
 ──────────────────────────────────────── */
 function showError(message) {
-  var hero = document.querySelector('.hero-content');
+  const hero = document.querySelector('.hero-content');
   if (hero) {
-    hero.innerHTML = '<div class="error-state">' +
-      '<div class="error-icon">⚠️</div>' +
-      '<h2>Oops!</h2>' +
-      '<p>' + message + '</p>' +
-      '<a href="destinations.html" class="btn-book" style="display:inline-flex;text-decoration:none">← Back to Destinations</a>' +
-      '</div>';
+    hero.innerHTML = `
+      <div class="error-state">
+        <div class="error-icon">⚠️</div>
+        <h2>Oops!</h2>
+        <p>${message}</p>
+        <a href="destinations.html" class="btn-book" style="display:inline-flex;text-decoration:none">← Back to Destinations</a>
+      </div>`;
   }
 }
 
-/* ────────────────────────────────────────
-   BOOKING CONFIRMATION MODAL (M-Pesa sim)
-──────────────────────────────────────── */
+/* ══════════════════════════════════════
+   BOOKING CONFIRMATION MODAL
+   Shows M-Pesa simulation after booking saved to localStorage
+══════════════════════════════════════ */
 function showBookingConfirmation(booking) {
-  var existing = document.getElementById('sq-booking-modal');
-  if (existing) existing.remove();
+  // Remove any existing modal
+  document.getElementById('sq-booking-modal')?.remove();
 
-  var modal = document.createElement('div');
+  const modal = document.createElement('div');
   modal.id = 'sq-booking-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;backdrop-filter:blur(4px);';
-  modal.innerHTML = '<div style="background:#fff;border-radius:20px;max-width:420px;width:100%;padding:32px;text-align:center;animation:slideUp .3s ease">' +
-    '<div style="font-size:3rem;margin-bottom:8px">🎉</div>' +
-    '<h2 style="color:#1a3c2e;margin:0 0 6px">Booking Confirmed!</h2>' +
-    '<p style="color:#666;margin:0 0 20px;font-size:.9rem">Booking ref: <strong>' + booking.id + '</strong></p>' +
-    '<div style="background:#f0f9f4;border-radius:12px;padding:16px;margin-bottom:24px;text-align:left">' +
-      '<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:#666;font-size:.85rem">Destination</span><span style="font-weight:600;font-size:.85rem">' + booking.attraction + '</span></div>' +
-      '<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:#666;font-size:.85rem">Check-in</span><span style="font-weight:600;font-size:.85rem">' + booking.checkIn + '</span></div>' +
-      '<div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:#666;font-size:.85rem">Check-out</span><span style="font-weight:600;font-size:.85rem">' + booking.checkOut + '</span></div>' +
-      '<div style="display:flex;justify-content:space-between"><span style="color:#666;font-size:.85rem">Guests</span><span style="font-weight:600;font-size:.85rem">' + booking.guests + '</span></div>' +
-    '</div>' +
-    '<div style="background:#4caf50;border-radius:12px;padding:16px;margin-bottom:20px;color:#fff">' +
-      '<div style="font-size:1.1rem;font-weight:700;margin-bottom:4px">🟢 M-Pesa Payment</div>' +
-      '<div style="font-size:.82rem;opacity:.9">A payment request has been sent to your M-Pesa.</div>' +
-      '<div style="font-size:.82rem;opacity:.9;margin-top:4px">Enter your PIN to complete the transaction.</div>' +
-      '<div style="background:rgba(255,255,255,.2);border-radius:8px;padding:10px;margin-top:12px">' +
-        '<div style="font-size:.78rem;opacity:.85">Transaction ID</div>' +
-        '<div style="font-size:1rem;font-weight:700;letter-spacing:2px">MP' + booking.id + '</div>' +
-      '</div>' +
-    '</div>' +
-    '<div style="display:flex;gap:12px">' +
-      '<button onclick="document.getElementById(\'sq-booking-modal\').remove()" style="flex:1;padding:12px;border:2px solid #e0e0e0;border-radius:10px;background:#fff;cursor:pointer;font-size:.9rem">Close</button>' +
-      '<a href="dashboard.html" style="flex:1;padding:12px;background:#E8732A;color:#fff;border-radius:10px;text-decoration:none;font-size:.9rem;font-weight:600;display:inline-flex;align-items:center;justify-content:center">View My Bookings</a>' +
-    '</div>' +
-  '</div>' +
-  '<style>@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}</style>';
+  modal.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,.6);
+    display:flex;align-items:center;justify-content:center;
+    z-index:9999;padding:20px;backdrop-filter:blur(4px);
+  `;
+
+  modal.innerHTML = `
+    <div style="background:#fff;border-radius:20px;max-width:420px;width:100%;padding:32px;text-align:center;animation:slideUp .3s ease">
+      <div style="font-size:3rem;margin-bottom:8px">🎉</div>
+      <h2 style="color:#1a3c2e;margin:0 0 6px">Booking Confirmed!</h2>
+      <p style="color:#666;margin:0 0 20px;font-size:.9rem">Booking ref: <strong>${booking.id}</strong></p>
+
+      <div style="background:#f0f9f4;border-radius:12px;padding:16px;margin-bottom:24px;text-align:left">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:#666;font-size:.85rem">Destination</span>
+          <span style="font-weight:600;font-size:.85rem">${booking.attraction}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:#666;font-size:.85rem">Check-in</span>
+          <span style="font-weight:600;font-size:.85rem">${booking.checkIn}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+          <span style="color:#666;font-size:.85rem">Check-out</span>
+          <span style="font-weight:600;font-size:.85rem">${booking.checkOut}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span style="color:#666;font-size:.85rem">Guests</span>
+          <span style="font-weight:600;font-size:.85rem">${booking.guests}</span>
+        </div>
+      </div>
+
+      <!-- M-Pesa simulation -->
+      <div style="background:#4caf50;border-radius:12px;padding:16px;margin-bottom:20px;color:#fff">
+        <div style="font-size:1.1rem;font-weight:700;margin-bottom:4px">🟢 M-Pesa Payment</div>
+        <div style="font-size:.82rem;opacity:.9">A payment request has been sent to your M-Pesa.</div>
+        <div style="font-size:.82rem;opacity:.9;margin-top:4px">Enter your PIN to complete the transaction.</div>
+        <div style="background:rgba(255,255,255,.2);border-radius:8px;padding:10px;margin-top:12px">
+          <div style="font-size:.78rem;opacity:.85">Transaction ID</div>
+          <div style="font-size:1rem;font-weight:700;letter-spacing:2px">MP${booking.id}</div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px">
+        <button onclick="document.getElementById('sq-booking-modal').remove()"
+          style="flex:1;padding:12px;border:2px solid #e0e0e0;border-radius:10px;background:#fff;cursor:pointer;font-size:.9rem">
+          Close
+        </button>
+        <a href="dashboard.html"
+          style="flex:1;padding:12px;background:#E8732A;color:#fff;border-radius:10px;text-decoration:none;font-size:.9rem;font-weight:600;display:inline-flex;align-items:center;justify-content:center">
+          View My Bookings
+        </a>
+      </div>
+    </div>
+    <style>
+      @keyframes slideUp {
+        from { opacity:0; transform:translateY(30px); }
+        to   { opacity:1; transform:translateY(0); }
+      }
+    </style>
+  `;
 
   document.body.appendChild(modal);
-  modal.addEventListener('click', function (e) { if (e.target === modal) modal.remove(); });
+
+  // Close on backdrop click
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) modal.remove();
+  });
 }
