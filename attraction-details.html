@@ -189,6 +189,10 @@
   <aside class="booking-sidebar">
     <div class="sidebar-card">
 
+      <div class="booking-edit-banner" id="bookingEditBanner" style="display:none">
+        Editing your reservation — changes are saved to your account.
+      </div>
+
       <!-- Price display -->
       <div class="sidebar-price-wrap">
         <div class="sidebar-price-label">From</div>
@@ -236,6 +240,11 @@
           <span class="trav-count" id="travCount">2</span>
           <button class="trav-btn" id="travPlus">+</button>
         </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="specialRequests">Special requests</label>
+        <textarea class="form-input" id="specialRequests" rows="3" placeholder="Dietary needs, accessibility, celebrations…"></textarea>
       </div>
 
       <hr class="sidebar-divider"/>

@@ -3,7 +3,7 @@
    Reads ?id=slug from URL, fetches from Supabase, populates page.
    ============================================================ */
 
-document.addEventListener('DOMContentLoaded', async function () {
+document.addEventListener('DOMContentLoaded', async function attractionDetailsMain() {
 
   /* ── Navbar scroll shadow ── */
   const navbar = document.getElementById('navbar');
@@ -111,9 +111,10 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
   if (gallery.length === 0 && attraction.image_hero) gallery = [attraction.image_hero];
 
-  initBooking(attraction, toast);
+  const bookingParam = params.get('booking');
+  await initBooking(attraction, toast, { bookingId: bookingParam, slug });
   initLightbox(gallery);
-  initWishlist(toast);
+  initWishlist(attraction, toast);
   initShare(attraction, toast);
   initNewsletter(toast);
 
@@ -276,12 +277,15 @@ function renderSimilar(similar) {
 }
 
 /* ────────────────────────────────────────
-   BOOKING PANEL
+   BOOKING PANEL (Supabase user_bookings + local fallback)
 ──────────────────────────────────────── */
-function initBooking(a, toast) {
+async function initBooking(a, toast, opts = {}) {
   let count     = 2;
   let basePrice = a.price_min || 0;
   let nights    = 3;
+
+  let editMode = false;
+  let bookingRow = null;
 
   const packages = {
     standard: { price: a.price_min,                          nights: 3 },
@@ -300,8 +304,34 @@ function initBooking(a, toast) {
   const co = document.getElementById('checkOut');
 
   if (ci) { ci.value = fmtD(w1); ci.min = fmtD(today); }
-  /* FIX: checkOut was missing a min attribute, allowing invalid past/same-day dates */
   if (co) { co.value = fmtD(w2); co.min = fmtD(w1); }
+
+  if (opts.bookingId && Auth.isLoggedIn && Auth.isLoggedIn()) {
+    try {
+      bookingRow = await Auth.getUserBookingById(opts.bookingId);
+      if (!bookingRow) {
+        toast('Booking not found.', 'error');
+      } else if (bookingRow.attraction_slug !== a.slug) {
+        toast('This booking is for a different destination.', 'error');
+      } else {
+        editMode = true;
+        const banner = document.getElementById('bookingEditBanner');
+        if (banner) banner.style.display = 'block';
+        if (ci && bookingRow.check_in) ci.value = String(bookingRow.check_in).slice(0, 10);
+        if (co && bookingRow.check_out) co.value = String(bookingRow.check_out).slice(0, 10);
+        count = Math.max(1, Math.min(12, parseInt(bookingRow.guests, 10) || 1));
+        const sr = document.getElementById('specialRequests');
+        if (sr) sr.value = bookingRow.special_requests || '';
+        const pkg = document.getElementById('packageType');
+        if (pkg && bookingRow.package_type) pkg.value = bookingRow.package_type;
+        const btn = document.getElementById('bookNowBtn');
+        if (btn) btn.textContent = '💾 Save changes';
+      }
+    } catch (e) {
+      console.warn(e);
+      toast('Could not load booking for editing.', 'error');
+    }
+  }
 
   function getNights() {
     if (ci?.value && co?.value) {
@@ -365,18 +395,17 @@ function initBooking(a, toast) {
       attractionName: a.name,
       checkIn: ci?.value || '',
       checkOut: co?.value || '',
-      guests: document.getElementById('guestsSelect')?.value || String(count),
+      guests: String(count),
       packageType: document.getElementById('packageType')?.value || 'standard',
+      specialRequests: document.getElementById('specialRequests')?.value || ''
     };
   }
 
   const resumed = Auth.readResumedData();
-  if (resumed?.data) {
+  if (resumed?.data && !editMode) {
     if (resumed.data.checkIn && ci) ci.value = resumed.data.checkIn;
     if (resumed.data.checkOut && co) co.value = resumed.data.checkOut;
-    if (resumed.data.guests && document.getElementById('guestsSelect')) {
-      document.getElementById('guestsSelect').value = resumed.data.guests;
-    }
+    if (resumed.data.guests) count = Math.max(1, parseInt(resumed.data.guests, 10) || count);
     if (resumed.data.packageType && document.getElementById('packageType')) {
       document.getElementById('packageType').value = resumed.data.packageType;
     }
@@ -387,38 +416,81 @@ function initBooking(a, toast) {
       toast('Please select your travel dates', 'info');
       return;
     }
+    const specialReq = document.getElementById('specialRequests')?.value || '';
 
-    Auth.requireAuth({ action: 'pay', data: buildBookingSelection() }, () => {
+    if (editMode && bookingRow) {
+      if (!Auth.isLoggedIn()) {
+        toast('Please sign in to edit your booking.', 'info');
+        return;
+      }
+      const btn = document.getElementById('bookNowBtn');
+      const orig = btn.innerHTML;
+      btn.textContent = '⏳ Saving...';
+      btn.disabled = true;
+      Auth.updateUserBooking(bookingRow.id, {
+        check_in: ci.value,
+        check_out: co.value,
+        guests: count,
+        special_requests: specialReq || null,
+        package_type: document.getElementById('packageType')?.value || 'standard'
+      }).then(function () {
+        toast('Booking updated successfully.', 'success');
+        btn.innerHTML = orig;
+        btn.disabled = false;
+      }).catch(function (err) {
+        toast(err.message || 'Update failed', 'error');
+        btn.innerHTML = orig;
+        btn.disabled = false;
+      });
+      return;
+    }
+
+    Auth.requireAuth({ action: 'pay', data: buildBookingSelection() }, function () {
       const btn = document.getElementById('bookNowBtn');
       const orig = btn.innerHTML;
       btn.textContent = '⏳ Processing...';
       btn.disabled = true;
       btn.style.background = '#1ec99a';
 
-      setTimeout(() => {
-        const user = Auth.getUser() || {};
+      Auth.createUserBooking({
+        user_id: Auth.getUser().id,
+        attraction_slug: a.slug,
+        attraction_name: a.name,
+        check_in: ci.value,
+        check_out: co.value,
+        guests: count,
+        special_requests: specialReq || null,
+        package_type: document.getElementById('packageType')?.value || 'standard',
+        status: 'confirmed'
+      }).then(function (row) {
         const booking = {
-          id: 'SQ' + Math.floor(100000 + Math.random() * 900000),
-          attraction: attraction ? attraction.name : document.title,
-          slug: slug,
+          id: row.id,
+          attraction: a.name,
+          slug: a.slug,
           checkIn: ci.value,
           checkOut: co.value,
-          guests: document.getElementById('guestsSelect')?.value || '2',
-          total: document.querySelector('.price-total')?.textContent || 'KSh —',
+          guests: String(count),
+          total: document.getElementById('pbTotal')?.textContent || '—',
           status: 'Confirmed',
           bookedAt: new Date().toISOString(),
-          userName: user.name || 'Guest'
+          userName: Auth.getUser()?.user_metadata?.full_name || Auth.getUser()?.email || 'Guest'
         };
-
-        const existing = JSON.parse(localStorage.getItem('sq_bookings') || '[]');
-        existing.unshift(booking);
-        localStorage.setItem('sq_bookings', JSON.stringify(existing));
+        try {
+          const existing = JSON.parse(localStorage.getItem('sq_bookings') || '[]');
+          existing.unshift(booking);
+          localStorage.setItem('sq_bookings', JSON.stringify(existing));
+        } catch (_) {}
 
         btn.innerHTML = orig;
         btn.disabled = false;
         btn.style.background = '';
         showBookingConfirmation(booking);
-      }, 1500);
+      }).catch(function (err) {
+        toast(err.message || 'Could not complete booking. Apply the SQL migration if tables are missing.', 'error');
+        btn.innerHTML = orig;
+        btn.disabled = false;
+        btn.style.background = '';
+      });
     });
   });
 
@@ -472,18 +544,46 @@ function initLightbox(images) {
 }
 
 /* ────────────────────────────────────────
-   WISHLIST
+   WISHLIST  (syncs to Supabase user_saved_destinations when signed in)
 ──────────────────────────────────────── */
-function initWishlist(toast) {
+function initWishlist(attraction, toast) {
   let saved = false;
-  document.getElementById('wishlistBtn')?.addEventListener('click', function () {
-    saved = !saved;
-    this.classList.toggle('saved', saved);
-    /* FIX: removed <br> tag from innerHTML — it caused icon + text misalignment */
-    this.innerHTML = saved
+  const btn = document.getElementById('wishlistBtn');
+  if (!btn) return;
+
+  function renderHeart(on) {
+    btn.classList.toggle('saved', on);
+    btn.innerHTML = on
       ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Saved!`
       : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg> Save to Wishlist`;
-    toast(saved ? '❤️ Added to your wishlist!' : 'Removed from wishlist', saved ? 'success' : 'info');
+  }
+
+  btn.addEventListener('click', async function () {
+    if (!Auth.isLoggedIn || !Auth.isLoggedIn()) {
+      toast('Sign in to save destinations to your account.', 'info');
+      return;
+    }
+    const slug = attraction.slug;
+    try {
+      if (!saved) {
+        await Auth.insertUserSavedDestination({
+          user_id: Auth.getUser().id,
+          attraction_slug: slug,
+          attraction_name: attraction.name,
+          image_url: attraction.image_hero || null
+        });
+        saved = true;
+        renderHeart(true);
+        toast('❤️ Saved! View it on your dashboard.', 'success');
+      } else {
+        await Auth.deleteUserSavedBySlug(slug);
+        saved = false;
+        renderHeart(false);
+        toast('Removed from saved.', 'info');
+      }
+    } catch (e) {
+      toast(e.message || 'Could not update saved list', 'error');
+    }
   });
 }
 

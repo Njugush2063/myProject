@@ -108,10 +108,14 @@ document.addEventListener('DOMContentLoaded', function () {
       setLoading(true);
 
       try {
-        await Auth.signInWithEmail(emailInput.value.trim(), pwInput.value);
-        const name = Auth.getUser()?.name || 'Traveller';
+        await Auth.signInWithEmail(emailInput.value.trim().toLowerCase(), pwInput.value);
+        const name =
+          Auth.getUser()?.user_metadata?.full_name ||
+          Auth.getUser()?.name ||
+          Auth.getUser()?.email?.split('@')[0] ||
+          'Traveller';
         showToast('Welcome back, ' + name + '! Redirecting...', 'success');
-        setTimeout(() => { Auth.handlePostLoginRedirect('dashboard.html'); }, 1000);
+        setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
 
       } catch (err) {
         console.error('Login error:', err);
@@ -121,11 +125,20 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  /* ── Social login buttons ── */
-  document.querySelectorAll('.btn-social').forEach(function (btn) {
-    btn.addEventListener('click', async function () {
-      showToast('Social login coming soon', 'success', 3000);
-    });
+  /* ── Social login (Supabase OAuth) — same flow as register.html ── */
+  function startOAuth(provider) {
+    if (!window.Auth || typeof Auth.signInWithOAuth !== 'function') {
+      showToast('Sign-in unavailable. Check that auth.js is loaded.', 'error', 4000);
+      return;
+    }
+    Auth.signInWithOAuth(provider);
+  }
+
+  document.getElementById('loginGoogleBtn')?.addEventListener('click', function () {
+    startOAuth('google');
+  });
+  document.getElementById('loginFacebookBtn')?.addEventListener('click', function () {
+    startOAuth('facebook');
   });
 
   /* ── Forgot password ── */

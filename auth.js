@@ -16,16 +16,26 @@
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://cbyipmrozqsntojiartw.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieWlwbXJvenFzbnRvamlhcnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTkxNTQsImV4cCI6MjA4ODk3NTE1NH0.31TAhmUCV_Uh0W8FGnR2_TLCZDU4YBM1U5LMSMc5JZs';
+/** Exposed for dashboard realtime (supabase-js) — same project as SQ helpers */
+window.SQ_PUBLIC = { url: SUPABASE_URL, anon: SUPABASE_ANON };
 const DEV_USERS_KEY = 'sq_dev_users';
 const DEV_BYPASS_FLAG_KEY = 'sq_enable_dev_auth_bypass';
+const AUTH_DEBUG_FLAG_KEY = 'sq_auth_debug';
 const DEV_AUTH_BYPASS =
   localStorage.getItem(DEV_BYPASS_FLAG_KEY) === '1' ||
   window.location.protocol === 'file:' ||
   window.location.hostname === 'localhost' ||
   window.location.hostname === '127.0.0.1';
+const AUTH_DEBUG = localStorage.getItem(AUTH_DEBUG_FLAG_KEY) === '1';
 
 // ─── SUPABASE HELPER ─────────────────────────────────────────────────────────
 const SQ = (() => {
+  function debugLog(label, payload) {
+    if (!AUTH_DEBUG) return;
+    try {
+      console.log(`[AUTH DEBUG] ${label}`, payload);
+    } catch (_) {}
+  }
 
   // ── Session storage ────────────────────────────────────────────────────────
 
@@ -115,33 +125,54 @@ const SQ = (() => {
       });
       if (!res.ok) { saveSession(null); return null; }
       const user    = await res.json();
+      debugLog('fetchUser ok', {
+        status: res.status,
+        id: user?.id,
+        email: user?.email,
+        email_confirmed_at: user?.email_confirmed_at || null
+      });
       const session = getSession();
       if (session) { session.user = user; saveSession(session); }
+      await ensureProfile(user, token).catch(() => {});
       return user;
-    } catch { return null; }
+    } catch (err) {
+      debugLog('fetchUser failed', { message: err?.message || String(err) });
+      return null;
+    }
   }
 
   // ── Sign In ────────────────────────────────────────────────────────────────
 
   async function signInWithEmail(email, password) {
+    debugLog('signIn start', { email, dev_bypass_enabled: DEV_AUTH_BYPASS });
     const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
       method:  'POST',
       headers: { 'apikey': SUPABASE_ANON, 'Content-Type': 'application/json' },
       body:    JSON.stringify({ email, password }),
     });
     const data = await res.json();
+    debugLog('signIn response', {
+      status: res.status,
+      ok: res.ok,
+      error: data?.error || null,
+      error_description: data?.error_description || null,
+      has_access_token: !!data?.access_token,
+      user_id: data?.user?.id || null
+    });
     if (!res.ok) {
       if (DEV_AUTH_BYPASS) {
         const users = getDevUsers();
         const devUser = users[email.toLowerCase()];
         if (devUser && devUser.password === password) {
           createDevSession(email, { full_name: devUser.full_name });
+          debugLog('signIn dev bypass used', { email });
           return { user: getUser(), access_token: getAccessToken(), dev_bypass: true };
         }
       }
       throw new Error(data.error_description || data.msg || 'Login failed');
     }
     saveSession(data);
+    await ensureProfile(data.user, data.access_token).catch(() => {});
     return data;
   }
 
@@ -155,6 +186,7 @@ const SQ = (() => {
    * persist server-side.
    */
   async function signUp(email, password, meta = {}) {
+    debugLog('signUp start', { email, dev_bypass_enabled: DEV_AUTH_BYPASS, meta });
     // 1. Create the auth account
     const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
       method:  'POST',
@@ -162,11 +194,21 @@ const SQ = (() => {
       body:    JSON.stringify({ email, password, data: meta }),
     });
     const data = await res.json();
+    debugLog('signUp response', {
+      status: res.status,
+      ok: res.ok,
+      error: data?.error || null,
+      error_description: data?.error_description || null,
+      has_access_token: !!data?.access_token,
+      user_id: data?.user?.id || null,
+      email_confirmed_at: data?.user?.email_confirmed_at || null
+    });
 
     if (!res.ok) {
       if (DEV_AUTH_BYPASS) {
         saveDevUser(email, password, meta);
         createDevSession(email, meta);
+        debugLog('signUp dev bypass used', { email });
         return { user: getUser(), access_token: getAccessToken(), dev_bypass: true };
       }
       throw new Error(data.error_description || data.msg || 'Sign-up failed');
@@ -186,14 +228,17 @@ const SQ = (() => {
           full_name:  meta.full_name || '',
           created_at: new Date().toISOString(),
         }, data.access_token);
+        debugLog('profile upsert ok', { id: data.user?.id, email });
       } catch (profileErr) {
         // Non-fatal — auth succeeded even if profile write fails
         console.warn('SafariQuest: profile upsert failed', profileErr);
+        debugLog('profile upsert failed', { message: profileErr?.message || String(profileErr) });
       }
     } else if (DEV_AUTH_BYPASS) {
       // Local dev shortcut when Supabase requires email confirmation.
       saveDevUser(email, password, meta);
       createDevSession(email, meta);
+      debugLog('signUp no token; dev bypass session created', { email });
     }
 
     return data;
@@ -225,8 +270,211 @@ const SQ = (() => {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
+      debugLog('upsertProfile response failed', { status: res.status, err });
       throw new Error(err.message || 'Profile write failed');
     }
+    debugLog('upsertProfile response ok', { status: res.status, id: profile?.id, email: profile?.email });
+  }
+
+  // ── Profile read / sync helpers ───────────────────────────────────────────
+  async function fetchProfileById(userId, accessToken) {
+    if (!userId) return null;
+    const token = accessToken || getAccessToken();
+    if (!token) return null;
+
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(userId)}&select=*`,
+      {
+        headers: {
+          'apikey': SUPABASE_ANON,
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!res.ok) return null;
+    const rows = await res.json().catch(() => []);
+    return Array.isArray(rows) && rows.length ? rows[0] : null;
+  }
+
+  async function ensureProfile(user, accessToken) {
+    if (!user?.id) return null;
+
+    const existing = await fetchProfileById(user.id, accessToken);
+    if (existing) return existing;
+
+    const fallbackName =
+      user?.user_metadata?.full_name ||
+      user?.email?.split('@')[0] ||
+      'Traveller';
+
+    await upsertProfile({
+      id: user.id,
+      email: user.email || '',
+      full_name: fallbackName,
+      created_at: user.created_at || new Date().toISOString(),
+    }, accessToken);
+
+    return fetchProfileById(user.id, accessToken);
+  }
+
+  async function getProfile() {
+    const user = getUser();
+    if (!user?.id) return null;
+    return fetchProfileById(user.id, getAccessToken());
+  }
+
+  // ── Dashboard: bookings / recommended / saved (PostgREST + user JWT) ───────
+
+  function authRestHeaders(optionalToken) {
+    const token = optionalToken || getAccessToken();
+    if (!token) return null;
+    return {
+      apikey: SUPABASE_ANON,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    };
+  }
+
+  async function listUserBookings() {
+    const h = authRestHeaders();
+    if (!h) return [];
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/user_bookings?order=check_in.desc`,
+      { headers: h }
+    );
+    if (!res.ok) {
+      debugLog('listUserBookings failed', { status: res.status });
+      return [];
+    }
+    const rows = await res.json().catch(() => []);
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  async function getUserBookingById(id) {
+    if (!id) return null;
+    const h = authRestHeaders();
+    if (!h) return null;
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/user_bookings?id=eq.${encodeURIComponent(id)}&select=*`,
+      { headers: h }
+    );
+    if (!res.ok) return null;
+    const rows = await res.json().catch(() => []);
+    return Array.isArray(rows) && rows.length ? rows[0] : null;
+  }
+
+  async function createUserBooking(row) {
+    const h = authRestHeaders();
+    if (!h) throw new Error('Not signed in');
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/user_bookings`, {
+      method: 'POST',
+      headers: h,
+      body: JSON.stringify(row),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      debugLog('createUserBooking failed', { status: res.status, err });
+      throw new Error(err.message || err.hint || 'Could not create booking');
+    }
+    const data = await res.json().catch(() => null);
+    return Array.isArray(data) ? data[0] : data;
+  }
+
+  async function updateUserBooking(id, patch) {
+    if (!id) throw new Error('Missing booking id');
+    const h = authRestHeaders();
+    if (!h) throw new Error('Not signed in');
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/user_bookings?id=eq.${encodeURIComponent(id)}`,
+      {
+        method: 'PATCH',
+        headers: h,
+        body: JSON.stringify(patch),
+      }
+    );
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      debugLog('updateUserBooking failed', { status: res.status, err });
+      throw new Error(err.message || 'Could not update booking');
+    }
+    const data = await res.json().catch(() => null);
+    return Array.isArray(data) ? data[0] : data;
+  }
+
+  async function listRecommendedDestinations() {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/recommended_destinations?active=eq.true&order=sort_order.asc`,
+      {
+        headers: {
+          apikey: SUPABASE_ANON,
+          Authorization: `Bearer ${SUPABASE_ANON}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    if (!res.ok) {
+      debugLog('listRecommendedDestinations failed', { status: res.status });
+      return [];
+    }
+    const rows = await res.json().catch(() => []);
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  async function listUserSavedDestinations(limit) {
+    const lim = typeof limit === 'number' ? limit : 5;
+    const h = authRestHeaders();
+    if (!h) return [];
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/user_saved_destinations?order=created_at.desc&limit=${lim}`,
+      { headers: h }
+    );
+    if (!res.ok) {
+      debugLog('listUserSavedDestinations failed', { status: res.status });
+      return [];
+    }
+    const rows = await res.json().catch(() => []);
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  async function insertUserSavedDestination(row) {
+    const h = authRestHeaders();
+    if (!h) throw new Error('Not signed in');
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/user_saved_destinations`, {
+      method: 'POST',
+      headers: h,
+      body: JSON.stringify(row),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      if (res.status === 409) return null;
+      throw new Error(err.message || 'Could not save destination');
+    }
+    const data = await res.json().catch(() => null);
+    return Array.isArray(data) ? data[0] : data;
+  }
+
+  async function deleteUserSavedDestination(id) {
+    if (!id) throw new Error('Missing id');
+    const h = authRestHeaders();
+    if (!h) throw new Error('Not signed in');
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/user_saved_destinations?id=eq.${encodeURIComponent(id)}`,
+      { method: 'DELETE', headers: { ...h, Prefer: 'return=minimal' } }
+    );
+    if (!res.ok) throw new Error('Could not remove saved item');
+  }
+
+  async function deleteUserSavedBySlug(slug) {
+    if (!slug) throw new Error('Missing slug');
+    const h = authRestHeaders();
+    if (!h) throw new Error('Not signed in');
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/user_saved_destinations?attraction_slug=eq.${encodeURIComponent(slug)}`,
+      { method: 'DELETE', headers: { ...h, Prefer: 'return=minimal' } }
+    );
+    if (!res.ok && res.status !== 204) throw new Error('Could not remove saved item');
   }
 
   // ── Sign Out ───────────────────────────────────────────────────────────────
@@ -246,11 +494,14 @@ const SQ = (() => {
   /**
    * Redirects to Supabase's OAuth flow.
    * provider: 'google' | 'facebook'
+   * Redirect returns to the current page (login or register); add both URLs in
+   * Supabase → Authentication → URL Configuration → Redirect URLs.
    */
   function signInWithOAuth(provider) {
-    const redirectTo = encodeURIComponent(window.location.origin + '/register.html');
+    const baseUrl = window.location.href.replace(/#.*$/, '');
+    const redirectTo = encodeURIComponent(baseUrl);
     window.location.href =
-      `${SUPABASE_URL}/auth/v1/authorize?provider=${provider}&redirect_to=${redirectTo}`;
+      `${SUPABASE_URL}/auth/v1/authorize?provider=${encodeURIComponent(provider)}&redirect_to=${redirectTo}`;
   }
 
   return {
@@ -265,8 +516,23 @@ const SQ = (() => {
     signInWithEmail,
     signUp,
     upsertProfile,
+    getProfile,
+    listUserBookings,
+    getUserBookingById,
+    createUserBooking,
+    updateUserBooking,
+    listRecommendedDestinations,
+    listUserSavedDestinations,
+    insertUserSavedDestination,
+    deleteUserSavedDestination,
+    deleteUserSavedBySlug,
     signOut,
     signInWithOAuth,
+    _debug: {
+      enabled: AUTH_DEBUG,
+      devBypassEnabled: DEV_AUTH_BYPASS,
+      getSessionSnapshot: () => getSession()
+    }
   };
 })();
 
@@ -306,6 +572,10 @@ const AvatarStore = {
 
 // ─── NAV UPDATE ──────────────────────────────────────────────────────────────
 function updateNavForUser(user) {
+  const path = window.location.pathname.toLowerCase();
+  const isAuthPage = path.endsWith('/login.html') || path.endsWith('/register.html') || path.endsWith('login.html') || path.endsWith('register.html');
+  if (isAuthPage) return;
+
   document.querySelectorAll('.sq-avatar-menu').forEach(node => node.remove());
   const loginBtn =
     document.querySelector('.nav-login, a[href*="login.html"], button[onclick*="login.html"]') ||
@@ -343,9 +613,9 @@ function updateNavForUser(user) {
       </button>
       <ul class="sq-avatar-dropdown" role="menu">
         <li style="padding:8px 10px;font-size:.83rem;color:#6b7280;">${displayName}</li>
-        <li><a href="/dashboard.html" role="menuitem">My Dashboard</a></li>
-        <li><a href="/bookings.html" role="menuitem">My Bookings</a></li>
-        <li><a href="/profile.html" role="menuitem">Profile</a></li>
+        <li><a href="dashboard.html" role="menuitem">My Dashboard</a></li>
+        <li><a href="bookings.html" role="menuitem">My Bookings</a></li>
+        <li><a href="profile.html" role="menuitem">Profile</a></li>
         <li><button id="sq-upload-avatar-btn" type="button" role="menuitem">Upload Photo</button></li>
         <li class="sq-divider"></li>
         <li><button id="sq-logout-btn" role="menuitem">Logout</button></li>
@@ -374,7 +644,7 @@ function updateNavForUser(user) {
 
     document.getElementById('sq-logout-btn')?.addEventListener('click', async () => {
       await SQ.signOut();
-      window.location.href = '/index.html';
+      window.location.href = 'index.html';
     });
 
     const uploadInput = document.createElement('input');
@@ -448,7 +718,7 @@ function requireAuth(intent, proceedFn) {
       modal.classList.remove('sq-modal-open');
     });
   } else {
-    window.location.href = '/login.html';
+    window.location.href = 'login.html';
   }
 }
 
@@ -456,7 +726,7 @@ async function resumePendingIntent() {
   const intent = PendingIntent.get();
   PendingIntent.clear();
 
-  if (!intent?.returnUrl) { window.location.href = '/dashboard.html'; return; }
+  if (!intent?.returnUrl) { window.location.href = 'dashboard.html'; return; }
 
   const url = new URL(intent.returnUrl);
   if (intent.data) {
@@ -539,3 +809,27 @@ window.PendingIntent       = PendingIntent;
 window.requireAuth         = requireAuth;
 window.resumePendingIntent = resumePendingIntent;
 window.readResumedData     = readResumedData;
+window.AuthDebug = {
+  enable() {
+    localStorage.setItem(AUTH_DEBUG_FLAG_KEY, '1');
+    console.log('[AUTH DEBUG] Enabled. Refresh page.');
+  },
+  disable() {
+    localStorage.removeItem(AUTH_DEBUG_FLAG_KEY);
+    console.log('[AUTH DEBUG] Disabled. Refresh page.');
+  },
+  status() {
+    const session = SQ.getSession();
+    const user = SQ.getUser();
+    console.log('[AUTH DEBUG] status', {
+      debug_enabled: localStorage.getItem(AUTH_DEBUG_FLAG_KEY) === '1',
+      dev_bypass_enabled: DEV_AUTH_BYPASS,
+      has_session: !!session,
+      has_access_token: !!session?.access_token,
+      is_dev_auth: !!session?.is_dev_auth,
+      user_id: user?.id || null,
+      email: user?.email || null,
+      email_confirmed_at: user?.email_confirmed_at || null
+    });
+  }
+};

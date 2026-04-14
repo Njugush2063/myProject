@@ -437,6 +437,17 @@ nav .logo-img {
 .sim-link:hover { text-decoration: underline; }
 
 /* ── BOOKING SIDEBAR ── */
+.booking-edit-banner {
+  background: linear-gradient(135deg, rgba(30, 201, 154, 0.15), rgba(200, 162, 78, 0.2));
+  border: 1px solid rgba(30, 201, 154, 0.35);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  color: #eaf7f2;
+  margin-bottom: 14px;
+  line-height: 1.35;
+}
+
 .booking-sidebar {
   position: sticky;
   top: calc(70px + 16px); /* just below fixed navbar */

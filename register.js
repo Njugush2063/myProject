@@ -257,18 +257,29 @@
        submitBtn.classList.remove('loading');
        submitBtn.disabled = false;
    
-       // Supabase returns an empty/unconfirmed user when email confirmation is ON
-       if (!data.access_token) {
-         showToast('Check your email to confirm your account, then log in.', 'success');
-         return;
-       }
-   
-       showToast('Account created! Welcome to SafariQuest 🌍', 'success');
-   
-       // Redirect after short delay so the user sees the toast
-       setTimeout(() => {
-         window.location.href = '/dashboard.html';
-       }, 1200);
+      // We want immediate login after registration.
+      // If signup didn't return a token, try password sign-in right away.
+      if (!data.access_token) {
+        try {
+          await SQ.signInWithEmail(
+            emailInput.value.trim().toLowerCase(),
+            pw1Input.value
+          );
+        } catch (_) {
+          showToast(
+            'Sign up succeeded, but instant login is blocked. Disable "Confirm email" in Supabase Auth settings for immediate access.',
+            'error'
+          );
+          return;
+        }
+      }
+
+      showToast('Account created! Welcome to SafariQuest 🌍', 'success');
+
+      // Redirect after short delay so the user sees the toast
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 1200);
    
      } catch (err) {
        submitBtn.classList.remove('loading');
@@ -280,9 +291,9 @@
    // ── Social Buttons ──────────────────────────────────────────────────────────
    
    document.getElementById('googleBtn')?.addEventListener('click', () => {
-     SQ.signInWithOAuth('google');
+     (window.Auth || window.SQ).signInWithOAuth('google');
    });
-   
+
    document.getElementById('facebookBtn')?.addEventListener('click', () => {
-     SQ.signInWithOAuth('facebook');
+     (window.Auth || window.SQ).signInWithOAuth('facebook');
    });
