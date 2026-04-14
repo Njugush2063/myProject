@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — SafariQuest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green: #1a4731;
+      --green-mid: #2d6a4f;
+      --green-light: #d1fae5;
+      --gold: #c9932a;
+      --gold-light: #f4c56a;
+      --cream: #fdf8f0;
+      --warm-grey: #f5f0e8;
+      --sidebar: #0f2e1f;
+      --text: #1c1c1c;
+      --muted: #6b7280;
+      --white: #ffffff;
+      --shadow: 0 4px 24px rgba(0,0,0,0.08);
+      --radius: 12px;
+      --danger: #dc2626;
+      --info: #2563eb;
+      --warning: #d97706;
+      --success: #16a34a;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'DM Sans',sans-serif; background:#f1f5f2; color:var(--text); display:flex; min-height:100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width:240px; background:var(--sidebar); color:var(--white); display:flex;
+      flex-direction:column; min-height:100vh; position:fixed; top:0; left:0; z-index:50;
+      transition:transform 0.3s;
+    }
+    .sidebar-brand {
+      padding:1.4rem 1.2rem 1rem; border-bottom:1px solid rgba(255,255,255,0.08);
+      display:flex; align-items:center; gap:10px;
+    }
+    .sidebar-brand img { width:36px; height:36px; border-radius:50%; object-fit:cover; }
+    .sidebar-brand-text .name { font-family:'Playfair Display',serif; font-size:1rem; font-weight:600; }
+    .sidebar-brand-text .role { font-size:0.72rem; color:rgba(255,255,255,0.5); }
+
+    .sidebar-section { padding:0.8rem 0.8rem 0.3rem; font-size:0.67rem; text-transform:uppercase; letter-spacing:0.12em; color:rgba(255,255,255,0.35); font-weight:600; }
+
+    .sidebar-link {
+      display:flex; align-items:center; gap:10px; padding:9px 1.2rem;
+      color:rgba(255,255,255,0.7); text-decoration:none; font-size:0.88rem;
+      transition:all 0.18s; border-left:3px solid transparent; cursor:pointer;
+    }
+    .sidebar-link:hover { color:var(--white); background:rgba(255,255,255,0.06); }
+    .sidebar-link.active { color:var(--gold-light); border-left-color:var(--gold); background:rgba(201,147,42,0.1); }
+    .sidebar-link .icon { width:20px; text-align:center; font-size:1rem; }
+
+    .sidebar-footer { margin-top:auto; padding:1.2rem; border-top:1px solid rgba(255,255,255,0.08); }
+    .logout-btn {
+      display:flex; align-items:center; gap:8px; color:rgba(255,255,255,0.5);
+      font-size:0.85rem; cursor:pointer; background:none; border:none; width:100%; transition:color 0.2s;
+    }
+    .logout-btn:hover { color:#f87171; }
+
+    /* ── MAIN ── */
+    .main { margin-left:240px; flex:1; display:flex; flex-direction:column; min-height:100vh; }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background:var(--white); padding:0 1.8rem; height:60px; display:flex; align-items:center;
+      justify-content:space-between; box-shadow:0 1px 8px rgba(0,0,0,0.07); position:sticky; top:0; z-index:40;
+    }
+    .topbar h1 { font-family:'Playfair Display',serif; font-size:1.25rem; }
+    .topbar-right { display:flex; align-items:center; gap:1rem; }
+    .notif-btn { position:relative; background:none; border:none; font-size:1.2rem; cursor:pointer; }
+    .notif-badge { position:absolute; top:-2px; right:-2px; width:16px; height:16px; background:var(--danger); color:var(--white); font-size:0.6rem; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; }
+    .admin-avatar { width:36px; height:36px; border-radius:50%; background:var(--green); color:var(--white); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; }
+
+    /* ── PAGES ── */
+    .page { padding:1.8rem; display:none; }
+    .page.active { display:block; animation:fadeIn 0.3s ease; }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+    /* ── STATS GRID ── */
+    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1.2rem; margin-bottom:1.8rem; }
+    .stat-card {
+      background:var(--white); border-radius:var(--radius); padding:1.3rem 1.4rem;
+      box-shadow:var(--shadow); display:flex; align-items:center; gap:1rem;
+      border-left:4px solid transparent; transition:transform 0.2s;
+    }
+    .stat-card:hover { transform:translateY(-2px); }
+    .stat-card.green { border-left-color:var(--success); }
+    .stat-card.gold  { border-left-color:var(--gold); }
+    .stat-card.blue  { border-left-color:var(--info); }
+    .stat-card.red   { border-left-color:var(--danger); }
+    .stat-icon-wrap { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; }
+    .stat-icon-wrap.green { background:rgba(22,163,74,0.1); }
+    .stat-icon-wrap.gold  { background:rgba(201,147,42,0.1); }
+    .stat-icon-wrap.blue  { background:rgba(37,99,235,0.1); }
+    .stat-icon-wrap.red   { background:rgba(220,38,38,0.1); }
+    .stat-label { font-size:0.78rem; color:var(--muted); font-weight:500; }
+    .stat-value { font-size:1.65rem; font-weight:700; line-height:1.2; }
+    .stat-change { font-size:0.75rem; color:var(--success); font-weight:600; }
+
+    /* ── CONTENT GRID ── */
+    .content-grid { display:grid; grid-template-columns:1fr 340px; gap:1.4rem; }
+
+    /* ── CARD ── */
+    .card { background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
+    .card-header { padding:1rem 1.3rem; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between; }
+    .card-header h3 { font-size:1rem; font-weight:600; }
+    .card-body { padding:1.2rem 1.3rem; }
+
+    /* ── TABLE ── */
+    .data-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+    .data-table th { padding:9px 12px; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); border-bottom:2px solid #f3f4f6; font-weight:600; }
+    .data-table td { padding:10px 12px; border-bottom:1px solid #f9fafb; vertical-align:middle; }
+    .data-table tr:last-child td { border-bottom:none; }
+    .data-table tr:hover td { background:#fafafa; }
+
+    .status-pill { padding:3px 10px; border-radius:12px; font-size:0.72rem; font-weight:600; }
+    .pill-confirmed { background:#dcfce7; color:#15803d; }
+    .pill-pending   { background:#fef9c3; color:#854d0e; }
+    .pill-cancelled { background:#fee2e2; color:#991b1b; }
+    .pill-active    { background:#dbeafe; color:#1d4ed8; }
+    .pill-review    { background:#f3e8ff; color:#7e22ce; }
+
+    /* ── ACTION BTNS ── */
+    .btn-xs { padding:4px 10px; border-radius:6px; font-size:0.75rem; font-weight:600; cursor:pointer; border:none; transition:all 0.18s; }
+    .btn-xs.edit { background:rgba(37,99,235,0.1); color:var(--info); }
+    .btn-xs.edit:hover { background:var(--info); color:var(--white); }
+    .btn-xs.del { background:rgba(220,38,38,0.1); color:var(--danger); }
+    .btn-xs.del:hover { background:var(--danger); color:var(--white); }
+    .btn-xs.approve { background:rgba(22,163,74,0.1); color:var(--success); }
+    .btn-xs.approve:hover { background:var(--success); color:var(--white); }
+
+    /* ── ACTIVITY FEED ── */
+    .activity-item { display:flex; gap:10px; padding:8px 0; border-bottom:1px solid #f9fafb; align-items:flex-start; }
+    .activity-item:last-child { border-bottom:none; }
+    .activity-dot { width:8px; height:8px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+    .dot-green { background:var(--success); }
+    .dot-gold  { background:var(--gold); }
+    .dot-blue  { background:var(--info); }
+    .dot-red   { background:var(--danger); }
+    .activity-text { font-size:0.83rem; line-height:1.5; }
+    .activity-time { font-size:0.72rem; color:var(--muted); }
+
+    /* ── QUICK ACTIONS ── */
+    .quick-actions { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; }
+    .qa-btn {
+      padding:12px; border-radius:10px; border:1.5px solid #e5e7eb; background:var(--white);
+      cursor:pointer; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:600;
+      text-align:center; transition:all 0.2s; color:var(--text);
+    }
+    .qa-btn:hover { border-color:var(--green); background:var(--green); color:var(--white); }
+    .qa-btn .qa-icon { font-size:1.3rem; display:block; margin-bottom:4px; }
+
+    /* ── CHART ── */
+    .chart-area { height:160px; background:linear-gradient(135deg,rgba(26,71,49,0.05) 0%,rgba(201,147,42,0.05) 100%); border-radius:10px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+    .chart-bars { display:flex; align-items:flex-end; gap:6px; height:120px; padding:0 1rem; width:100%; }
+    .chart-bar { flex:1; background:var(--green); border-radius:4px 4px 0 0; opacity:0.7; transition:opacity 0.2s; min-width:0; }
+    .chart-bar:hover { opacity:1; }
+
+    /* ── TOOLBAR ── */
+    .table-toolbar { display:flex; gap:0.8rem; margin-bottom:1rem; align-items:center; flex-wrap:wrap; }
+    .search-input { flex:1; min-width:180px; padding:8px 12px; border:1.5px solid #e5e7eb; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:0.85rem; outline:none; }
+    .search-input:focus { border-color:var(--green); }
+    .filter-select { padding:8px 12px; border:1.5px solid #e5e7eb; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:0.83rem; outline:none; cursor:pointer; }
+    .btn-add { padding:8px 16px; background:var(--green); color:var(--white); border:none; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:0.83rem; font-weight:600; cursor:pointer; white-space:nowrap; }
+    .btn-add:hover { background:var(--green-mid); }
+
+    /* ── MODAL ── */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center; }
+    .modal-overlay.open { display:flex; }
+    .modal { background:var(--white); border-radius:var(--radius); padding:2rem; width:90%; max-width:500px; box-shadow:0 20px 60px rgba(0,0,0,0.2); animation:fadeIn 0.3s ease; }
+    .modal h3 { font-family:'Playfair Display',serif; font-size:1.3rem; margin-bottom:1.2rem; }
+    .form-group { margin-bottom:1rem; }
+    .form-group label { display:block; font-size:0.82rem; font-weight:600; margin-bottom:4px; }
+    .form-input { width:100%; padding:9px 12px; border:1.5px solid #e5e7eb; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:0.88rem; outline:none; }
+    .form-input:focus { border-color:var(--green); }
+    .modal-btns { display:flex; gap:0.8rem; margin-top:1.3rem; }
+    .modal-btns button { flex:1; padding:10px; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:0.9rem; font-weight:600; cursor:pointer; border:none; }
+    .btn-cancel { background:#f3f4f6; color:var(--text); }
+    .btn-save   { background:var(--green); color:var(--white); }
+
+    /* ── TOAST ── */
+    .toast { position:fixed; bottom:2rem; right:2rem; background:var(--sidebar); color:var(--white); padding:12px 20px; border-radius:10px; font-size:0.88rem; font-weight:500; box-shadow:0 8px 24px rgba(0,0,0,0.25); transform:translateY(80px); opacity:0; transition:all 0.3s; z-index:300; }
+    .toast.show { transform:translateY(0); opacity:1; }
+
+    /* ── LOGIN GATE ── */
+    .login-gate { display:none; position:fixed; inset:0; background:var(--sidebar); z-index:500; align-items:center; justify-content:center; }
+    .login-gate.open { display:flex; }
+    .login-box { background:var(--white); border-radius:var(--radius); padding:2.5rem; width:90%; max-width:380px; text-align:center; }
+    .login-box h2 { font-family:'Playfair Display',serif; margin-bottom:0.4rem; }
+    .login-box p { color:var(--muted); font-size:0.88rem; margin-bottom:1.5rem; }
+
+    @media(max-width:900px) { .content-grid{grid-template-columns:1fr} }
+    @media(max-width:700px) { .sidebar{transform:translateX(-100%)} .main{margin-left:0} }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div class="login-gate open" id="loginGate">
+  <div class="login-box">
+    <div style="font-size:3rem;margin-bottom:0.8rem">🔐</div>
+    <h2>Admin Access</h2>
+    <p>Enter admin credentials to continue</p>
+    <div class="form-group" style="text-align:left">
+      <label>Email</label>
+      <input type="email" class="form-input" id="adminEmail" placeholder="admin@safariquest.com" />
+    </div>
+    <div class="form-group" style="text-align:left">
+      <label>Password</label>
+      <input type="password" class="form-input" id="adminPass" placeholder="••••••••" />
+    </div>
+    <button onclick="adminLogin()" style="width:100%;padding:11px;background:var(--green);color:var(--white);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;margin-top:0.5rem">Sign In to Admin</button>
+    <p style="margin-top:1rem;font-size:0.75rem;color:var(--muted)">Demo: admin@safariquest.com / admin123</p>
+    <a href="index.html" style="display:block;margin-top:0.8rem;font-size:0.82rem;color:var(--green)">← Back to SafariQuest</a>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <img src="logo.jpeg" alt="SafariQuest" onerror="this.style.display='none'" />
+    <div class="sidebar-brand-text">
+      <div class="name">SafariQuest</div>
+      <div class="role">Admin Panel</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">Main</div>
+  <a class="sidebar-link active" onclick="showPage('overview', this)"><span class="icon">📊</span> Overview</a>
+  <a class="sidebar-link" onclick="showPage('bookings', this)"><span class="icon">🗓️</span> Bookings</a>
+  <a class="sidebar-link" onclick="showPage('users', this)"><span class="icon">👥</span> Users</a>
+
+  <div class="sidebar-section">Content</div>
+  <a class="sidebar-link" onclick="showPage('destinations', this)"><span class="icon">📍</span> Destinations</a>
+  <a class="sidebar-link" onclick="showPage('events', this)"><span class="icon">🎉</span> Events</a>
+  <a class="sidebar-link" onclick="showPage('reviews-admin', this)"><span class="icon">★</span> Reviews</a>
+
+  <div class="sidebar-section">System</div>
+  <a class="sidebar-link" href="index.html"><span class="icon">🌍</span> View Site</a>
+
+  <div class="sidebar-footer">
+    <button class="logout-btn" onclick="adminLogout()"><span>🚪</span> Logout</button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <h1 id="pageTitle">Overview</h1>
+    <div class="topbar-right">
+      <button class="notif-btn">🔔<span class="notif-badge">3</span></button>
+      <div class="admin-avatar">SA</div>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div class="page active" id="page-overview">
+    <div class="stats-grid">
+      <div class="stat-card green">
+        <div class="stat-icon-wrap green">💰</div>
+        <div><div class="stat-label">Total Revenue</div><div class="stat-value">KES 1.2M</div><div class="stat-change">↑ 14% this month</div></div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-icon-wrap blue">🧳</div>
+        <div><div class="stat-label">Total Bookings</div><div class="stat-value" id="adminBookingCount">0</div><div class="stat-change">↑ 8% this month</div></div>
+      </div>
+      <div class="stat-card gold">
+        <div class="stat-icon-wrap gold">👥</div>
+        <div><div class="stat-label">Registered Users</div><div class="stat-value" id="adminUserCount">0</div><div class="stat-change">↑ 23% this month</div></div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon-wrap red">★</div>
+        <div><div class="stat-label">Avg. Rating</div><div class="stat-value">4.9</div><div class="stat-change">↑ 0.1 this month</div></div>
+      </div>
+    </div>
+
+    <div class="content-grid">
+      <div>
+        <div class="card" style="margin-bottom:1.4rem">
+          <div class="card-header"><h3>📈 Monthly Bookings (2025)</h3></div>
+          <div class="card-body">
+            <div class="chart-area">
+              <div class="chart-bars" id="chartBars"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--muted);margin-top:4px;padding:0 4px">
+              <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>🗓️ Recent Bookings</h3>
+            <a href="#" onclick="showPage('bookings', document.querySelectorAll('.sidebar-link')[1])" style="font-size:0.8rem;color:var(--green)">View all →</a>
+          </div>
+          <div class="card-body" style="padding:0">
+            <table class="data-table">
+              <thead><tr><th>Booking ID</th><th>Destination</th><th>Traveller</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody id="overviewBookingsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:1.4rem">
+          <div class="card-header"><h3>⚡ Quick Actions</h3></div>
+          <div class="card-body">
+            <div class="quick-actions">
+              <button class="qa-btn" onclick="openAddModal('destination')"><span class="qa-icon">📍</span>Add Destination</button>
+              <button class="qa-btn" onclick="openAddModal('event')"><span class="qa-icon">🎉</span>Add Event</button>
+              <button class="qa-btn" onclick="showPage('users', document.querySelectorAll('.sidebar-link')[2])"><span class="qa-icon">👥</span>View Users</button>
+              <button class="qa-btn" onclick="exportData()"><span class="qa-icon">📤</span>Export Data</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>🔔 Recent Activity</h3></div>
+          <div class="card-body" id="activityFeed"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOOKINGS PAGE -->
+  <div class="page" id="page-bookings">
+    <div class="card">
+      <div class="card-header"><h3>All Bookings</h3></div>
+      <div class="card-body">
+        <div class="table-toolbar">
+          <input class="search-input" placeholder="🔍 Search bookings..." oninput="filterTable('bookingsTable', this.value)" />
+          <select class="filter-select" onchange="filterTableByStatus('bookingsTable', this.value)">
+            <option value="">All Status</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <table class="data-table" id="bookingsTable">
+          <thead><tr><th>ID</th><th>Destination</th><th>Traveller</th><th>Date</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="bookingsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- USERS PAGE -->
+  <div class="page" id="page-users">
+    <div class="card">
+      <div class="card-header"><h3>Registered Users</h3><button class="btn-add" onclick="openAddModal('user')">+ Add User</button></div>
+      <div class="card-body">
+        <div class="table-toolbar">
+          <input class="search-input" placeholder="🔍 Search users..." oninput="filterTable('usersTable', this.value)" />
+        </div>
+        <table class="data-table" id="usersTable">
+          <thead><tr><th>Name</th><th>Email</th><th>Joined</th><th>Bookings</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="usersTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESTINATIONS PAGE -->
+  <div class="page" id="page-destinations">
+    <div class="card">
+      <div class="card-header"><h3>Destinations</h3><button class="btn-add" onclick="openAddModal('destination')">+ Add Destination</button></div>
+      <div class="card-body">
+        <table class="data-table">
+          <thead><tr><th>Name</th><th>Location</th><th>Category</th><th>Price</th><th>Rating</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="destTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVENTS PAGE -->
+  <div class="page" id="page-events">
+    <div class="card">
+      <div class="card-header"><h3>Events</h3><button class="btn-add" onclick="openAddModal('event')">+ Add Event</button></div>
+      <div class="card-body">
+        <table class="data-table">
+          <thead><tr><th>Event</th><th>Location</th><th>Date</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="eventsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEWS ADMIN PAGE -->
+  <div class="page" id="page-reviews-admin">
+    <div class="card">
+      <div class="card-header"><h3>User Reviews</h3></div>
+      <div class="card-body">
+        <table class="data-table">
+          <thead><tr><th>Reviewer</th><th>Destination</th><th>Rating</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="reviewsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- .main -->
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h3 id="modalHeading">Add Item</h3>
+    <div id="modalForm"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeAddModal()">Cancel</button>
+      <button class="btn-save" onclick="saveItem()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── AUTH ──────────────────────────────────────────────────────────────────
+  function adminLogin() {
+    const email = document.getElementById('adminEmail').value.trim();
+    const pass  = document.getElementById('adminPass').value.trim();
+    if (email === 'admin@safariquest.com' && pass === 'admin123') {
+      document.getElementById('loginGate').classList.remove('open');
+      loadAllData();
+    } else {
+      showToast('❌ Invalid credentials. Try admin@safariquest.com / admin123');
+    }
+  }
+  function adminLogout() {
+    document.getElementById('loginGate').classList.add('open');
+    document.getElementById('adminEmail').value = '';
+    document.getElementById('adminPass').value = '';
+  }
+  document.getElementById('adminEmail').addEventListener('keydown', e => { if (e.key === 'Enter') adminLogin(); });
+  document.getElementById('adminPass').addEventListener('keydown',  e => { if (e.key === 'Enter') adminLogin(); });
+
+  // ── DATA ──────────────────────────────────────────────────────────────────
+  const BOOKINGS_DATA = [
+    { id:'SQ-001', dest:'Maasai Mara Safari',  user:'Amara Wanjiku', date:'2025-08-14', amount:28000, status:'confirmed' },
+    { id:'SQ-002', dest:'Diani Beach Resort',   user:'Brian Kamau',   date:'2025-07-01', amount:18500, status:'completed' },
+    { id:'SQ-003', dest:'Lamu Cultural Fest',   user:'Cynthia Oduya', date:'2025-11-05', amount:3500,  status:'pending' },
+    { id:'SQ-004', dest:'Mount Kenya Trek',     user:'David Njoroge', date:'2025-06-10', amount:45000, status:'completed' },
+    { id:'SQ-005', dest:'Carnivore Dinner',     user:'Esther Mwangi', date:'2025-12-24', amount:7200,  status:'confirmed' },
+    { id:'SQ-006', dest:'Amboseli Park',        user:'Francis Ouma',  date:'2025-09-15', amount:12000, status:'pending' },
+    { id:'SQ-007', dest:'Lake Nakuru',          user:'Grace Atieno',  date:'2025-10-20', amount:9500,  status:'cancelled' },
+  ];
+  const USERS_DATA = [
+    { name:'Amara Wanjiku',  email:'amara@email.com',     joined:'2025-01-12', bookings:3, status:'active' },
+    { name:'Brian Kamau',    email:'brian@email.com',     joined:'2025-02-20', bookings:1, status:'active' },
+    { name:'Cynthia Oduya',  email:'cynthia@email.com',   joined:'2025-03-05', bookings:2, status:'active' },
+    { name:'David Njoroge',  email:'david@email.com',     joined:'2025-01-30', bookings:5, status:'active' },
+    { name:'Esther Mwangi',  email:'esther@email.com',    joined:'2025-04-14', bookings:1, status:'suspended' },
+    { name:'Demo User',      email:'demo@safariquest.com',joined:'2025-01-01', bookings:0, status:'active' },
+  ];
+  const DEST_DATA = [
+    { name:'Maasai Mara National Reserve', loc:'Narok County',   cat:'Wildlife',  price:'KES 14,000', rating:'4.9' },
+    { name:'Diani Beach',                  loc:'Kwale County',   cat:'Beach',     price:'KES 5,000',  rating:'4.9' },
+    { name:'Amboseli National Park',       loc:'Kajiado County', cat:'Wildlife',  price:'KES 8,500',  rating:'4.8' },
+    { name:'Mount Kenya Trek',             loc:'Nyeri County',   cat:'Adventure', price:'KES 22,000', rating:'4.7' },
+    { name:'Lamu Old Town',                loc:'Lamu County',    cat:'Cultural',  price:'KES 4,500',  rating:'4.8' },
+    { name:'Nairobi National Park',        loc:'Nairobi',        cat:'Wildlife',  price:'KES 3,000',  rating:'4.6' },
+  ];
+  const EVENTS_DATA = [
+    { name:'Lamu Cultural Festival',  loc:'Lamu Island', date:'2025-11-05', price:'KES 3,500', status:'upcoming' },
+    { name:'Nairobi Marathon',         loc:'Nairobi CBD', date:'2025-10-26', price:'KES 1,500', status:'upcoming' },
+    { name:'Safari Rally Kenya',       loc:'Naivasha',    date:'2025-06-19', price:'KES 2,000', status:'past' },
+    { name:'Blankets & Wine Nairobi',  loc:'Nairobi',     date:'2025-12-07', price:'KES 2,500', status:'upcoming' },
+  ];
+  const REVIEWS_DATA = [
+    { reviewer:'Yvonne Wahuu',  dest:'Maasai Mara', rating:5, date:'2025-07-14', status:'published' },
+    { reviewer:'Zoe Vutage',    dest:'Diani Beach', rating:5, date:'2025-06-02', status:'published' },
+    { reviewer:'Patrick Maina', dest:'Amboseli',    rating:5, date:'2025-05-20', status:'published' },
+    { reviewer:'Hussein A.',    dest:'Mount Kenya', rating:4, date:'2025-04-11', status:'published' },
+    { reviewer:'Anonymous',     dest:'Nairobi NP',  rating:2, date:'2025-08-01', status:'pending review' },
+  ];
+  const ACTIVITY = [
+    { color:'dot-green', text:'New booking SQ-008 confirmed for Amboseli Park',  time:'2 min ago' },
+    { color:'dot-gold',  text:'User David Njoroge left a 5-star review',          time:'18 min ago' },
+    { color:'dot-blue',  text:'New user Fatuma Hassan registered',                time:'1 hr ago' },
+    { color:'dot-red',   text:'Booking SQ-007 was cancelled by Grace Atieno',    time:'3 hrs ago' },
+    { color:'dot-gold',  text:'Event "Lamu Festival" now has 47 bookings',       time:'5 hrs ago' },
+    { color:'dot-green', text:'KES 45,000 payment received for SQ-004',          time:'1 day ago' },
+  ];
+  const CHART_DATA = [12, 18, 22, 30, 28, 35, 48, 55, 42, 38, 44, 52];
+
+  function loadAllData() {
+    const storedBookings = JSON.parse(localStorage.getItem('safariquest_bookings') || '[]');
+    const storedUsers    = JSON.parse(localStorage.getItem('sq_users') || '[]');
+    document.getElementById('adminBookingCount').textContent = BOOKINGS_DATA.length + storedBookings.length;
+    document.getElementById('adminUserCount').textContent = USERS_DATA.length + storedUsers.length;
+
+    // Chart
+    const max = Math.max(...CHART_DATA);
+    document.getElementById('chartBars').innerHTML = CHART_DATA.map(v =>
+      `<div class="chart-bar" style="height:${(v / max * 100)}%" title="${v} bookings"></div>`
+    ).join('');
+
+    // Activity
+    document.getElementById('activityFeed').innerHTML = ACTIVITY.map(a => `
+      <div class="activity-item">
+        <div class="activity-dot ${a.color}"></div>
+        <div><div class="activity-text">${a.text}</div><div class="activity-time">${a.time}</div></div>
+      </div>
+    `).join('');
+
+    // Overview bookings
+    document.getElementById('overviewBookingsBody').innerHTML = BOOKINGS_DATA.slice(0, 5).map(b => `
+      <tr>
+        <td><code style="font-size:0.78rem;background:#f3f4f6;padding:2px 6px;border-radius:4px">${b.id}</code></td>
+        <td>${b.dest}</td><td>${b.user}</td>
+        <td>KES ${b.amount.toLocaleString()}</td>
+        <td><span class="status-pill pill-${b.status}">${capitalize(b.status)}</span></td>
+      </tr>
+    `).join('');
+
+    // Full bookings table
+    document.getElementById('bookingsTableBody').innerHTML = BOOKINGS_DATA.map(b => `
+      <tr>
+        <td><code style="font-size:0.78rem;background:#f3f4f6;padding:2px 6px;border-radius:4px">${b.id}</code></td>
+        <td>${b.dest}</td><td>${b.user}</td><td>${b.date}</td>
+        <td>KES ${b.amount.toLocaleString()}</td>
+        <td><span class="status-pill pill-${b.status}">${capitalize(b.status)}</span></td>
+        <td>
+          <button class="btn-xs edit" onclick="showToast('📝 Edit booking ${b.id}')">Edit</button>
+          <button class="btn-xs del"  onclick="showToast('🗑 Booking ${b.id} deleted')">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+
+    // Users table
+    document.getElementById('usersTableBody').innerHTML = USERS_DATA.map(u => `
+      <tr>
+        <td><strong>${u.name}</strong></td><td>${u.email}</td><td>${u.joined}</td><td>${u.bookings}</td>
+        <td><span class="status-pill ${u.status === 'active' ? 'pill-confirmed' : 'pill-cancelled'}">${capitalize(u.status)}</span></td>
+        <td>
+          <button class="btn-xs edit" onclick="showToast('✏️ Editing ${u.name}')">Edit</button>
+          <button class="btn-xs del"  onclick="showToast('🗑 User removed')">Remove</button>
+        </td>
+      </tr>
+    `).join('');
+
+    // Destinations table
+    document.getElementById('destTableBody').innerHTML = DEST_DATA.map(d => `
+      <tr>
+        <td><strong>${d.name}</strong></td><td>${d.loc}</td><td>${d.cat}</td><td>${d.price}</td><td>⭐ ${d.rating}</td>
+        <td><span class="status-pill pill-confirmed">Active</span></td>
+        <td>
+          <button class="btn-xs edit" onclick="showToast('✏️ Editing ${d.name}')">Edit</button>
+          <button class="btn-xs del"  onclick="showToast('🗑 Deleted')">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+
+    // Events table
+    document.getElementById('eventsTableBody').innerHTML = EVENTS_DATA.map(e => `
+      <tr>
+        <td><strong>${e.name}</strong></td><td>${e.loc}</td><td>${e.date}</td><td>${e.price}</td>
+        <td><span class="status-pill ${e.status === 'upcoming' ? 'pill-active' : 'pill-pending'}">${capitalize(e.status)}</span></td>
+        <td>
+          <button class="btn-xs edit" onclick="showToast('✏️ Editing ${e.name}')">Edit</button>
+          <button class="btn-xs del"  onclick="showToast('🗑 Deleted')">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+
+    // Reviews table
+    document.getElementById('reviewsTableBody').innerHTML = REVIEWS_DATA.map(r => `
+      <tr>
+        <td><strong>${r.reviewer}</strong></td><td>${r.dest}</td>
+        <td>${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</td><td>${r.date}</td>
+        <td><span class="status-pill ${r.status === 'published' ? 'pill-confirmed' : 'pill-review'}">${capitalize(r.status)}</span></td>
+        <td>
+          ${r.status !== 'published' ? `<button class="btn-xs approve" onclick="showToast('✅ Review approved')">Approve</button> ` : ''}
+          <button class="btn-xs del" onclick="showToast('🗑 Review removed')">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ── NAVIGATION ────────────────────────────────────────────────────────────
+  function showPage(name, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    if (el) el.classList.add('active');
+    const titles = { overview:'Overview', bookings:'Bookings', users:'Users', destinations:'Destinations', events:'Events', 'reviews-admin':'Reviews' };
+    document.getElementById('pageTitle').textContent = titles[name] || name;
+  }
+
+  // ── TABLE HELPERS ─────────────────────────────────────────────────────────
+  function filterTable(tableId, val) {
+    document.querySelectorAll('#' + tableId + ' tbody tr').forEach(r => {
+      r.style.display = r.textContent.toLowerCase().includes(val.toLowerCase()) ? '' : 'none';
+    });
+  }
+  function filterTableByStatus(tableId, val) {
+    document.querySelectorAll('#' + tableId + ' tbody tr').forEach(r => {
+      r.style.display = (!val || r.textContent.toLowerCase().includes(val.toLowerCase())) ? '' : 'none';
+    });
+  }
+
+  // ── MODAL ─────────────────────────────────────────────────────────────────
+  const FORMS = {
+    destination: `
+      <div class="form-group"><label>Name</label><input class="form-input" placeholder="e.g. Lake Bogoria" /></div>
+      <div class="form-group"><label>Location</label><input class="form-input" placeholder="e.g. Baringo County" /></div>
+      <div class="form-group"><label>Category</label><select class="form-input"><option>Wildlife</option><option>Beach</option><option>Adventure</option><option>Cultural</option><option>Mountain</option></select></div>
+      <div class="form-group"><label>Price (KES)</label><input class="form-input" type="number" placeholder="5000" /></div>
+      <div class="form-group"><label>Description</label><textarea class="form-input" style="resize:vertical;min-height:70px" placeholder="Describe this destination..."></textarea></div>
+    `,
+    event: `
+      <div class="form-group"><label>Event Name</label><input class="form-input" placeholder="e.g. Nairobi Jazz Festival" /></div>
+      <div class="form-group"><label>Location</label><input class="form-input" placeholder="e.g. Uhuru Park, Nairobi" /></div>
+      <div class="form-group"><label>Date</label><input class="form-input" type="date" /></div>
+      <div class="form-group"><label>Ticket Price (KES)</label><input class="form-input" type="number" placeholder="1500" /></div>
+    `,
+    user: `
+      <div class="form-group"><label>Full Name</label><input class="form-input" placeholder="e.g. Jane Muthoni" /></div>
+      <div class="form-group"><label>Email</label><input class="form-input" type="email" placeholder="jane@email.com" /></div>
+      <div class="form-group"><label>Role</label><select class="form-input"><option>User</option><option>Admin</option></select></div>
+    `
+  };
+  const HEADINGS = { destination:'📍 Add Destination', event:'🎉 Add Event', user:'👤 Add User' };
+
+  function openAddModal(type) {
+    document.getElementById('modalHeading').textContent = HEADINGS[type] || 'Add Item';
+    document.getElementById('modalForm').innerHTML = FORMS[type] || '';
+    document.getElementById('addModal').classList.add('open');
+  }
+  function closeAddModal() { document.getElementById('addModal').classList.remove('open'); }
+  function saveItem() { closeAddModal(); showToast('✅ Item saved successfully!'); }
+
+  function exportData() {
+    const data = JSON.stringify({ bookings: BOOKINGS_DATA, users: USERS_DATA, destinations: DEST_DATA }, null, 2);
+    const blob = new Blob([data], { type:'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'safariquest-data.json';
+    a.click();
+    showToast('📤 Data exported successfully!');
+  }
+
+  function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  document.getElementById('addModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('addModal')) closeAddModal();
+  });
+</script>
+</body>
+</html>
