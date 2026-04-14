@@ -1,11 +1,8 @@
 /* ============================================================
    SAFARIQUEST — dashboard.js
-   Merges all original functionality with new dashboard features.
+   Bookings / recommended / saved — Supabase-backed (see supabase/migrations)
 ============================================================ */
 
-/* ════════════════════════════════════════════════════════════
-   SEARCH DATA — destinations used by the live search feature
-════════════════════════════════════════════════════════════ */
 var SEARCH_DATA = [
   { icon: '🦁', name: 'Maasai Mara',        loc: 'Kenya',       href: 'destinations.html' },
   { icon: '🏔', name: 'Mount Kilimanjaro',   loc: 'Tanzania',    href: 'destinations.html' },
@@ -21,67 +18,34 @@ var SEARCH_DATA = [
   { icon: '🎯', name: 'Hot Air Balloon',     loc: 'Activity',    href: 'activities.html'   },
 ];
 
-/* ════════════════════════════════════════════════════════════
-   MAIN — runs after DOM ready
-════════════════════════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', function () {
+var dashRealtimeChannel = null;
 
-  /* ── 1. AUTH GUARD ──────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function () {
+  if (!window.Auth) {
+    window.location.href = 'login.html';
+    return;
+  }
   if (!Auth.isLoggedIn()) {
     Auth.requireAuth({ action: 'dashboard' });
     return;
   }
 
-  /* ── 2. LOAD USER FROM localStorage ────────────────────── */
-  var user = Auth.getUser() || {};
+  hydrateDashboardUser().catch(function () {});
 
-  var userName  = user.name || 'Traveller';
-  var firstName = userName.split(' ')[0];
+  void (async function loadAll() {
+    var merged = await loadBookingsWithFallback();
+    updateBookingStats(merged);
+    renderTripListUnified(merged);
 
-  /* Update all name-bearing elements */
-  var userNameEl = document.getElementById('userName');
-  if (userNameEl) userNameEl.textContent = userName;
+    await loadRecommendedSection();
+    await loadSavedSection();
+    initFilterTabsRecommended();
+    initRecommendedHeartDelegation();
+    initSavedRemoveDelegation();
+    setupDashboardRealtime();
+  })();
 
-  /* Avatar initials */
-  var initials = firstName.charAt(0).toUpperCase() +
-                 (userName.split(' ')[1] ? userName.split(' ')[1].charAt(0).toUpperCase() : '');
-  var avatarEls = document.querySelectorAll('#userAvatar, #heroAvatar');
-  avatarEls.forEach(function (el) { el.textContent = initials || 'S'; });
-
-  /* ── 3. GREETING (topbar + hero) ───────────────────────── */
-  setGreeting(firstName);
-
-  /* ── 4. LOAD BOOKINGS FROM localStorage ────────────────── */
-  var bookings = [];
-  try { bookings = JSON.parse(localStorage.getItem('sq_bookings') || '[]'); } catch (e) {}
-
-  /* Update bookings badge in sidebar */
-  var bookingsBadge = document.getElementById('bookingsBadge');
-  if (bookingsBadge) bookingsBadge.textContent = bookings.length;
-
-  /* Render trip list */
-  renderTripList(bookings);
-
-  /* Update stat card [0] with real booking count */
-  var statVals = document.querySelectorAll('.stat-val');
-  if (statVals.length > 0) {
-    statVals[0].dataset.count = bookings.length;
-  }
-
-  /* ── 5. PROGRESS BAR ────────────────────────────────────── */
-  setTimeout(function () {
-    var fill = document.getElementById('goalFill');
-    if (!fill) return;
-    var pct = bookings.length > 0
-      ? Math.min(bookings.length * 10 + 20, 95)
-      : 53; /* default 53% when no bookings (matches original) */
-    fill.style.width = pct + '%';
-
-    var pctEl = document.getElementById('goalPct');
-    if (pctEl) pctEl.textContent = pct + '%';
-  }, 500);
-
-  /* ── 6. DESTINATION TAGS ────────────────────────────────── */
+  /* Destination tags */
   var destinations = ['Kenya','Tanzania','Uganda','Rwanda','Ethiopia','Somalia','Namibia','South Africa'];
   var tagsEl = document.getElementById('destTags');
   if (tagsEl) {
@@ -94,14 +58,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  /* ── 7. ANIMATED STAT COUNTERS ─────────────────────────── */
   setTimeout(function () {
     document.querySelectorAll('.stat-val').forEach(function (el) {
       animateCount(el, parseInt(el.dataset.count, 10) || 0, 1400);
     });
   }, 350);
 
-  /* ── 8. NAV ACTIVE STATE ────────────────────────────────── */
   document.querySelectorAll('.nav-item').forEach(function (item) {
     item.addEventListener('click', function () {
       document.querySelectorAll('.nav-item').forEach(function (n) { n.classList.remove('active'); });
@@ -109,10 +71,6 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  /* ── 9. HEART / SAVE BUTTONS ────────────────────────────── */
-  initHeartButtons();
-
-  /* ── 10. HERO PILL CLICK FEEDBACK ──────────────────────── */
   document.querySelectorAll('.hero-pill').forEach(function (pill) {
     pill.addEventListener('click', function () {
       this.style.transform = 'scale(0.93)';
@@ -121,92 +79,140 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  /* ── 11. FILTER TABS (Recommended section) ──────────────── */
-  initFilterTabs();
-
-  /* ── 12. TOPBAR LIVE SEARCH ─────────────────────────────── */
   initTopbarSearch();
-
-  /* ── 13. SIDEBAR SEARCH ─────────────────────────────────── */
   initSidebarSearch();
-
-  /* ── 14. TRIP ACTION BUTTONS ────────────────────────────── */
-  initTripActions();
-
-  /* ── 15. MOBILE SIDEBAR ─────────────────────────────────── */
+  initTripRowLinkDelegation();
   initMobileSidebar();
 
-  /* ── 16. LOGOUT BUTTON ──────────────────────────────────── */
   var logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async function () {
+      if (dashRealtimeChannel && typeof dashRealtimeChannel.unsubscribe === 'function') {
+        dashRealtimeChannel.unsubscribe();
+      }
       await Auth.signOut();
       window.location.href = 'login.html';
     });
   }
-
-}); /* end DOMContentLoaded */
-
+});
 
 /* ════════════════════════════════════════════════════════════
-   GREETING
+   SUPABASE SECTION LOADERS
 ════════════════════════════════════════════════════════════ */
-function setGreeting(firstName) {
-  var hour = new Date().getHours();
-  var period;
-  if (hour < 12)      period = 'morning';
-  else if (hour < 17) period = 'afternoon';
-  else                period = 'evening';
 
-  var greetText  = 'Good ' + period + ' 👋';
-  var heroGreet  = 'Good ' + period + ', ' + (firstName || 'Traveller') + ' 👋';
-
-  var topbarEl = document.getElementById('greeting-text');
-  if (topbarEl) topbarEl.textContent = greetText;
-
-  var heroTitleEl = document.getElementById('heroTitle');
-  if (heroTitleEl) heroTitleEl.textContent = heroGreet;
+async function loadBookingsWithFallback() {
+  var remote = [];
+  try {
+    remote = await Auth.listUserBookings();
+  } catch (e) {
+    console.warn('listUserBookings:', e);
+  }
+  if (remote && remote.length) {
+    return remote.map(normalizeRemoteBooking);
+  }
+  var local = [];
+  try { local = JSON.parse(localStorage.getItem('sq_bookings') || '[]'); } catch (e) {}
+  return (local || []).map(normalizeLegacyLocalBooking);
 }
 
+function normalizeRemoteBooking(b) {
+  return {
+    id: b.id,
+    attraction_slug: b.attraction_slug || '',
+    attraction_name: b.attraction_name || b.attraction_slug || 'Destination',
+    check_in: b.check_in,
+    check_out: b.check_out,
+    guests: b.guests,
+    status: b.status || 'confirmed',
+    special_requests: b.special_requests,
+    _source: 'supabase'
+  };
+}
 
-/* ════════════════════════════════════════════════════════════
-   RENDER TRIP LIST
-   — Shows real bookings from localStorage, or keeps the
-     static fallback trips already in the HTML.
-════════════════════════════════════════════════════════════ */
-function renderTripList(bookings) {
+function normalizeLegacyLocalBooking(b) {
+  return {
+    id: b.id,
+    attraction_slug: b.slug || '',
+    attraction_name: b.attraction || 'Trip',
+    check_in: b.checkIn || '',
+    check_out: b.checkOut || '',
+    guests: parseInt(String(b.guests), 10) || 1,
+    status: b.status || 'confirmed',
+    _source: 'local'
+  };
+}
+
+function isUuid(id) {
+  return typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+}
+
+function bookingDetailsUrl(b) {
+  var slug = b.attraction_slug || '';
+  if (!slug) return 'destinations.html';
+  var base = 'attraction-details.html?id=' + encodeURIComponent(slug);
+  if (b._source === 'supabase' && isUuid(b.id)) {
+    return base + '&booking=' + encodeURIComponent(b.id);
+  }
+  return base;
+}
+
+function updateBookingStats(merged) {
+  var n = merged.length;
+  var bookingsBadge = document.getElementById('bookingsBadge');
+  if (bookingsBadge) bookingsBadge.textContent = n;
+  var statVals = document.querySelectorAll('.stat-val');
+  if (statVals.length > 0) statVals[0].dataset.count = n;
+
+  setTimeout(function () {
+    var fill = document.getElementById('goalFill');
+    if (!fill) return;
+    var pct = n > 0 ? Math.min(n * 10 + 20, 95) : 53;
+    fill.style.width = pct + '%';
+    var pctEl = document.getElementById('goalPct');
+    if (pctEl) pctEl.textContent = pct + '%';
+  }, 500);
+}
+
+function renderTripListUnified(bookings) {
   var tripList = document.getElementById('tripList');
   if (!tripList) return;
 
-  if (bookings.length === 0) {
-    /* No bookings — show static demo trips (already in HTML) */
-    return;
-  }
+  if (!bookings.length) return;
 
-  /* Real bookings exist — replace HTML with dynamic list */
   tripList.innerHTML = bookings.map(function (b) {
-    var statusColor = b.status === 'Confirmed' ? '#1ec99a' : '#C8A24E';
-    var statusBg    = b.status === 'Confirmed' ? 'rgba(30,201,154,0.12)' : 'rgba(200,162,78,0.15)';
+    var statusRaw = (b.status || 'pending');
+    var statusLabel = String(statusRaw).replace(/_/g, ' ');
+    var statusOk = /confirmed|complete/i.test(statusRaw);
+    var statusColor = statusOk ? '#1ec99a' : '#C8A24E';
+    var statusBg    = statusOk ? 'rgba(30,201,154,0.12)' : 'rgba(200,162,78,0.15)';
+    var href = bookingDetailsUrl(b);
+    var ci = b.check_in || '';
+    var co = b.check_out || '';
     return '<div class="trip-item">' +
       '<div style="width:52px;height:52px;border-radius:8px;background:rgba(107,76,42,0.1);' +
            'display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0">🌍</div>' +
       '<div class="trip-info">' +
-        '<div class="trip-name">' + escHtml(b.attraction) + '</div>' +
+        '<div class="trip-name">' + escHtml(b.attraction_name) + '</div>' +
         '<div class="trip-meta">' +
-          '<span>📅 ' + escHtml(b.checkIn) + ' → ' + escHtml(b.checkOut) + '</span>' +
+          '<span>📅 ' + escHtml(ci) + ' → ' + escHtml(co) + '</span>' +
           '<span>👥 ' + escHtml(String(b.guests)) + ' guests</span>' +
         '</div>' +
-        '<div style="font-size:11px;color:var(--text-muted);margin-top:4px">Ref: <strong>' + escHtml(b.id) + '</strong></div>' +
+        '<div style="font-size:11px;color:var(--text-muted);margin-top:4px">' +
+          (b._source === 'supabase' ? 'Booking ID: <strong>' + escHtml(String(b.id)) + '</strong>' : 'Local demo booking') +
+        '</div>' +
       '</div>' +
-      '<div style="text-align:right;flex-shrink:0">' +
+      '<div class="trip-actions">' +
+        '<a class="trip-action" href="' + escHtml(href) + '">View Details</a>' +
+        '<a class="trip-action-sec" href="' + escHtml(href) + '">Edit</a>' +
+      '</div>' +
+      '<div style="text-align:right;flex-shrink:0;align-self:center">' +
         '<span style="display:inline-block;padding:4px 10px;background:' + statusBg + ';' +
               'color:' + statusColor + ';border-radius:20px;font-size:11px;font-weight:700">' +
-          escHtml(b.status) +
+          escHtml(statusLabel) +
         '</span>' +
       '</div>' +
     '</div>';
   }).join('') +
-  /* Add "Browse" empty-state append at bottom */
   '<div style="padding:14px 20px;border-top:1px solid var(--border)">' +
     '<a href="destinations.html" style="font-size:13px;color:var(--savanna);font-weight:500;text-decoration:none">' +
       '+ Browse more destinations →' +
@@ -214,98 +220,311 @@ function renderTripList(bookings) {
   '</div>';
 }
 
+async function loadRecommendedSection() {
+  var grid = document.getElementById('recommendedGrid');
+  var statusEl = document.getElementById('recommendedStatus');
+  var loading = document.getElementById('recommendedLoading');
+  if (loading) loading.style.display = 'none';
+  if (statusEl) statusEl.textContent = 'Loading…';
 
-/* ════════════════════════════════════════════════════════════
-   ANIMATED COUNTER
-════════════════════════════════════════════════════════════ */
-function animateCount(el, target, duration) {
-  var start = performance.now();
-  (function step(now) {
-    var progress = Math.min((now - start) / duration, 1);
-    var ease     = 1 - Math.pow(1 - progress, 3); /* cubic ease-out */
-    el.textContent = Math.round(ease * target).toLocaleString();
-    if (progress < 1) requestAnimationFrame(step);
-    else el.textContent = target.toLocaleString();
-  })(performance.now());
+  var items = [];
+  try {
+    items = await Auth.listRecommendedDestinations();
+  } catch (e) {
+    console.warn('recommended:', e);
+  }
+
+  if (statusEl) statusEl.textContent = '';
+
+  if (!grid) return;
+  if (!items.length) {
+    grid.innerHTML = '<p class="dash-empty-msg">No recommendations yet. Add rows in Supabase table <code>recommended_destinations</code> (or run the project SQL migration).</p>';
+    return;
+  }
+
+  grid.innerHTML = items.map(function (r) {
+    var cat = (r.category || 'safari').toLowerCase();
+    var slug = r.attraction_slug || '';
+    var href = slug ? ('attraction-details.html?id=' + encodeURIComponent(slug)) : 'destinations.html';
+    var img = r.image_url || 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=600&q=80&fit=crop';
+    return '<div class="explore-card" data-category="' + escHtml(cat) + '">' +
+      '<img src="' + escHtml(img) + '" alt="">' +
+      '<button type="button" class="heart-btn explore-heart dash-save-heart" title="Save"' +
+        ' data-slug="' + escHtml(slug) + '" data-name="' + escHtml(r.title || '') + '" data-image="' + escHtml(img) + '">♡</button>' +
+      '<div class="explore-overlay"></div>' +
+      '<div class="explore-category">' + escHtml(cat) + '</div>' +
+      '<div class="explore-info">' +
+        '<div class="explore-name">' + escHtml(r.title || 'Destination') + '</div>' +
+        '<div class="explore-location">' + escHtml((r.short_description || '').slice(0, 120)) + (r.short_description && r.short_description.length > 120 ? '…' : '') + '</div>' +
+        '<div class="explore-price">' +
+          '<a class="explore-link" href="' + escHtml(href) + '">View →</a>' +
+          '&nbsp; <a class="explore-link dash-book" href="' + escHtml(href) + '">Book Now</a>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
 }
 
+async function loadSavedSection() {
+  var row = document.getElementById('savedRow');
+  var statusEl = document.getElementById('savedStatus');
+  var loading = document.getElementById('savedLoading');
+  if (loading) loading.style.display = 'none';
+  if (statusEl) statusEl.textContent = 'Loading…';
 
-/* ════════════════════════════════════════════════════════════
-   HEART / SAVE BUTTONS
-════════════════════════════════════════════════════════════ */
-function initHeartButtons() {
-  document.querySelectorAll('.heart-btn').forEach(function (btn) {
-    btn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      e.preventDefault();
-      this.classList.toggle('liked');
-      var self = this;
-      this.style.transform = 'scale(1.35)';
-      setTimeout(function () { self.style.transform = ''; }, 200);
-    });
-  });
+  var items = [];
+  try {
+    items = await Auth.listUserSavedDestinations(5);
+  } catch (e) {
+    console.warn('saved:', e);
+  }
+
+  if (statusEl) statusEl.textContent = '';
+
+  if (!row) return;
+  if (!items.length) {
+    row.innerHTML = '<p class="dash-empty-msg">Nothing saved yet. Use ♡ on recommendations or “Save to Wishlist” on a destination page.</p>';
+    return;
+  }
+
+  row.innerHTML = items.map(function (s) {
+    var img = s.image_url || 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=300&q=80&fit=crop';
+    var slug = s.attraction_slug || '';
+    var href = slug ? ('attraction-details.html?id=' + encodeURIComponent(slug)) : 'destinations.html';
+    return '<div class="saved-item-wrap">' +
+      '<button type="button" class="saved-remove-btn" data-saved-id="' + escHtml(s.id) + '" title="Remove">×</button>' +
+      '<a class="saved-item" href="' + escHtml(href) + '">' +
+        '<img class="saved-img" src="' + escHtml(img) + '" alt="">' +
+        '<div class="saved-item-name">' + escHtml(s.attraction_name || slug || 'Saved') + '</div>' +
+        '<div class="saved-item-loc">' + escHtml(slug.replace(/-/g, ' ')) + '</div>' +
+      '</a>' +
+    '</div>';
+  }).join('');
 }
 
-
-/* ════════════════════════════════════════════════════════════
-   EXPLORE FILTER TABS
-════════════════════════════════════════════════════════════ */
-function initFilterTabs() {
-  var tabs  = document.querySelectorAll('.filter-tab');
-  var cards = document.querySelectorAll('.explore-card');
-
+function initFilterTabsRecommended() {
+  var wrap = document.getElementById('recommendedSectionWrap');
+  var grid = document.getElementById('recommendedGrid');
+  if (!wrap || !grid) return;
+  var tabs = wrap.querySelectorAll('.filter-tab');
   tabs.forEach(function (tab) {
     tab.addEventListener('click', function () {
       tabs.forEach(function (t) { t.classList.remove('active'); });
       this.classList.add('active');
-
-      var filter = this.getAttribute('data-filter');
-      cards.forEach(function (card) {
-        var cat = card.getAttribute('data-category');
+      var filter = (this.getAttribute('data-filter') || 'all').toLowerCase();
+      grid.querySelectorAll('.explore-card').forEach(function (card) {
+        var cat = (card.getAttribute('data-category') || '').toLowerCase();
         card.classList.toggle('hidden', filter !== 'all' && cat !== filter);
       });
     });
   });
 }
 
+function initRecommendedHeartDelegation() {
+  var grid = document.getElementById('recommendedGrid');
+  if (!grid) return;
+  grid.addEventListener('click', function (e) {
+    var btn = e.target.closest('.dash-save-heart');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    var slug = btn.getAttribute('data-slug');
+    var name = btn.getAttribute('data-name');
+    var image = btn.getAttribute('data-image');
+    if (!slug) {
+      showDashToast('Link this card to an attraction slug in Supabase.', 'info');
+      return;
+    }
+    void (async function () {
+      try {
+        var uid = Auth.getUser()?.id;
+        if (!uid) return;
+        await Auth.insertUserSavedDestination({
+          user_id: uid,
+          attraction_slug: slug,
+          attraction_name: name || slug,
+          image_url: image || null
+        });
+        btn.classList.add('liked');
+        showDashToast('Saved to your list.', 'success');
+        await loadSavedSection();
+      } catch (err) {
+        showDashToast(err.message || 'Could not save', 'error');
+      }
+    })();
+  });
+}
+
+function initSavedRemoveDelegation() {
+  var row = document.getElementById('savedRow');
+  if (!row) return;
+  row.addEventListener('click', function (e) {
+    var del = e.target.closest('.saved-remove-btn');
+    if (!del) return;
+    e.preventDefault();
+    var id = del.getAttribute('data-saved-id');
+    if (!id) return;
+    void (async function () {
+      try {
+        await Auth.deleteUserSavedDestination(id);
+        showDashToast('Removed from saved.', 'success');
+        await loadSavedSection();
+      } catch (err) {
+        showDashToast(err.message || 'Could not remove', 'error');
+      }
+    })();
+  });
+}
+
+function initTripRowLinkDelegation() {
+  /* Links handle navigation; no extra JS needed */
+}
+
+function setupDashboardRealtime() {
+  if (!window.SQ_PUBLIC || !window.supabase || typeof window.supabase.createClient !== 'function') return;
+  var sess = Auth.getSession && Auth.getSession();
+  if (!sess?.access_token || !sess.refresh_token) return;
+
+  try {
+    var client = window.supabase.createClient(window.SQ_PUBLIC.url, window.SQ_PUBLIC.anon, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    });
+    client.auth.setSession({
+      access_token: sess.access_token,
+      refresh_token: sess.refresh_token
+    }).then(function () {
+      dashRealtimeChannel = client
+        .channel('dashboard-' + (Auth.getUser()?.id || 'me'))
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'user_bookings' },
+          function () {
+            loadBookingsWithFallback().then(function (m) {
+              updateBookingStats(m);
+              renderTripListUnified(m);
+            });
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'user_saved_destinations' },
+          function () { loadSavedSection(); }
+        )
+        .subscribe();
+    });
+  } catch (e) {
+    console.warn('Realtime unavailable:', e);
+  }
+}
+
+function showDashToast(msg, type) {
+  var el = document.getElementById('dashToast');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'dash-toast show ' + (type || 'info');
+  clearTimeout(showDashToast._t);
+  showDashToast._t = setTimeout(function () { el.classList.remove('show'); }, 3200);
+}
 
 /* ════════════════════════════════════════════════════════════
-   TOPBAR LIVE SEARCH  (with dropdown results)
+   USER / GREETING
 ════════════════════════════════════════════════════════════ */
+
+async function hydrateDashboardUser() {
+  var user = Auth.getUser() || {};
+  var profile = null;
+  try { profile = await Auth.getProfile(); } catch (err) { console.warn(err); }
+
+  var fullName =
+    (profile && profile.full_name) ||
+    (user.user_metadata && user.user_metadata.full_name) ||
+    user.name ||
+    (user.email ? user.email.split('@')[0] : '') ||
+    'Traveller';
+  var firstName = fullName.split(' ')[0] || 'Traveller';
+  var email = (profile && profile.email) || user.email || '';
+  var joinedRaw = (profile && profile.created_at) || user.created_at || '';
+
+  renderUserIdentity(fullName, firstName, email, joinedRaw);
+}
+
+function renderUserIdentity(fullName, firstName, email, joinedRaw) {
+  var userNameEl = document.getElementById('userName');
+  if (userNameEl) userNameEl.textContent = fullName;
+
+  var userEmailEl = document.getElementById('userEmail');
+  if (userEmailEl) {
+    userEmailEl.textContent = email || 'Explorer Plan ✦';
+    userEmailEl.title = email || '';
+  }
+
+  var joinedEl = document.getElementById('joinedDate');
+  if (joinedEl) {
+    joinedEl.textContent = joinedRaw
+      ? 'Member since ' + formatJoinedDate(joinedRaw)
+      : 'Member since —';
+  }
+
+  var initials = firstName.charAt(0).toUpperCase() +
+    (fullName.split(' ')[1] ? fullName.split(' ')[1].charAt(0).toUpperCase() : '');
+  document.querySelectorAll('#userAvatar, #heroAvatar').forEach(function (el) { el.textContent = initials || 'S'; });
+
+  setGreeting(firstName);
+}
+
+function formatJoinedDate(value) {
+  var date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function setGreeting(firstName) {
+  var hour = new Date().getHours();
+  var period = hour < 12 ? 'morning' : (hour < 17 ? 'afternoon' : 'evening');
+  var greetText = 'Good ' + period + ' 👋';
+  var heroGreet = 'Good ' + period + ', ' + (firstName || 'Traveller') + ' 👋';
+  var topbarEl = document.getElementById('greeting-text');
+  if (topbarEl) topbarEl.textContent = greetText;
+  var heroTitleEl = document.getElementById('heroTitle');
+  if (heroTitleEl) heroTitleEl.textContent = heroGreet;
+}
+
+function animateCount(el, target, duration) {
+  var start = performance.now();
+  (function step(now) {
+    var progress = Math.min((now - start) / duration, 1);
+    var ease = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.round(ease * target).toLocaleString();
+    if (progress < 1) requestAnimationFrame(step);
+    else el.textContent = target.toLocaleString();
+  })(performance.now());
+}
+
 function initTopbarSearch() {
-  var input    = document.getElementById('topbarSearch');
+  var input = document.getElementById('topbarSearch');
   var dropdown = document.getElementById('searchDropdown');
   if (!input || !dropdown) return;
 
   input.addEventListener('input', function () {
     var q = this.value.trim().toLowerCase();
     if (q.length < 1) { closeDropdown(); return; }
-
     var matches = SEARCH_DATA.filter(function (item) {
       return item.name.toLowerCase().includes(q) || item.loc.toLowerCase().includes(q);
     }).slice(0, 6);
-
     if (matches.length === 0) { closeDropdown(); return; }
-
     dropdown.innerHTML = matches.map(function (item) {
       return '<a class="search-result-item" href="' + item.href + '">' +
         '<span class="search-result-icon">' + item.icon + '</span>' +
-        '<div>' +
-          '<div class="search-result-name">' + escHtml(item.name) + '</div>' +
-          '<div class="search-result-loc">' + escHtml(item.loc) + '</div>' +
-        '</div>' +
-      '</a>';
+        '<div><div class="search-result-name">' + escHtml(item.name) + '</div>' +
+        '<div class="search-result-loc">' + escHtml(item.loc) + '</div></div></a>';
     }).join('');
-
     dropdown.classList.add('open');
   });
 
-  /* Close on Escape */
   input.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') { input.value = ''; closeDropdown(); input.blur(); }
   });
 
-  /* Close when clicking outside */
   document.addEventListener('click', function (e) {
     if (!input.closest('.topbar-search').contains(e.target)) closeDropdown();
   });
@@ -313,14 +532,9 @@ function initTopbarSearch() {
   function closeDropdown() { dropdown.classList.remove('open'); dropdown.innerHTML = ''; }
 }
 
-
-/* ════════════════════════════════════════════════════════════
-   SIDEBAR SEARCH  (filters nav items)
-════════════════════════════════════════════════════════════ */
 function initSidebarSearch() {
   var input = document.getElementById('sidebarSearch');
   if (!input) return;
-
   input.addEventListener('input', function () {
     var q = this.value.trim().toLowerCase();
     document.querySelectorAll('.nav-item').forEach(function (item) {
@@ -330,45 +544,6 @@ function initSidebarSearch() {
   });
 }
 
-
-/* ════════════════════════════════════════════════════════════
-   TRIP ACTION BUTTONS
-════════════════════════════════════════════════════════════ */
-function initTripActions() {
-  /* Delegate from the list container so dynamic items also work */
-  var tripList = document.getElementById('tripList');
-  if (!tripList) return;
-
-  tripList.addEventListener('click', function (e) {
-    var actionBtn = e.target.closest('.trip-action');
-    var secBtn    = e.target.closest('.trip-action-sec');
-    var tripItem  = e.target.closest('.trip-item');
-
-    if (actionBtn) {
-      e.stopPropagation();
-      var name = tripItem ? tripItem.querySelector('.trip-name') : null;
-      /* TODO: open details modal or navigate */
-      console.log('View details:', name ? name.textContent : '');
-      return;
-    }
-    if (secBtn) {
-      e.stopPropagation();
-      var name2 = tripItem ? tripItem.querySelector('.trip-name') : null;
-      /* TODO: open edit modal */
-      console.log('Edit trip:', name2 ? name2.textContent : '');
-      return;
-    }
-    /* Clicking anywhere else on the row */
-    if (tripItem) {
-      console.log('Row clicked');
-    }
-  });
-}
-
-
-/* ════════════════════════════════════════════════════════════
-   MOBILE SIDEBAR  (toggle + Escape key)
-════════════════════════════════════════════════════════════ */
 function initMobileSidebar() {
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
@@ -378,16 +553,11 @@ function initMobileSidebar() {
   });
 }
 
-/* Called by the hamburger button and the overlay (inline onclick) */
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
   document.getElementById('overlay').classList.toggle('open');
 }
 
-
-/* ════════════════════════════════════════════════════════════
-   UTILITY — escape HTML to prevent XSS in dynamic content
-════════════════════════════════════════════════════════════ */
 function escHtml(str) {
   return String(str)
     .replace(/&/g, '&amp;')
