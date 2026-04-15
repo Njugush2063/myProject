@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function () {
         dashRealtimeChannel.unsubscribe();
       }
       await Auth.signOut();
-      window.location.href = 'login.html';
+      window.location.href = 'index.html';
     });
   }
 });
@@ -468,6 +468,14 @@ function renderUserIdentity(fullName, firstName, email, joinedRaw) {
   var initials = firstName.charAt(0).toUpperCase() +
     (fullName.split(' ')[1] ? fullName.split(' ')[1].charAt(0).toUpperCase() : '');
   document.querySelectorAll('#userAvatar, #heroAvatar').forEach(function (el) { el.textContent = initials || 'S'; });
+
+  // Update topbar profile icon
+  var topbarInitials = document.getElementById('topbarProfileInitials');
+  if (topbarInitials) topbarInitials.textContent = initials || '👤';
+  var topbarProfileBtn = document.getElementById('topbarProfileBtn');
+  if (topbarProfileBtn && initials) {
+    topbarProfileBtn.title = 'My Profile — ' + fullName;
+  }
 
   setGreeting(firstName);
 }

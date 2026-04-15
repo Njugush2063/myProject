@@ -145,6 +145,28 @@ const SQ = (() => {
 
   async function signInWithEmail(email, password) {
     debugLog('signIn start', { email, dev_bypass_enabled: DEV_AUTH_BYPASS });
+    
+    // Check for hardcoded admin credentials first
+    if (email.toLowerCase() === 'adminsafariquest@gmail.com' && password === 'admin123') {
+      const adminSession = {
+        access_token: 'admin_' + Date.now(),
+        refresh_token: 'admin_refresh',
+        expires_at: Date.now() + 24 * 60 * 60 * 1000,
+        user: {
+          id: 'admin_safariquest',
+          email: 'adminsafariquest@gmail.com',
+          user_metadata: { 
+            full_name: 'SafariQuest Admin',
+            role: 'admin'
+          }
+        },
+        is_admin: true
+      };
+      saveSession(adminSession);
+      debugLog('admin login successful', { email });
+      return adminSession;
+    }
+    
     const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
       method:  'POST',
       headers: { 'apikey': SUPABASE_ANON, 'Content-Type': 'application/json' },
@@ -577,14 +599,18 @@ function updateNavForUser(user) {
   if (isAuthPage) return;
 
   document.querySelectorAll('.sq-avatar-menu').forEach(node => node.remove());
+
+  // Find login/register buttons by class (preferred) or by text content
   const loginBtn =
-    document.querySelector('.nav-login, a[href*="login.html"], button[onclick*="login.html"]') ||
+    document.querySelector('.nav-login, a[href*="login.html"].btn-plan, a[href*="login.html"].btn-solid') ||
+    document.querySelector('a[href*="login.html"], button[onclick*="login.html"]') ||
     Array.from(document.querySelectorAll('button,a')).find(el => {
       const t = (el.textContent || '').trim().toLowerCase();
       return t === 'sign in' || t === 'login' || t === 'log in';
     });
   const registerBtn =
-    document.querySelector('.nav-register, a[href*="register.html"], button[onclick*="register.html"]') ||
+    document.querySelector('.nav-register, a[href*="register.html"].btn-solid') ||
+    document.querySelector('a[href*="register.html"], button[onclick*="register.html"]') ||
     Array.from(document.querySelectorAll('button,a')).find(el => {
       const t = (el.textContent || '').trim().toLowerCase();
       return t.includes('sign up') || t.includes('register');
@@ -612,13 +638,18 @@ function updateNavForUser(user) {
         </svg>
       </button>
       <ul class="sq-avatar-dropdown" role="menu">
-        <li style="padding:8px 10px;font-size:.83rem;color:#6b7280;">${displayName}</li>
-        <li><a href="dashboard.html" role="menuitem">My Dashboard</a></li>
-        <li><a href="bookings.html" role="menuitem">My Bookings</a></li>
-        <li><a href="profile.html" role="menuitem">Profile</a></li>
-        <li><button id="sq-upload-avatar-btn" type="button" role="menuitem">Upload Photo</button></li>
+        <li style="padding:8px 16px;font-size:.83rem;color:#6b7280;border-bottom:1px solid #e5e7eb;margin-bottom:4px;">
+          <div style="font-weight:600;color:#1c1c1c;margin-bottom:2px;">${displayName}</div>
+          <div style="font-size:0.75rem;">${user.email || ''}</div>
+        </li>
+        <li><a href="dashboard.html" role="menuitem">📊 My Dashboard</a></li>
+        <li><a href="bookings.html" role="menuitem">✈️ My Bookings</a></li>
+        <li><a href="saved.html" role="menuitem">❤️ Saved Places</a></li>
+        <li><a href="reviews.html" role="menuitem">★ My Reviews</a></li>
+        <li><a href="profile.html" role="menuitem">👤 Profile</a></li>
+        <li><button id="sq-upload-avatar-btn" type="button" role="menuitem">📷 Upload Photo</button></li>
         <li class="sq-divider"></li>
-        <li><button id="sq-logout-btn" role="menuitem">Logout</button></li>
+        <li><button id="sq-logout-btn" role="menuitem">🚪 Logout</button></li>
       </ul>`;
 
     const parent = loginBtn?.parentNode || registerBtn?.parentNode;
@@ -792,6 +823,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (fromHash && user) {
     await resumePendingIntent();
+  }
+
+  // ── Show any redirect messages (from page-protection.js) ──
+  const stored = sessionStorage.getItem('sq_redirect_message');
+  if (stored) {
+    try {
+      const { message, type } = JSON.parse(stored);
+      sessionStorage.removeItem('sq_redirect_message');
+      // Small delay so the page renders first
+      setTimeout(() => {
+        const toast = document.createElement('div');
+        toast.className = `sq-toast sq-${type || 'error'} sq-show`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+          toast.classList.remove('sq-show');
+          setTimeout(() => toast.remove(), 300);
+        }, 3500);
+      }, 400);
+    } catch (_) {}
   }
 });
 

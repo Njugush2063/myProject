@@ -1,272 +1,312 @@
-/* ───────────────────────────────────────────────────────────────────────────
-   SafariQuest — auth-ui.css
-   Drop this into your <head> on every page, after your existing stylesheet.
-   ─────────────────────────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   SafariQuest — Auth UI Styles
+   Profile dropdown, modals, and authentication UI components
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Avatar / dropdown menu ─────────────────────────────────────────────── */
+:root {
+  --sq-green: #1a4731;
+  --sq-green-mid: #2d6a4f;
+  --sq-gold: #c9932a;
+  --sq-gold-light: #f4c56a;
+  --sq-white: #ffffff;
+  --sq-text: #1c1c1c;
+  --sq-muted: #6b7280;
+  --sq-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  --sq-radius: 12px;
+}
+
+/* ── PROFILE AVATAR MENU ── */
 .sq-avatar-menu {
   position: relative;
-  display: inline-flex;
-  align-items: center;
+  display: inline-block;
 }
 
 .sq-avatar-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px 6px 6px;
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 999px;
+  background: transparent;
+  border: 1.5px solid rgba(255,255,255,0.35);
+  border-radius: 24px;
+  padding: 4px 12px 4px 4px;
   cursor: pointer;
-  color: inherit;
-  font-size: 0.875rem;
+  transition: all 0.2s;
+  color: rgba(255,255,255,0.9);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
   font-weight: 500;
-  transition: background 0.2s, border-color 0.2s;
-  white-space: nowrap;
 }
 
 .sq-avatar-btn:hover {
-  background: rgba(255,255,255,0.22);
-  border-color: rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.5);
+}
+
+.sq-avatar-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--sq-gold);
+  color: var(--sq-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
 .sq-avatar-initials {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: #e8a045;   /* SafariQuest amber */
-  color: #fff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  flex-shrink: 0;
+  background: var(--sq-gold);
 }
 
 .sq-avatar-name {
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .sq-avatar-name {
+    display: block;
+  }
 }
 
 .sq-chevron {
-  opacity: 0.7;
   transition: transform 0.2s;
-  flex-shrink: 0;
 }
 
 .sq-avatar-btn[aria-expanded="true"] .sq-chevron {
   transform: rotate(180deg);
 }
 
-/* Dropdown list */
 .sq-avatar-dropdown {
-  display: none;
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
+  background: var(--sq-white);
+  border-radius: var(--sq-radius);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
   min-width: 200px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
   list-style: none;
-  padding: 6px;
+  padding: 8px 0;
   margin: 0;
-  z-index: 9999;
-  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 0.2s;
+  z-index: 1000;
 }
 
 .sq-avatar-dropdown.sq-open {
-  display: block;
-  animation: sqFadeIn 0.15s ease;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
-.sq-avatar-dropdown li a,
-.sq-avatar-dropdown li button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.sq-avatar-dropdown li {
+  margin: 0;
+}
+
+.sq-avatar-dropdown a,
+.sq-avatar-dropdown button {
+  display: block;
   width: 100%;
-  padding: 9px 12px;
-  border-radius: 8px;
-  color: #1f2937;
-  font-size: 0.875rem;
-  font-weight: 500;
+  padding: 10px 16px;
+  text-align: left;
   text-decoration: none;
-  background: none;
+  color: var(--sq-text);
+  font-size: 0.88rem;
+  font-weight: 500;
   border: none;
+  background: none;
   cursor: pointer;
   transition: background 0.15s;
-  text-align: left;
+  font-family: 'DM Sans', sans-serif;
 }
 
-.sq-avatar-dropdown li a:hover,
-.sq-avatar-dropdown li button:hover {
-  background: #f3f4f6;
+.sq-avatar-dropdown a:hover,
+.sq-avatar-dropdown button:hover {
+  background: rgba(26,71,49,0.05);
+  color: var(--sq-green);
 }
 
 .sq-divider {
   height: 1px;
   background: #e5e7eb;
-  margin: 4px 8px;
-  padding: 0 !important;
+  margin: 8px 0;
 }
 
-/* ── Login Modal ─────────────────────────────────────────────────────────── */
-#sq-login-modal {
+/* ── LOGIN MODAL ── */
+.sq-modal-overlay {
   display: none;
   position: fixed;
   inset: 0;
-  z-index: 99999;
+  background: rgba(0,0,0,0.5);
+  z-index: 9999;
   align-items: center;
   justify-content: center;
-  padding: 16px;
 }
 
-#sq-login-modal.sq-modal-open {
+.sq-modal-overlay.sq-modal-open {
   display: flex;
-  animation: sqFadeIn 0.2s ease;
 }
 
-.sq-modal-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(3px);
+.sq-modal {
+  background: var(--sq-white);
+  border-radius: var(--sq-radius);
+  padding: 2rem;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: sq-fadeUp 0.3s ease;
 }
 
-.sq-modal-card {
-  position: relative;
-  background: #fff;
-  border-radius: 20px;
-  width: 100%;
-  max-width: 440px;
-  padding: 40px 36px 32px;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.18);
-  z-index: 1;
+@keyframes sq-fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sq-modal h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--sq-text);
+}
+
+.sq-modal p {
+  color: var(--sq-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
 }
 
 .sq-modal-close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: #f3f4f6;
+  float: right;
+  background: none;
   border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 1.5rem;
   cursor: pointer;
-  font-size: 1.1rem;
-  color: #6b7280;
-  transition: background 0.15s;
-}
-.sq-modal-close:hover { background: #e5e7eb; }
-
-.sq-modal-icon {
-  font-size: 2.2rem;
-  margin-bottom: 12px;
-  display: block;
+  color: var(--sq-muted);
+  line-height: 1;
+  padding: 0;
 }
 
-.sq-modal-card h2 {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #111827;
-  margin: 0 0 6px;
+.sq-modal-actions {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
 }
 
-.sq-modal-card p {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0 0 24px;
-}
-
-.sq-modal-card .sq-field {
-  margin-bottom: 14px;
-}
-
-.sq-modal-card label {
-  display: block;
-  font-size: 0.8rem;
+.sq-btn {
+  flex: 1;
+  padding: 11px 20px;
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: #374151;
-  margin-bottom: 5px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
 }
 
-.sq-modal-card input[type="email"],
-.sq-modal-card input[type="password"] {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1.5px solid #d1d5db;
+.sq-btn-primary {
+  background: var(--sq-green);
+  color: var(--sq-white);
+}
+
+.sq-btn-primary:hover {
+  background: var(--sq-green-mid);
+}
+
+.sq-btn-secondary {
+  background: #f3f4f6;
+  color: var(--sq-text);
+}
+
+.sq-btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+/* ── TOAST NOTIFICATIONS ── */
+.sq-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: var(--sq-green);
+  color: var(--sq-white);
+  padding: 12px 20px;
   border-radius: 10px;
   font-size: 0.9rem;
-  color: #1f2937;
-  transition: border-color 0.15s, box-shadow 0.15s;
-  box-sizing: border-box;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 10000;
+  max-width: 400px;
 }
 
-.sq-modal-card input:focus {
-  outline: none;
-  border-color: #e8a045;
-  box-shadow: 0 0 0 3px rgba(232,160,69,0.18);
+.sq-toast.sq-show {
+  transform: translateY(0);
+  opacity: 1;
 }
 
-.sq-modal-submit {
-  width: 100%;
-  padding: 12px;
-  background: #e8a045;
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 8px;
-  transition: background 0.2s, transform 0.1s;
-}
-.sq-modal-submit:hover  { background: #d48c2e; }
-.sq-modal-submit:active { transform: scale(0.98); }
-
-.sq-modal-submit:disabled {
-  background: #d1d5db;
-  cursor: not-allowed;
+.sq-toast.sq-error {
+  background: #dc2626;
 }
 
-.sq-modal-error {
-  display: none;
-  background: #fef2f2;
-  border: 1px solid #fca5a5;
-  color: #dc2626;
-  border-radius: 8px;
-  padding: 9px 12px;
-  font-size: 0.85rem;
-  margin-top: 12px;
+.sq-toast.sq-success {
+  background: #16a34a;
 }
-.sq-modal-error.sq-visible { display: block; }
 
-.sq-modal-footer {
-  text-align: center;
-  margin-top: 20px;
-  font-size: 0.85rem;
-  color: #6b7280;
+.sq-toast.sq-warning {
+  background: #d97706;
 }
-.sq-modal-footer a {
-  color: #e8a045;
+
+/* ── NAV-SPECIFIC OVERRIDES (green navbar pages) ── */
+nav .sq-avatar-menu,
+#navbar .sq-avatar-menu {
+  display: inline-flex;
+  align-items: center;
+}
+
+nav .sq-avatar-dropdown,
+#navbar .sq-avatar-dropdown {
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 220px;
+}
+
+/* When inside .nav-actions (index.html style) */
+.nav-actions .sq-avatar-menu {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* When inside .nav-auth (bookings/saved/reviews style) */
+.nav-auth .sq-avatar-menu {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Dropdown user info row */
+.sq-avatar-dropdown li:first-child {
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 4px;
   font-weight: 600;
-  text-decoration: none;
+  color: var(--sq-text);
 }
 
-/* ── Keyframes ───────────────────────────────────────────────────────────── */
-@keyframes sqFadeIn {
-  from { opacity: 0; transform: scale(0.96) translateY(-4px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
+/* Logout button in dropdown — red tint on hover */
+.sq-avatar-dropdown #sq-logout-btn:hover {
+  background: rgba(220, 38, 38, 0.06);
+  color: #dc2626;
 }

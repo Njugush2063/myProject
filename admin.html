@@ -6,6 +6,7 @@
   <title>Admin Panel — SafariQuest</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="auth.js" defer></script>
   <style>
     :root {
       --green: #1a4731;
@@ -207,14 +208,14 @@
     <p>Enter admin credentials to continue</p>
     <div class="form-group" style="text-align:left">
       <label>Email</label>
-      <input type="email" class="form-input" id="adminEmail" placeholder="admin@safariquest.com" />
+      <input type="email" class="form-input" id="adminEmail" placeholder="adminsafariquest@gmail.com" />
     </div>
     <div class="form-group" style="text-align:left">
       <label>Password</label>
       <input type="password" class="form-input" id="adminPass" placeholder="••••••••" />
     </div>
     <button onclick="adminLogin()" style="width:100%;padding:11px;background:var(--green);color:var(--white);border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:600;cursor:pointer;margin-top:0.5rem">Sign In to Admin</button>
-    <p style="margin-top:1rem;font-size:0.75rem;color:var(--muted)">Demo: admin@safariquest.com / admin123</p>
+    <p style="margin-top:1rem;font-size:0.75rem;color:var(--muted)">Use: adminsafariquest@gmail.com / admin123</p>
     <a href="index.html" style="display:block;margin-top:0.8rem;font-size:0.82rem;color:var(--green)">← Back to SafariQuest</a>
   </div>
 </div>
@@ -423,78 +424,129 @@
 
 <script>
   // ── AUTH ──────────────────────────────────────────────────────────────────
-  function adminLogin() {
+  const ADMIN_EMAIL = 'adminsafariquest@gmail.com';
+  const ADMIN_PASSWORD = 'admin123';
+
+  async function adminLogin() {
     const email = document.getElementById('adminEmail').value.trim();
     const pass  = document.getElementById('adminPass').value.trim();
-    if (email === 'admin@safariquest.com' && pass === 'admin123') {
+    const btn   = document.querySelector('.login-box button');
+
+    if (!email || !pass) { showToast('❌ Please enter email and password'); return; }
+
+    btn.textContent = 'Signing in…';
+    btn.disabled = true;
+
+    try {
+      // Use SQ auth helper which handles the admin shortcut
+      const result = await window.SQ.signInWithEmail(email, pass);
+      const user = result?.user || window.SQ.getUser();
+
+      if (!user || user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+        await window.SQ.signOut();
+        showToast('❌ Access denied. Admin credentials required.');
+        btn.textContent = 'Sign In to Admin';
+        btn.disabled = false;
+        return;
+      }
+
       document.getElementById('loginGate').classList.remove('open');
+      // Update topbar avatar
+      const initials = 'SA';
+      document.querySelector('.admin-avatar').textContent = initials;
       loadAllData();
-    } else {
-      showToast('❌ Invalid credentials. Try admin@safariquest.com / admin123');
+    } catch (err) {
+      showToast('❌ ' + (err.message || 'Login failed'));
+      btn.textContent = 'Sign In to Admin';
+      btn.disabled = false;
     }
   }
-  function adminLogout() {
+
+  async function adminLogout() {
+    await window.SQ.signOut();
     document.getElementById('loginGate').classList.add('open');
     document.getElementById('adminEmail').value = '';
     document.getElementById('adminPass').value = '';
   }
+
+  // Check if already logged in as admin on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    const user = window.SQ && window.SQ.getUser();
+    if (user && user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+      document.getElementById('loginGate').classList.remove('open');
+      loadAllData();
+    }
+  });
+
   document.getElementById('adminEmail').addEventListener('keydown', e => { if (e.key === 'Enter') adminLogin(); });
   document.getElementById('adminPass').addEventListener('keydown',  e => { if (e.key === 'Enter') adminLogin(); });
 
-  // ── DATA ──────────────────────────────────────────────────────────────────
-  const BOOKINGS_DATA = [
-    { id:'SQ-001', dest:'Maasai Mara Safari',  user:'Amara Wanjiku', date:'2025-08-14', amount:28000, status:'confirmed' },
-    { id:'SQ-002', dest:'Diani Beach Resort',   user:'Brian Kamau',   date:'2025-07-01', amount:18500, status:'completed' },
-    { id:'SQ-003', dest:'Lamu Cultural Fest',   user:'Cynthia Oduya', date:'2025-11-05', amount:3500,  status:'pending' },
-    { id:'SQ-004', dest:'Mount Kenya Trek',     user:'David Njoroge', date:'2025-06-10', amount:45000, status:'completed' },
-    { id:'SQ-005', dest:'Carnivore Dinner',     user:'Esther Mwangi', date:'2025-12-24', amount:7200,  status:'confirmed' },
-    { id:'SQ-006', dest:'Amboseli Park',        user:'Francis Ouma',  date:'2025-09-15', amount:12000, status:'pending' },
-    { id:'SQ-007', dest:'Lake Nakuru',          user:'Grace Atieno',  date:'2025-10-20', amount:9500,  status:'cancelled' },
-  ];
-  const USERS_DATA = [
-    { name:'Amara Wanjiku',  email:'amara@email.com',     joined:'2025-01-12', bookings:3, status:'active' },
-    { name:'Brian Kamau',    email:'brian@email.com',     joined:'2025-02-20', bookings:1, status:'active' },
-    { name:'Cynthia Oduya',  email:'cynthia@email.com',   joined:'2025-03-05', bookings:2, status:'active' },
-    { name:'David Njoroge',  email:'david@email.com',     joined:'2025-01-30', bookings:5, status:'active' },
-    { name:'Esther Mwangi',  email:'esther@email.com',    joined:'2025-04-14', bookings:1, status:'suspended' },
-    { name:'Demo User',      email:'demo@safariquest.com',joined:'2025-01-01', bookings:0, status:'active' },
-  ];
-  const DEST_DATA = [
-    { name:'Maasai Mara National Reserve', loc:'Narok County',   cat:'Wildlife',  price:'KES 14,000', rating:'4.9' },
-    { name:'Diani Beach',                  loc:'Kwale County',   cat:'Beach',     price:'KES 5,000',  rating:'4.9' },
-    { name:'Amboseli National Park',       loc:'Kajiado County', cat:'Wildlife',  price:'KES 8,500',  rating:'4.8' },
-    { name:'Mount Kenya Trek',             loc:'Nyeri County',   cat:'Adventure', price:'KES 22,000', rating:'4.7' },
-    { name:'Lamu Old Town',                loc:'Lamu County',    cat:'Cultural',  price:'KES 4,500',  rating:'4.8' },
-    { name:'Nairobi National Park',        loc:'Nairobi',        cat:'Wildlife',  price:'KES 3,000',  rating:'4.6' },
-  ];
-  const EVENTS_DATA = [
-    { name:'Lamu Cultural Festival',  loc:'Lamu Island', date:'2025-11-05', price:'KES 3,500', status:'upcoming' },
-    { name:'Nairobi Marathon',         loc:'Nairobi CBD', date:'2025-10-26', price:'KES 1,500', status:'upcoming' },
-    { name:'Safari Rally Kenya',       loc:'Naivasha',    date:'2025-06-19', price:'KES 2,000', status:'past' },
-    { name:'Blankets & Wine Nairobi',  loc:'Nairobi',     date:'2025-12-07', price:'KES 2,500', status:'upcoming' },
-  ];
-  const REVIEWS_DATA = [
-    { reviewer:'Yvonne Wahuu',  dest:'Maasai Mara', rating:5, date:'2025-07-14', status:'published' },
-    { reviewer:'Zoe Vutage',    dest:'Diani Beach', rating:5, date:'2025-06-02', status:'published' },
-    { reviewer:'Patrick Maina', dest:'Amboseli',    rating:5, date:'2025-05-20', status:'published' },
-    { reviewer:'Hussein A.',    dest:'Mount Kenya', rating:4, date:'2025-04-11', status:'published' },
-    { reviewer:'Anonymous',     dest:'Nairobi NP',  rating:2, date:'2025-08-01', status:'pending review' },
-  ];
-  const ACTIVITY = [
-    { color:'dot-green', text:'New booking SQ-008 confirmed for Amboseli Park',  time:'2 min ago' },
-    { color:'dot-gold',  text:'User David Njoroge left a 5-star review',          time:'18 min ago' },
-    { color:'dot-blue',  text:'New user Fatuma Hassan registered',                time:'1 hr ago' },
-    { color:'dot-red',   text:'Booking SQ-007 was cancelled by Grace Atieno',    time:'3 hrs ago' },
-    { color:'dot-gold',  text:'Event "Lamu Festival" now has 47 bookings',       time:'5 hrs ago' },
-    { color:'dot-green', text:'KES 45,000 payment received for SQ-004',          time:'1 day ago' },
-  ];
+  // ── DATA — Supabase-driven ────────────────────────────────────────────────
+  const SUPABASE_URL  = 'https://cbyipmrozqsntojiartw.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieWlwbXJvenFzbnRvamlhcnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTkxNTQsImV4cCI6MjA4ODk3NTE1NH0.31TAhmUCV_Uh0W8FGnR2_TLCZDU4YBM1U5LMSMc5JZs';
+
+  function adminHeaders() {
+    const token = window.SQ?.getAccessToken() || SUPABASE_ANON;
+    return {
+      'apikey': SUPABASE_ANON,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    };
+  }
+
+  async function fetchAdminBookings() {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/user_bookings?order=created_at.desc&limit=100`, { headers: adminHeaders() });
+      if (!res.ok) return [];
+      return await res.json().catch(() => []);
+    } catch { return []; }
+  }
+
+  async function fetchAdminUsers() {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?order=created_at.desc&limit=100`, { headers: adminHeaders() });
+      if (!res.ok) return [];
+      return await res.json().catch(() => []);
+    } catch { return []; }
+  }
+
+  async function fetchAdminDestinations() {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/recommended_destinations?order=sort_order.asc&limit=100`, { headers: adminHeaders() });
+      if (!res.ok) return [];
+      return await res.json().catch(() => []);
+    } catch { return []; }
+  }
+
+  async function fetchAdminReviews() {
+    try {
+      // Try a reviews table; fall back gracefully if it doesn't exist
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/reviews?order=created_at.desc&limit=100`, { headers: adminHeaders() });
+      if (!res.ok) return [];
+      return await res.json().catch(() => []);
+    } catch { return []; }
+  }
+
   const CHART_DATA = [12, 18, 22, 30, 28, 35, 48, 55, 42, 38, 44, 52];
 
-  function loadAllData() {
-    const storedBookings = JSON.parse(localStorage.getItem('safariquest_bookings') || '[]');
-    const storedUsers    = JSON.parse(localStorage.getItem('sq_users') || '[]');
-    document.getElementById('adminBookingCount').textContent = BOOKINGS_DATA.length + storedBookings.length;
-    document.getElementById('adminUserCount').textContent = USERS_DATA.length + storedUsers.length;
+  async function loadAllData() {
+    // Show loading in tables
+    ['overviewBookingsBody','bookingsTableBody','usersTableBody','destTableBody','eventsTableBody','reviewsTableBody'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:1.5rem;color:var(--muted)">⏳ Loading…</td></tr>`;
+    });
+
+    // Fetch all data in parallel
+    const [bookings, users, destinations, reviews] = await Promise.all([
+      fetchAdminBookings(),
+      fetchAdminUsers(),
+      fetchAdminDestinations(),
+      fetchAdminReviews()
+    ]);
+
+    // Update stat counters
+    document.getElementById('adminBookingCount').textContent = bookings.length;
+    document.getElementById('adminUserCount').textContent = users.length;
 
     // Chart
     const max = Math.max(...CHART_DATA);
@@ -502,86 +554,104 @@
       `<div class="chart-bar" style="height:${(v / max * 100)}%" title="${v} bookings"></div>`
     ).join('');
 
-    // Activity
-    document.getElementById('activityFeed').innerHTML = ACTIVITY.map(a => `
-      <div class="activity-item">
-        <div class="activity-dot ${a.color}"></div>
-        <div><div class="activity-text">${a.text}</div><div class="activity-time">${a.time}</div></div>
-      </div>
-    `).join('');
+    // Activity feed — derive from recent bookings
+    const activityFeedEl = document.getElementById('activityFeed');
+    if (activityFeedEl) {
+      const recent = bookings.slice(0, 6);
+      if (recent.length === 0) {
+        activityFeedEl.innerHTML = `<p style="color:var(--muted);font-size:0.85rem;padding:0.5rem 0">No recent activity.</p>`;
+      } else {
+        activityFeedEl.innerHTML = recent.map(b => `
+          <div class="activity-item">
+            <div class="activity-dot dot-green"></div>
+            <div>
+              <div class="activity-text">Booking for <strong>${b.attraction_name || b.title || 'destination'}</strong> — ${capitalize(b.status || 'pending')}</div>
+              <div class="activity-time">${b.created_at ? new Date(b.created_at).toLocaleDateString('en-KE') : ''}</div>
+            </div>
+          </div>`).join('');
+      }
+    }
 
-    // Overview bookings
-    document.getElementById('overviewBookingsBody').innerHTML = BOOKINGS_DATA.slice(0, 5).map(b => `
-      <tr>
-        <td><code style="font-size:0.78rem;background:#f3f4f6;padding:2px 6px;border-radius:4px">${b.id}</code></td>
-        <td>${b.dest}</td><td>${b.user}</td>
-        <td>KES ${b.amount.toLocaleString()}</td>
-        <td><span class="status-pill pill-${b.status}">${capitalize(b.status)}</span></td>
-      </tr>
-    `).join('');
+    // Overview bookings table (first 5)
+    document.getElementById('overviewBookingsBody').innerHTML = bookings.length === 0
+      ? `<tr><td colspan="5" style="text-align:center;padding:1rem;color:var(--muted)">No bookings yet.</td></tr>`
+      : bookings.slice(0, 5).map(b => `
+          <tr>
+            <td><code style="font-size:0.78rem;background:#f3f4f6;padding:2px 6px;border-radius:4px">${b.id?.slice(0,8) || '—'}</code></td>
+            <td>${b.attraction_name || b.title || '—'}</td>
+            <td>${b.user_email || b.user_id?.slice(0,8) || '—'}</td>
+            <td>KES ${(b.total_price || b.amount || 0).toLocaleString()}</td>
+            <td><span class="status-pill pill-${b.status || 'pending'}">${capitalize(b.status || 'pending')}</span></td>
+          </tr>`).join('');
 
     // Full bookings table
-    document.getElementById('bookingsTableBody').innerHTML = BOOKINGS_DATA.map(b => `
-      <tr>
-        <td><code style="font-size:0.78rem;background:#f3f4f6;padding:2px 6px;border-radius:4px">${b.id}</code></td>
-        <td>${b.dest}</td><td>${b.user}</td><td>${b.date}</td>
-        <td>KES ${b.amount.toLocaleString()}</td>
-        <td><span class="status-pill pill-${b.status}">${capitalize(b.status)}</span></td>
-        <td>
-          <button class="btn-xs edit" onclick="showToast('📝 Edit booking ${b.id}')">Edit</button>
-          <button class="btn-xs del"  onclick="showToast('🗑 Booking ${b.id} deleted')">Delete</button>
-        </td>
-      </tr>
-    `).join('');
+    document.getElementById('bookingsTableBody').innerHTML = bookings.length === 0
+      ? `<tr><td colspan="7" style="text-align:center;padding:1rem;color:var(--muted)">No bookings found in Supabase.</td></tr>`
+      : bookings.map(b => `
+          <tr>
+            <td><code style="font-size:0.78rem;background:#f3f4f6;padding:2px 6px;border-radius:4px">${b.id?.slice(0,8) || '—'}</code></td>
+            <td>${b.attraction_name || b.title || '—'}</td>
+            <td>${b.user_email || b.user_id?.slice(0,8) || '—'}</td>
+            <td>${b.check_in || b.date || '—'}</td>
+            <td>KES ${(b.total_price || b.amount || 0).toLocaleString()}</td>
+            <td><span class="status-pill pill-${b.status || 'pending'}">${capitalize(b.status || 'pending')}</span></td>
+            <td>
+              <button class="btn-xs edit" onclick="showToast('📝 Edit booking')">Edit</button>
+              <button class="btn-xs del" onclick="showToast('🗑 Deleted')">Delete</button>
+            </td>
+          </tr>`).join('');
 
     // Users table
-    document.getElementById('usersTableBody').innerHTML = USERS_DATA.map(u => `
-      <tr>
-        <td><strong>${u.name}</strong></td><td>${u.email}</td><td>${u.joined}</td><td>${u.bookings}</td>
-        <td><span class="status-pill ${u.status === 'active' ? 'pill-confirmed' : 'pill-cancelled'}">${capitalize(u.status)}</span></td>
-        <td>
-          <button class="btn-xs edit" onclick="showToast('✏️ Editing ${u.name}')">Edit</button>
-          <button class="btn-xs del"  onclick="showToast('🗑 User removed')">Remove</button>
-        </td>
-      </tr>
-    `).join('');
+    document.getElementById('usersTableBody').innerHTML = users.length === 0
+      ? `<tr><td colspan="6" style="text-align:center;padding:1rem;color:var(--muted)">No users found in Supabase.</td></tr>`
+      : users.map(u => `
+          <tr>
+            <td><strong>${u.full_name || '—'}</strong></td>
+            <td>${u.email || '—'}</td>
+            <td>${u.created_at ? new Date(u.created_at).toLocaleDateString('en-KE') : '—'}</td>
+            <td>—</td>
+            <td><span class="status-pill pill-confirmed">Active</span></td>
+            <td>
+              <button class="btn-xs edit" onclick="showToast('✏️ Editing user')">Edit</button>
+              <button class="btn-xs del" onclick="showToast('🗑 User removed')">Remove</button>
+            </td>
+          </tr>`).join('');
 
     // Destinations table
-    document.getElementById('destTableBody').innerHTML = DEST_DATA.map(d => `
-      <tr>
-        <td><strong>${d.name}</strong></td><td>${d.loc}</td><td>${d.cat}</td><td>${d.price}</td><td>⭐ ${d.rating}</td>
-        <td><span class="status-pill pill-confirmed">Active</span></td>
-        <td>
-          <button class="btn-xs edit" onclick="showToast('✏️ Editing ${d.name}')">Edit</button>
-          <button class="btn-xs del"  onclick="showToast('🗑 Deleted')">Delete</button>
-        </td>
-      </tr>
-    `).join('');
+    document.getElementById('destTableBody').innerHTML = destinations.length === 0
+      ? `<tr><td colspan="7" style="text-align:center;padding:1rem;color:var(--muted)">No destinations found in Supabase.</td></tr>`
+      : destinations.map(d => `
+          <tr>
+            <td><strong>${d.title || d.name || '—'}</strong></td>
+            <td>${d.location || d.loc || '—'}</td>
+            <td>${d.category || d.cat || '—'}</td>
+            <td>${d.price ? 'KES ' + Number(d.price).toLocaleString() : '—'}</td>
+            <td>⭐ ${d.rating || '—'}</td>
+            <td><span class="status-pill ${d.active !== false ? 'pill-confirmed' : 'pill-cancelled'}">${d.active !== false ? 'Active' : 'Inactive'}</span></td>
+            <td>
+              <button class="btn-xs edit" onclick="showToast('✏️ Editing destination')">Edit</button>
+              <button class="btn-xs del" onclick="showToast('🗑 Deleted')">Delete</button>
+            </td>
+          </tr>`).join('');
 
-    // Events table
-    document.getElementById('eventsTableBody').innerHTML = EVENTS_DATA.map(e => `
-      <tr>
-        <td><strong>${e.name}</strong></td><td>${e.loc}</td><td>${e.date}</td><td>${e.price}</td>
-        <td><span class="status-pill ${e.status === 'upcoming' ? 'pill-active' : 'pill-pending'}">${capitalize(e.status)}</span></td>
-        <td>
-          <button class="btn-xs edit" onclick="showToast('✏️ Editing ${e.name}')">Edit</button>
-          <button class="btn-xs del"  onclick="showToast('🗑 Deleted')">Delete</button>
-        </td>
-      </tr>
-    `).join('');
+    // Events table — use destinations with category 'Event' or a separate events table
+    document.getElementById('eventsTableBody').innerHTML = `<tr><td colspan="6" style="text-align:center;padding:1rem;color:var(--muted)">Connect an events table in Supabase to display data here.</td></tr>`;
 
     // Reviews table
-    document.getElementById('reviewsTableBody').innerHTML = REVIEWS_DATA.map(r => `
-      <tr>
-        <td><strong>${r.reviewer}</strong></td><td>${r.dest}</td>
-        <td>${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</td><td>${r.date}</td>
-        <td><span class="status-pill ${r.status === 'published' ? 'pill-confirmed' : 'pill-review'}">${capitalize(r.status)}</span></td>
-        <td>
-          ${r.status !== 'published' ? `<button class="btn-xs approve" onclick="showToast('✅ Review approved')">Approve</button> ` : ''}
-          <button class="btn-xs del" onclick="showToast('🗑 Review removed')">Delete</button>
-        </td>
-      </tr>
-    `).join('');
+    document.getElementById('reviewsTableBody').innerHTML = reviews.length === 0
+      ? `<tr><td colspan="6" style="text-align:center;padding:1rem;color:var(--muted)">No reviews found in Supabase.</td></tr>`
+      : reviews.map(r => `
+          <tr>
+            <td><strong>${r.reviewer_name || r.name || '—'}</strong></td>
+            <td>${r.destination || r.dest || '—'}</td>
+            <td>${'★'.repeat(r.rating || 0)}${'☆'.repeat(5 - (r.rating || 0))}</td>
+            <td>${r.created_at ? new Date(r.created_at).toLocaleDateString('en-KE') : r.date || '—'}</td>
+            <td><span class="status-pill ${r.status === 'published' ? 'pill-confirmed' : 'pill-review'}">${capitalize(r.status || 'pending')}</span></td>
+            <td>
+              ${r.status !== 'published' ? `<button class="btn-xs approve" onclick="showToast('✅ Review approved')">Approve</button> ` : ''}
+              <button class="btn-xs del" onclick="showToast('🗑 Review removed')">Delete</button>
+            </td>
+          </tr>`).join('');
   }
 
   // ── NAVIGATION ────────────────────────────────────────────────────────────
@@ -638,13 +708,7 @@
   function saveItem() { closeAddModal(); showToast('✅ Item saved successfully!'); }
 
   function exportData() {
-    const data = JSON.stringify({ bookings: BOOKINGS_DATA, users: USERS_DATA, destinations: DEST_DATA }, null, 2);
-    const blob = new Blob([data], { type:'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'safariquest-data.json';
-    a.click();
-    showToast('📤 Data exported successfully!');
+    showToast('📤 Export requires live Supabase data — use the Supabase dashboard to export.');
   }
 
   function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }

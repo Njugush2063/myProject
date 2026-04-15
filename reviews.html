@@ -6,6 +6,9 @@
   <title>Reviews — SafariQuest</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="auth-ui.css" />
+  <script src="auth.js" defer></script>
+  <script src="page-protection.js" defer></script>
   <style>
     :root {
       --green: #1a4731;
@@ -207,8 +210,8 @@
     <li><a href="contact.html">Contact</a></li>
   </ul>
   <div class="nav-auth">
-    <a href="login.html" class="btn-login">Login</a>
-    <a href="register.html" class="btn-register">Register</a>
+    <a href="login.html" class="btn-login nav-login">Login</a>
+    <a href="register.html" class="btn-register nav-register">Register</a>
   </div>
 </nav>
 
@@ -353,20 +356,26 @@
 </footer>
 
 <script>
-  const SEED_REVIEWS = [
-    { id:'r1', dest:'Maasai Mara National Reserve', name:'Yvonne Wahuu', loc:'Malindi, Kenya', rating:5, date:'2025-07-14', body:'I booked my wedding trip through this portal. The attention to detail and customer service made our honeymoon absolutely perfect. The sunrise game drive was something we will never forget — lions, elephants, and a sky painted in gold.', helpful:24, mine:false, verified:true },
-    { id:'r2', dest:'Diani Beach', name:'Zoe Vutage', loc:'Nairobi, Kenya', rating:5, date:'2025-06-02', body:'An incredible journey! The service was exceptional, and every moment was unforgettable. Diani Beach is paradise — the water is the clearest turquoise I have ever seen, and the white sand is pristine.', helpful:18, mine:false, verified:true },
-    { id:'r3', dest:'Amboseli National Park', name:'Patrick Maina', loc:'Maai Mahiu, Kenya', rating:5, date:'2025-05-20', body:'Great selection of destinations. The booking process was smooth, and I discovered hidden gems I would never have found otherwise. The elephant herds with Kilimanjaro in the background — absolutely breathtaking.', helpful:31, mine:false, verified:true },
-    { id:'r4', dest:'Mount Kenya Trek', name:'Hussein Abdalla', loc:'Dodoma, Tanzania', rating:4, date:'2025-04-11', body:'The trek was challenging but incredibly rewarding. Our guide was knowledgeable and made sure we acclimatized properly. The views from Point Lenana at sunrise are worth every step.', helpful:12, mine:false, verified:true },
-    { id:'r5', dest:'Lamu Old Town', name:'Michael Kirunyu', loc:'Nairobi, Kenya', rating:5, date:'2025-03-05', body:'Lamu is unlike anywhere else in Kenya. The dhow ride at sunset was magical, and the Stone Town architecture is stunning. A living museum of Swahili culture.', helpful:19, mine:false, verified:false },
-  ];
-
   let allReviews = [];
   let currentFilter = 'all';
+  let editingId = null;
+  // Current logged-in user's display name (for marking own reviews)
+  let currentUserName = '';
 
-  function init() {
+  async function init() {
+    // Pre-fill name from logged-in user
+    if (window.SQ && window.SQ.isLoggedIn()) {
+      const user = window.SQ.getUser();
+      if (user) {
+        currentUserName = user.user_metadata?.full_name || user.email?.split('@')[0] || '';
+        const nameEl = document.getElementById('reviewerName');
+        if (nameEl && !nameEl.value) nameEl.value = currentUserName;
+      }
+    }
+
+    // Load only user-submitted reviews from localStorage (no hardcoded seeds)
     const stored = JSON.parse(localStorage.getItem('sq_reviews') || '[]');
-    allReviews = [...stored, ...SEED_REVIEWS];
+    allReviews = stored;
 
     const params = new URLSearchParams(window.location.search);
     const dest = params.get('dest');
@@ -400,7 +409,7 @@
     }
 
     list.innerHTML = filtered.map((r, i) => `
-      <div class="review-card" style="animation-delay:${i * 0.07}s">
+      <div class="review-card" style="animation-delay:${i * 0.07}s" id="rev-${r.id}">
         <div class="review-top">
           <div class="reviewer-info">
             <div class="reviewer-avatar">${r.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase()}</div>
@@ -421,6 +430,10 @@
             👍 Helpful <span>${r.helpful}</span>
           </button>
           ${r.verified ? '<span class="verified-badge">✅ Verified Booking</span>' : ''}
+          ${r.mine ? `
+            <button onclick="editReview('${r.id}')" style="margin-left:auto;background:none;border:1.5px solid var(--green);color:var(--green);padding:4px 12px;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;">✏️ Edit</button>
+            <button onclick="deleteReview('${r.id}')" style="background:none;border:1.5px solid #dc2626;color:#dc2626;padding:4px 12px;border-radius:8px;font-size:0.78rem;font-weight:600;cursor:pointer;">🗑 Delete</button>
+          ` : ''}
         </div>
       </div>
     `).join('');
@@ -452,22 +465,38 @@
       return;
     }
 
-    const newReview = {
-      id: 'r' + Date.now(), dest, name,
-      loc: loc || 'Kenya', rating: parseInt(ratingEl.value),
-      date: new Date().toISOString().split('T')[0],
-      body, helpful: 0, mine: true, verified: false
-    };
-
     const stored = JSON.parse(localStorage.getItem('sq_reviews') || '[]');
-    stored.unshift(newReview);
-    localStorage.setItem('sq_reviews', JSON.stringify(stored));
 
-    allReviews.unshift(newReview);
+    if (editingId) {
+      // Update existing review
+      const idx = stored.findIndex(r => r.id === editingId);
+      if (idx !== -1) {
+        stored[idx] = { ...stored[idx], dest, name, loc: loc || 'Kenya', rating: parseInt(ratingEl.value), body };
+        localStorage.setItem('sq_reviews', JSON.stringify(stored));
+      }
+      allReviews = allReviews.map(r => r.id === editingId
+        ? { ...r, dest, name, loc: loc || 'Kenya', rating: parseInt(ratingEl.value), body }
+        : r
+      );
+      editingId = null;
+      document.querySelector('.submit-btn').textContent = '📤 Submit Review';
+      showToast('✅ Review updated!');
+    } else {
+      const newReview = {
+        id: 'r' + Date.now(), dest, name,
+        loc: loc || 'Kenya', rating: parseInt(ratingEl.value),
+        date: new Date().toISOString().split('T')[0],
+        body, helpful: 0, mine: true, verified: false
+      };
+      stored.unshift(newReview);
+      localStorage.setItem('sq_reviews', JSON.stringify(stored));
+      allReviews.unshift(newReview);
+      showToast('🎉 Thank you! Your review has been published.');
+    }
+
     updateStats();
     renderReviews();
     resetForm();
-    showToast('🎉 Thank you! Your review has been published.');
   }
 
   function resetForm() {
@@ -494,6 +523,31 @@
     });
   }
 
+  function editReview(id) {
+    const r = allReviews.find(x => x.id === id);
+    if (!r || !r.mine) return;
+    editingId = id;
+    document.getElementById('reviewDest').value = r.dest;
+    document.getElementById('reviewerName').value = r.name;
+    document.getElementById('reviewerLoc').value = r.loc;
+    document.getElementById('reviewBody').value = r.body;
+    const ratingInput = document.querySelector(`input[name="rating"][value="${r.rating}"]`);
+    if (ratingInput) ratingInput.checked = true;
+    document.querySelector('.submit-btn').textContent = '💾 Update Review';
+    document.querySelector('.write-panel').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function deleteReview(id) {
+    if (!confirm('Delete this review?')) return;
+    const stored = JSON.parse(localStorage.getItem('sq_reviews') || '[]');
+    const updated = stored.filter(r => r.id !== id);
+    localStorage.setItem('sq_reviews', JSON.stringify(updated));
+    allReviews = allReviews.filter(r => r.id !== id);
+    updateStats();
+    renderReviews();
+    showToast('🗑 Review deleted.');
+  }
+
   function formatDate(d) {
     return new Date(d).toLocaleDateString('en-KE', { year:'numeric', month:'short', day:'numeric' });
   }
@@ -505,7 +559,8 @@
     setTimeout(() => t.classList.remove('show'), 3500);
   }
 
-  init();
+  // Wait for auth.js (defer) to finish before loading data
+  document.addEventListener('DOMContentLoaded', function() { init(); });
 </script>
 </body>
 </html>

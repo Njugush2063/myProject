@@ -6,9 +6,11 @@
   <title>SafariQuest — Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="auth.js"></script>
+  <link rel="stylesheet" href="auth-ui.css">
   <link rel="stylesheet" href="dashboard.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js" defer></script>
+  <script src="page-protection.js" defer></script>
 </head>
 <body>
 
@@ -132,6 +134,9 @@
         <a class="icon-btn" href="notifications.html" title="Notifications">
           🔔
           <span class="notif-dot"></span>
+        </a>
+        <a class="icon-btn" href="profile.html" title="My Profile" id="topbarProfileBtn" style="width:36px;height:36px;border-radius:50%;background:var(--savanna,#C8A24E);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;text-decoration:none;flex-shrink:0;" id="topbarProfileIcon">
+          <span id="topbarProfileInitials">👤</span>
         </a>
         <a class="btn-primary" href="plan.html">✦ Plan Trip</a>
       </div>
@@ -439,4 +444,5 @@
 
   <script src="dashboard.js"></script>
 </body>
+</html></body>
 </html>

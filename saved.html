@@ -6,6 +6,9 @@
   <title>Saved Places — SafariQuest</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="auth-ui.css" />
+  <script src="auth.js" defer></script>
+  <script src="page-protection.js" defer></script>
   <style>
     :root {
       --green: #1a4731;
@@ -187,8 +190,8 @@
     <li><a href="contact.html">Contact</a></li>
   </ul>
   <div class="nav-auth">
-    <a href="login.html" class="btn-login">Login</a>
-    <a href="register.html" class="btn-register">Register</a>
+    <a href="login.html" class="btn-login nav-login">Login</a>
+    <a href="register.html" class="btn-register nav-register">Register</a>
   </div>
 </nav>
 
@@ -270,26 +273,51 @@
 </footer>
 
 <script>
-  const DEFAULT_SAVED = [
-    { id:'sv1', type:'Attraction', title:'Maasai Mara National Reserve', location:'Narok County, Kenya', price:'From KES 14,000', rating:'4.9 ★', note:'Dream safari destination — must do game drive at sunrise!', img:'https://images.unsplash.com/photo-1571564977040-a4b72a65f5b2?w=500&q=75' },
-    { id:'sv2', type:'Hotel', title:'Hemingways Nairobi', location:'Karen, Nairobi', price:'From KES 28,000/night', rating:'4.8 ★', note:'Luxury stay for the Nairobi leg', img:'https://images.unsplash.com/photo-1582610116397-edb72f25b885?w=500&q=75' },
-    { id:'sv3', type:'Restaurant', title:'Carnivore Restaurant', location:'Langata, Nairobi', price:'From KES 2,400/pp', rating:'4.7 ★', note:'', img:'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=500&q=75' },
-    { id:'sv4', type:'Attraction', title:'Amboseli National Park', location:'Kajiado County, Kenya', price:'From KES 8,500', rating:'4.8 ★', note:'Elephant sightings with Kilimanjaro backdrop 🐘', img:'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=500&q=75' },
-    { id:'sv5', type:'Event', title:'Lamu Cultural Festival 2025', location:'Lamu Island, Kenya', price:'From KES 3,500', rating:'4.6 ★', note:'Book tickets early — sells out fast!', img:'https://images.unsplash.com/photo-1568402102990-bc814441baa0?w=500&q=75' },
-    { id:'sv6', type:'Attraction', title:'Diani Beach', location:'Kwale County, Kenya', price:'From KES 5,000', rating:'4.9 ★', note:'', img:'https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=500&q=75' },
-  ];
-
   let savedItems = [];
   let currentCollection = 'all';
   let noteTargetId = null;
 
-  function init() {
-    const stored = localStorage.getItem('sq_saved');
-    savedItems = stored ? JSON.parse(stored) : [...DEFAULT_SAVED];
+  function showLoading() {
+    document.getElementById('savedGrid').innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--muted)">
+        <div style="font-size:2rem;margin-bottom:1rem">⏳</div>
+        <p>Loading your saved places…</p>
+      </div>`;
+  }
+
+  async function init() {
+    showLoading();
+    // Load from Supabase
+    if (window.SQ && window.SQ.isLoggedIn()) {
+      try {
+        const remote = await window.SQ.listUserSavedDestinations(50);
+        if (remote && remote.length > 0) {
+          savedItems = remote.map(r => ({
+            id:       r.id,
+            type:     r.category || r.type || 'Attraction',
+            title:    r.attraction_name || r.title || 'Saved Place',
+            location: r.attraction_location || r.location || 'Kenya',
+            price:    r.price || 'See details',
+            rating:   r.rating ? r.rating + ' ★' : '—',
+            note:     r.note || '',
+            img:      r.image_url || r.img || 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=500&q=75',
+            slug:     r.attraction_slug || r.id
+          }));
+          renderGrid();
+          return;
+        }
+      } catch (e) {
+        console.warn('Could not load saved from Supabase:', e);
+      }
+    }
+    // Empty state — no fallback hardcoded data
+    savedItems = [];
     renderGrid();
   }
 
-  function persist() { localStorage.setItem('sq_saved', JSON.stringify(savedItems)); }
+  function persist() {
+    // No-op: persistence is handled by Supabase
+  }
 
   function renderGrid() {
     const grid = document.getElementById('savedGrid');
@@ -335,10 +363,23 @@
     renderGrid();
   }
 
-  function removeItem(id) {
+  async function removeItem(id) {
     if (!confirm('Remove this place from your saved list?')) return;
     const card = document.getElementById('card-' + id);
     if (card) { card.style.opacity = '0'; card.style.transform = 'scale(0.9)'; card.style.transition = '0.3s'; }
+    // Try to remove from Supabase
+    if (window.SQ && window.SQ.isLoggedIn()) {
+      try {
+        const item = savedItems.find(s => s.id === id);
+        if (item && item.slug) {
+          await window.SQ.deleteUserSavedBySlug(item.slug);
+        } else {
+          await window.SQ.deleteUserSavedDestination(id);
+        }
+      } catch (e) {
+        console.warn('Could not remove from Supabase:', e);
+      }
+    }
     setTimeout(() => {
       savedItems = savedItems.filter(s => s.id !== id);
       persist();
@@ -385,7 +426,8 @@
     if (e.target === document.getElementById('noteModal')) closeNoteModal();
   });
 
-  init();
+  // Wait for auth.js (defer) to finish before loading data
+  document.addEventListener('DOMContentLoaded', function() { init(); });
 </script>
 </body>
 </html>
