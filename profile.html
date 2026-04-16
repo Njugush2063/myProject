@@ -1,538 +1,402 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Profile  SafariQuest</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="auth-ui.css"/>
-  <link rel="stylesheet" href="dashboard.css"/>
-  <script src="auth.js" defer></script>
-  <script src="page-protection.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile — SafariQuest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
-    .profile-wrap { max-width: 860px; margin: 0 auto; padding: 28px; }
-    .profile-header-card {
-      background: var(--earth-dark);
-      border-radius: var(--radius);
-      padding: 36px 32px;
-      display: flex; align-items: center; gap: 28px;
-      margin-bottom: 24px; position: relative; overflow: hidden;
+    :root {
+      --brand-dark: #0d1f2d;
+      --brand-mid: #1a3a4f;
+      --brand-accent: #c8972a;
+      --brand-gold: #e8b84b;
+      --text-primary: #f0ece4;
+      --text-muted: #94a3b8;
+      --surface: #132230;
+      --surface-2: #1c3347;
+      --border: rgba(200,151,42,0.18);
     }
-    .profile-header-card::before {
-      content: '';
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Sora', sans-serif; background: var(--brand-dark); color: var(--text-primary); min-height: 100vh; }
+
+    /* Nav */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5%; height: 64px; background: var(--surface);
+      border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { width: 34px; border-radius: 6px; }
+    .nav-logo span { font-family: 'DM Serif Display', serif; color: var(--brand-gold); font-size: 1.1rem; }
+    .nav-links a { color: var(--text-muted); text-decoration: none; margin-left: 24px; font-size: 0.85rem; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--brand-gold); }
+    .nav-back { background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted); padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.82rem; transition: all 0.2s; }
+    .nav-back:hover { color: var(--text-primary); border-color: var(--brand-accent); }
+
+    /* Cover */
+    .cover {
+      height: 220px;
+      background: linear-gradient(135deg, #0d2b3e 0%, #1a4a2e 50%, #2d1f08 100%);
+      position: relative; overflow: hidden;
+    }
+    .cover-pattern {
       position: absolute; inset: 0;
-      background: url('https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?w=1200&q=60') center/cover;
-      opacity: 0.18;
+      background-image: radial-gradient(circle at 20% 50%, rgba(200,151,42,0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(46,125,50,0.15) 0%, transparent 40%);
     }
-    .profile-avatar-wrap { position: relative; z-index: 1; flex-shrink: 0; }
-    .profile-avatar {
-      width: 90px; height: 90px; border-radius: 50%;
-      background: linear-gradient(135deg, var(--savanna), var(--earth-light));
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Playfair Display', serif;
-      font-size: 2.2rem; font-weight: 700; color: white;
-      border: 3px solid rgba(255,255,255,0.3);
-      overflow: hidden; cursor: pointer;
+    .cover-edit { position: absolute; bottom: 14px; right: 20px; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: var(--text-muted); padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; backdrop-filter: blur(4px); font-family: inherit; transition: all 0.2s; }
+    .cover-edit:hover { color: var(--text-primary); }
+
+    /* Profile header */
+    .profile-header { padding: 0 5% 0; position: relative; }
+    .avatar-wrap { position: relative; display: inline-block; margin-top: -60px; }
+    .avatar { width: 110px; height: 110px; border-radius: 50%; border: 4px solid var(--brand-dark); object-fit: cover; background: linear-gradient(135deg, var(--brand-accent), var(--brand-gold)); display: flex; align-items: center; justify-content: center; font-family: 'DM Serif Display', serif; font-size: 2.4rem; color: var(--brand-dark); }
+    .avatar-edit { position: absolute; bottom: 4px; right: 4px; width: 28px; height: 28px; background: var(--brand-accent); border-radius: 50%; border: 2px solid var(--brand-dark); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.7rem; }
+    .profile-meta { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 12px 0 20px; }
+    .profile-name h1 { font-family: 'DM Serif Display', serif; font-size: 1.8rem; margin-top: 10px; }
+    .profile-name p { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+    .profile-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .pbadge { padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; border: 1px solid; }
+    .pbadge-verified { color: #66bb6a; border-color: rgba(102,187,106,0.4); background: rgba(46,125,50,0.12); }
+    .pbadge-traveler { color: var(--brand-gold); border-color: rgba(200,151,42,0.4); background: rgba(200,151,42,0.1); }
+    .btn-edit-profile { background: linear-gradient(135deg, var(--brand-accent), var(--brand-gold)); color: #fff; border: none; padding: 10px 22px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: opacity 0.2s; }
+    .btn-edit-profile:hover { opacity: 0.9; }
+
+    /* Stats row */
+    .stats-row { display: flex; gap: 32px; padding: 16px 5%; background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .stat-item { text-align: center; padding: 8px 0; }
+    .stat-item .val { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--brand-gold); }
+    .stat-item .lbl { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* Layout */
+    .layout { display: grid; grid-template-columns: 320px 1fr; gap: 24px; padding: 28px 5%; }
+    @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+
+    /* Cards */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 20px; }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .card-title { font-size: 0.92rem; font-weight: 600; }
+    .card-action { font-size: 0.78rem; color: var(--brand-accent); cursor: pointer; background: none; border: none; font-family: inherit; }
+    .card-body { padding: 20px; }
+
+    /* Form */
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-primary);
+      padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; font-family: inherit; outline: none;
+      transition: border-color 0.2s;
     }
-    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-    .profile-avatar-edit {
-      position: absolute; bottom: 2px; right: 2px;
-      width: 26px; height: 26px; border-radius: 50%;
-      background: var(--savanna); border: 2px solid var(--earth-dark);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; cursor: pointer;
-    }
-    .profile-header-info { position: relative; z-index: 1; flex: 1; }
-    .profile-name { font-family: 'Playfair Display', serif; font-size: 1.7rem; color: white; margin-bottom: 4px; }
-    .profile-email { font-size: 0.88rem; color: rgba(255,255,255,0.6); margin-bottom: 10px; }
-    .profile-badges { display: flex; gap: 8px; flex-wrap: wrap; }
-    .profile-badge {
-      background: rgba(200,162,78,0.2); border: 1px solid rgba(200,162,78,0.4);
-      color: var(--savanna-light); font-size: 0.75rem; font-weight: 600;
-      padding: 4px 12px; border-radius: 20px;
-    }
-    .profile-stats-row {
-      display: grid; grid-template-columns: repeat(3, 1fr);
-      gap: 14px; margin-bottom: 24px;
-    }
-    .profile-stat {
-      background: var(--white); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 20px;
-      text-align: center;
-    }
-    .profile-stat-val {
-      font-family: 'Playfair Display', serif;
-      font-size: 2rem; font-weight: 700; color: var(--text-primary);
-    }
-    .profile-stat-label { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
-    .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .profile-card {
-      background: var(--white); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 24px;
-    }
-    .profile-card-title {
-      font-family: 'Playfair Display', serif; font-size: 1.05rem;
-      color: var(--text-primary); margin-bottom: 18px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .form-row { margin-bottom: 14px; }
-    .form-label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; display: block; }
-    .form-input {
-      width: 100%; padding: 10px 13px;
-      border: 1.5px solid var(--border); border-radius: 9px;
-      font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
-      color: var(--text-primary); background: var(--sand-light);
-      outline: none; transition: border-color 0.2s;
-    }
-    .form-input:focus { border-color: var(--savanna); background: white; }
-    .form-input:disabled { opacity: 0.55; cursor: not-allowed; }
-    .btn-save {
-      width: 100%; padding: 11px;
-      background: var(--earth); color: white; border: none;
-      border-radius: 10px; font-family: 'DM Sans', sans-serif;
-      font-size: 0.9rem; font-weight: 600; cursor: pointer;
-      transition: all 0.2s; margin-top: 6px;
-    }
-    .btn-save:hover { background: var(--earth-dark); }
-    .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
-    .btn-danger-outline {
-      width: 100%; padding: 10px;
-      background: transparent; color: #dc2626;
-      border: 1.5px solid #dc2626; border-radius: 10px;
-      font-family: 'DM Sans', sans-serif; font-size: 0.88rem;
-      font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 8px;
-    }
-    .btn-danger-outline:hover { background: #dc2626; color: white; }
-    .toast-profile {
-      position: fixed; bottom: 2rem; right: 2rem;
-      background: var(--earth-dark); color: white;
-      padding: 12px 20px; border-radius: 10px;
-      font-size: 0.88rem; font-weight: 500;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-      transform: translateY(80px); opacity: 0;
-      transition: all 0.3s; z-index: 9999;
-    }
-    .toast-profile.show { transform: translateY(0); opacity: 1; }
-    .toast-profile.success { background: #16a34a; }
-    .toast-profile.error   { background: #dc2626; }
-    .divider { height: 1px; background: var(--border); margin: 16px 0; }
-    .back-link {
-      display: inline-flex; align-items: center; gap: 6px;
-      color: var(--text-muted); font-size: 0.85rem; text-decoration: none;
-      margin-bottom: 20px; transition: color 0.2s;
-    }
-    .back-link:hover { color: var(--savanna); }
-    @media (max-width: 700px) {
-      .profile-grid { grid-template-columns: 1fr; }
-      .profile-stats-row { grid-template-columns: 1fr 1fr; }
-      .profile-header-card { flex-direction: column; text-align: center; }
-      .profile-badges { justify-content: center; }
-    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--brand-accent); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .btn-save { background: linear-gradient(135deg, var(--brand-accent), var(--brand-gold)); color: #fff; border: none; padding: 11px 24px; border-radius: 9px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; width: 100%; margin-top: 8px; transition: opacity 0.2s; }
+    .btn-save:hover { opacity: 0.9; }
+
+    /* Info items */
+    .info-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .info-item:last-child { border-bottom: none; }
+    .info-icon { font-size: 1rem; margin-top: 1px; }
+    .info-label { font-size: 0.72rem; color: var(--text-muted); }
+    .info-value { font-size: 0.85rem; margin-top: 2px; }
+
+    /* Trip cards */
+    .trip-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .trip-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .trip-img { height: 90px; object-fit: cover; width: 100%; display: block; }
+    .trip-info { padding: 10px 12px; }
+    .trip-name { font-size: 0.82rem; font-weight: 600; }
+    .trip-date { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+    .trip-badge { display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 10px; font-size: 0.66rem; font-weight: 600; background: rgba(200,151,42,0.15); color: var(--brand-gold); }
+
+    /* Notification toggles */
+    .notif-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-label .title { font-size: 0.85rem; }
+    .notif-label .desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+    .toggle { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; background: var(--surface-2); border-radius: 22px; cursor: pointer; transition: 0.3s; border: 1px solid var(--border); }
+    .toggle-slider::before { content: ''; position: absolute; width: 16px; height: 16px; left: 2px; top: 2px; background: var(--text-muted); border-radius: 50%; transition: 0.3s; }
+    input:checked + .toggle-slider { background: #2e7d32; border-color: #2e7d32; }
+    input:checked + .toggle-slider::before { transform: translateX(18px); background: #fff; }
+
+    /* Security */
+    .security-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .security-item:last-child { border-bottom: none; }
+    .sec-left .title { font-size: 0.85rem; }
+    .sec-left .desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+    .sec-status { font-size: 0.72rem; padding: 3px 10px; border-radius: 10px; }
+    .sec-status.on { background: rgba(46,125,50,0.15); color: #81c784; }
+    .sec-status.off { background: rgba(198,40,40,0.15); color: #ef9a9a; }
+    .btn-sec { background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted); padding: 7px 14px; border-radius: 7px; font-size: 0.78rem; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .btn-sec:hover { color: var(--text-primary); border-color: var(--brand-accent); }
+
+    /* Danger zone */
+    .danger-zone { border-color: rgba(198,40,40,0.3); }
+    .btn-danger { background: rgba(198,40,40,0.1); border: 1px solid rgba(198,40,40,0.4); color: #ef9a9a; padding: 10px 18px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; width: 100%; margin-top: 10px; }
+    .btn-danger:hover { background: rgba(198,40,40,0.2); }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 28px; right: 28px; background: #2e7d32; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 0.85rem; font-weight: 500; transform: translateY(80px); opacity: 0; transition: all 0.35s; z-index: 999; }
+    .toast.show { transform: translateY(0); opacity: 1; }
   </style>
 </head>
 <body>
 
-<div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+<nav>
+  <a href="index.html" class="nav-logo">
+    <img src="logo.jpeg" alt="SafariQuest" />
+    <span>SafariQuest</span>
+  </a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="destinations.html">Destinations</a>
+    <a href="login.html" style="color:var(--brand-gold)">Log Out</a>
+  </div>
+</nav>
 
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-icon">🦁</div>
-    <span class="logo-text">SafariQuest</span>
+<!-- Cover Photo -->
+<div class="cover">
+  <div class="cover-pattern"></div>
+  <button class="cover-edit">📷 Change Cover</button>
+</div>
+
+<!-- Profile Header -->
+<div class="profile-header">
+  <div class="avatar-wrap">
+    <div class="avatar">AO</div>
+    <div class="avatar-edit">✏️</div>
   </div>
-  <div class="sidebar-search-wrap">
-    <span class="sidebar-search-icon">🔍</span>
-    <input class="sidebar-search-input" type="text" placeholder="Search destinations..."/>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-label">Main</div>
-    <a class="nav-item" href="dashboard.html"><span class="nav-icon">⊞</span> Overview</a>
-    <a class="nav-item" href="index.html"><span class="nav-icon">⌂</span> Home</a>
-    <a class="nav-item" href="destinations.html"><span class="nav-icon">🌍</span> Destinations</a>
-    <a class="nav-item" href="hotels.html"><span class="nav-icon">🏨</span> Hotels &amp; Lodges</a>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-label">My Travel</div>
-    <a class="nav-item" href="bookings.html"><span class="nav-icon">✈</span> Bookings</a>
-    <a class="nav-item" href="saved.html"><span class="nav-icon">♡</span> Saved Places</a>
-    <a class="nav-item" href="reviews.html"><span class="nav-icon">★</span> My Reviews</a>
-  </div>
-  <div class="sidebar-section">
-    <div class="sidebar-label">Account</div>
-    <a class="nav-item active" href="profile.html"><span class="nav-icon">◯</span> Profile</a>
-  </div>
-  <div class="sidebar-bottom">
-    <div class="user-profile">
-      <div class="avatar" id="sidebarAvatar">SK</div>
-      <div class="user-info">
-        <div class="user-name" id="sidebarName">Loading</div>
-        <div class="user-plan" id="sidebarEmail"></div>
+  <div class="profile-meta">
+    <div class="profile-name">
+      <h1>Amara Ochieng</h1>
+      <p>📍 Nairobi, Kenya &nbsp;·&nbsp; Member since January 2025</p>
+      <div class="profile-badges">
+        <span class="pbadge pbadge-verified">✓ Verified</span>
+        <span class="pbadge pbadge-traveler">🌍 Explorer</span>
       </div>
     </div>
-    <button class="logout-btn" id="logoutBtn">↩ Sign out</button>
+    <button class="btn-edit-profile" onclick="saveProfile()">💾 Save Changes</button>
   </div>
-</aside>
+</div>
 
-<div class="main">
-  <header class="topbar">
-    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-    <div class="topbar-greeting"><h1>My Profile</h1></div>
-    <div class="topbar-actions">
-      <a class="icon-btn" href="saved.html" title="Saved">♡</a>
-      <a class="icon-btn" href="bookings.html" title="Bookings">✈</a>
-      <a class="icon-btn" href="dashboard.html" title="Dashboard">⊞</a>
-    </div>
-  </header>
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-item"><div class="val">14</div><div class="lbl">Trips Logged</div></div>
+  <div class="stat-item"><div class="val">8</div><div class="lbl">Reviews Written</div></div>
+  <div class="stat-item"><div class="val">23</div><div class="lbl">Places Saved</div></div>
+  <div class="stat-item"><div class="val">4.8★</div><div class="lbl">Avg. Rating Given</div></div>
+  <div class="stat-item"><div class="val">2</div><div class="lbl">Countries Visited</div></div>
+</div>
 
-  <div class="profile-wrap">
-    <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
-
-    <!-- HEADER CARD -->
-    <div class="profile-header-card">
-      <div class="profile-avatar-wrap">
-        <div class="profile-avatar" id="profileAvatar" onclick="document.getElementById('avatarInput').click()">
-          <span id="profileAvatarInitials">?</span>
+<div class="layout">
+  <!-- Sidebar col -->
+  <div>
+    <!-- About -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">About Me</span>
+        <button class="card-action">Edit</button>
+      </div>
+      <div class="card-body">
+        <div class="info-item">
+          <span class="info-icon">📧</span>
+          <div><div class="info-label">Email</div><div class="info-value">amara.ochieng@email.com</div></div>
         </div>
-        <div class="profile-avatar-edit" onclick="document.getElementById('avatarInput').click()" title="Change photo">📷</div>
-        <input type="file" id="avatarInput" accept="image/*" style="display:none"/>
-      </div>
-      <div class="profile-header-info">
-        <div class="profile-name" id="headerName">Loading</div>
-        <div class="profile-email" id="headerEmail"></div>
-        <div class="profile-badges">
-          <span class="profile-badge">🌍 Explorer</span>
-          <span class="profile-badge" id="memberSince">Member since </span>
+        <div class="info-item">
+          <span class="info-icon">📞</span>
+          <div><div class="info-label">Phone</div><div class="info-value">+254 712 345 678</div></div>
         </div>
-      </div>
-    </div>
-
-    <!-- STATS -->
-    <div class="profile-stats-row">
-      <div class="profile-stat">
-        <div class="profile-stat-val" id="statBookings"></div>
-        <div class="profile-stat-label">Bookings</div>
-      </div>
-      <div class="profile-stat">
-        <div class="profile-stat-val" id="statSaved"></div>
-        <div class="profile-stat-label">Saved Places</div>
-      </div>
-      <div class="profile-stat">
-        <div class="profile-stat-val" id="statReviews"></div>
-        <div class="profile-stat-label">Reviews</div>
+        <div class="info-item">
+          <span class="info-icon">📍</span>
+          <div><div class="info-label">Location</div><div class="info-value">Nairobi, Kenya</div></div>
+        </div>
+        <div class="info-item">
+          <span class="info-icon">🌍</span>
+          <div><div class="info-label">Travel Style</div><div class="info-value">Adventure & Culture</div></div>
+        </div>
+        <div class="info-item">
+          <span class="info-icon">🗓️</span>
+          <div><div class="info-label">Member Since</div><div class="info-value">January 2025</div></div>
+        </div>
       </div>
     </div>
 
-    <!-- EDIT FORMS -->
-    <div class="profile-grid">
-
-      <!-- Personal Info -->
-      <div class="profile-card">
-        <div class="profile-card-title">👤 Personal Information</div>
-        <div class="form-row">
-          <label class="form-label">Full Name</label>
-          <input class="form-input" type="text" id="fieldName" placeholder="Your full name"/>
+    <!-- Security -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">Security</span></div>
+      <div class="card-body" style="padding-top:8px;padding-bottom:8px;">
+        <div class="security-item">
+          <div class="sec-left"><div class="title">Password</div><div class="desc">Last changed 3 months ago</div></div>
+          <button class="btn-sec">Change</button>
         </div>
-        <div class="form-row">
-          <label class="form-label">Email</label>
-          <input class="form-input" type="email" id="fieldEmail" placeholder="your@email.com" disabled/>
+        <div class="security-item">
+          <div class="sec-left"><div class="title">Two-Factor Auth</div><div class="desc">Via Authenticator App</div></div>
+          <span class="sec-status on">Enabled</span>
         </div>
-        <div class="form-row">
-          <label class="form-label">Phone</label>
-          <input class="form-input" type="tel" id="fieldPhone" placeholder="+254 7XX XXX XXX"/>
+        <div class="security-item">
+          <div class="sec-left"><div class="title">Login Sessions</div><div class="desc">2 active sessions</div></div>
+          <button class="btn-sec">Manage</button>
         </div>
-        <div class="form-row">
-          <label class="form-label">Location</label>
-          <input class="form-input" type="text" id="fieldLocation" placeholder="Nairobi, Kenya"/>
+        <div class="security-item">
+          <div class="sec-left"><div class="title">Login Alerts</div><div class="desc">Email on new login</div></div>
+          <span class="sec-status on">On</span>
         </div>
-        <button class="btn-save" id="btnSaveInfo" onclick="savePersonalInfo()">Save Changes</button>
       </div>
+    </div>
 
-      <!-- Account & Security -->
-      <div class="profile-card">
-        <div class="profile-card-title">🔒 Account &amp; Security</div>
-        <div class="form-row">
-          <label class="form-label">New Password</label>
-          <input class="form-input" type="password" id="fieldNewPass" placeholder="Leave blank to keep current"/>
-        </div>
-        <div class="form-row">
-          <label class="form-label">Confirm Password</label>
-          <input class="form-input" type="password" id="fieldConfirmPass" placeholder="Repeat new password"/>
-        </div>
-        <button class="btn-save" onclick="changePassword()">Update Password</button>
-
-        <div class="divider"></div>
-
-        <div class="profile-card-title" style="font-size:0.95rem;">🌍 Travel Preferences</div>
-        <div class="form-row">
-          <label class="form-label">Favourite Destination Type</label>
-          <select class="form-input" id="fieldPrefType">
-            <option value="">Select</option>
-            <option value="safari">Safari &amp; Wildlife</option>
-            <option value="beach">Beach &amp; Coast</option>
-            <option value="mountain">Mountain &amp; Trekking</option>
-            <option value="cultural">Cultural &amp; Heritage</option>
-            <option value="adventure">Adventure Sports</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <label class="form-label">Typical Group Size</label>
-          <select class="form-input" id="fieldGroupSize">
-            <option value="">Select</option>
-            <option value="solo">Solo</option>
-            <option value="couple">Couple</option>
-            <option value="family">Family (3–5)</option>
-            <option value="group">Group (6+)</option>
-          </select>
-        </div>
-        <button class="btn-save" onclick="savePreferences()">Save Preferences</button>
-
-        <div class="divider"></div>
-        <button class="btn-danger-outline" onclick="confirmLogout()">🚪 Sign Out</button>
+    <!-- Danger Zone -->
+    <div class="card danger-zone">
+      <div class="card-header"><span class="card-title" style="color:#ef9a9a">⚠️ Danger Zone</span></div>
+      <div class="card-body">
+        <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:12px;">These actions are permanent and cannot be undone.</p>
+        <button class="btn-danger">Deactivate Account</button>
+        <button class="btn-danger" style="margin-top:8px;">Delete All My Data</button>
       </div>
+    </div>
+  </div>
 
+  <!-- Main col -->
+  <div>
+    <!-- Edit Profile -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">Edit Profile</span></div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" value="Amara" />
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" value="Ochieng" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" value="amara.ochieng@email.com" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" value="+254 712 345 678" />
+          </div>
+          <div class="form-group">
+            <label>Country</label>
+            <select>
+              <option selected>Kenya</option>
+              <option>Uganda</option>
+              <option>Tanzania</option>
+              <option>Ethiopia</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Bio</label>
+          <textarea rows="3" placeholder="Tell other travellers about yourself...">Passionate adventurer exploring Kenya's hidden gems one destination at a time. 🌍</textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Travel Style</label>
+            <select>
+              <option>Adventure & Culture</option>
+              <option>Luxury</option>
+              <option>Budget</option>
+              <option>Family</option>
+              <option>Solo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date of Birth</label>
+            <input type="date" value="1994-07-15" />
+          </div>
+        </div>
+        <button class="btn-save" onclick="saveProfile()">💾 Save Profile</button>
+      </div>
+    </div>
+
+    <!-- Recent Trips -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">My Recent Trips</span>
+        <button class="card-action">View all</button>
+      </div>
+      <div class="card-body">
+        <div class="trip-grid">
+          <div class="trip-card">
+            <img class="trip-img" src="https://images.unsplash.com/photo-1571564977040-a4b72a65f5b2?w=400&q=80" alt="Maasai Mara" />
+            <div class="trip-info">
+              <div class="trip-name">Maasai Mara Safari</div>
+              <div class="trip-date">March 2025</div>
+              <span class="trip-badge">⭐ Reviewed</span>
+            </div>
+          </div>
+          <div class="trip-card">
+            <img class="trip-img" src="https://images.unsplash.com/photo-1590523741831-ab7e8b8f9c7f?w=400&q=80" alt="Diani Beach" />
+            <div class="trip-info">
+              <div class="trip-name">Diani Beach Retreat</div>
+              <div class="trip-date">December 2024</div>
+              <span class="trip-badge">⭐ Reviewed</span>
+            </div>
+          </div>
+          <div class="trip-card">
+            <img class="trip-img" src="https://images.unsplash.com/photo-1489392191049-fc10c97e64b6?w=400&q=80" alt="Mount Kenya" />
+            <div class="trip-info">
+              <div class="trip-name">Mount Kenya Hike</div>
+              <div class="trip-date">August 2024</div>
+              <span class="trip-badge trip-badge-pending" style="background:rgba(200,151,42,0.1);color:var(--brand-gold)">Pending Review</span>
+            </div>
+          </div>
+          <div class="trip-card" style="display:flex;align-items:center;justify-content:center;min-height:130px;cursor:pointer;border:2px dashed var(--border);">
+            <div style="text-align:center;color:var(--text-muted);">
+              <div style="font-size:1.8rem;">➕</div>
+              <div style="font-size:0.78rem;margin-top:6px;">Log a Trip</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Preferences -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">Notification Preferences</span></div>
+      <div class="card-body" style="padding-top:8px;padding-bottom:8px;">
+        <div class="notif-item">
+          <div class="notif-label"><div class="title">New Destinations</div><div class="desc">Get notified when new places are added</div></div>
+          <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="notif-item">
+          <div class="notif-label"><div class="title">Event Reminders</div><div class="desc">Upcoming events in your wishlist</div></div>
+          <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="notif-item">
+          <div class="notif-label"><div class="title">Deals & Offers</div><div class="desc">Exclusive travel deals for members</div></div>
+          <label class="toggle"><input type="checkbox" /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="notif-item">
+          <div class="notif-label"><div class="title">Review Responses</div><div class="desc">When someone replies to your reviews</div></div>
+          <label class="toggle"><input type="checkbox" checked /><span class="toggle-slider"></span></label>
+        </div>
+        <div class="notif-item">
+          <div class="notif-label"><div class="title">Weekly Newsletter</div><div class="desc">Kenya travel inspiration every week</div></div>
+          <label class="toggle"><input type="checkbox" /><span class="toggle-slider"></span></label>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="toast-profile" id="profileToast"></div>
+<div class="toast" id="toast">✅ Profile saved successfully!</div>
 
 <script>
-  const SUPABASE_URL  = 'https://cbyipmrozqsntojiartw.supabase.co';
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieWlwbXJvenFzbnRvamlhcnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTkxNTQsImV4cCI6MjA4ODk3NTE1NH0.31TAhmUCV_Uh0W8FGnR2_TLCZDU4YBM1U5LMSMc5JZs';
-
-  let currentUser = null;
-  let currentProfile = null;
-
-  function toast(msg, type) {
-    const t = document.getElementById('profileToast');
-    t.textContent = msg;
-    t.className = 'toast-profile show ' + (type || '');
-    clearTimeout(toast._t);
-    toast._t = setTimeout(() => t.classList.remove('show'), 3200);
+  function saveProfile() {
+    const t = document.getElementById('toast');
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
   }
-
-  function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('overlay').classList.toggle('open');
-  }
-
-  function setAvatar(url, initials) {
-    const el = document.getElementById('profileAvatar');
-    const span = document.getElementById('profileAvatarInitials');
-    if (url) {
-      el.innerHTML = '<img src="' + url + '" alt="avatar"/>';
-    } else {
-      el.innerHTML = '<span id="profileAvatarInitials">' + (initials || '?') + '</span>';
-    }
-  }
-
-  function formatDate(d) {
-    if (!d) return '';
-    return new Date(d).toLocaleDateString(undefined, { year: 'numeric', month: 'long' });
-  }
-
-  async function loadProfile() {
-    // Read session directly from localStorage — reliable even before SQ.fetchUser() completes
-    let session = null;
-    try { session = JSON.parse(localStorage.getItem('sq_session') || 'null'); } catch(e) {}
-    if (!session || !session.access_token) return;
-
-    currentUser = session.user;
-    if (!currentUser) return;
-
-    // Sidebar
-    const displayName = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'Traveller';
-    const initials = displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-    document.getElementById('sidebarAvatar').textContent = initials;
-    document.getElementById('sidebarName').textContent = displayName;
-    document.getElementById('sidebarEmail').textContent = currentUser.email || '';
-
-    // Header card
-    document.getElementById('headerName').textContent = displayName;
-    document.getElementById('headerEmail').textContent = currentUser.email || '';
-    document.getElementById('profileAvatarInitials').textContent = initials;
-    document.getElementById('memberSince').textContent = 'Member since ' + formatDate(currentUser.created_at);
-
-    // Avatar from store
-    const avatarUrl = window.AvatarStore ? window.AvatarStore.get(currentUser.email) : '';
-    if (avatarUrl) setAvatar(avatarUrl, initials);
-
-    // Fetch profile from Supabase
-    try {
-      currentProfile = await window.SQ.getProfile();
-    } catch(e) { console.warn(e); }
-
-    if (currentProfile) {
-      document.getElementById('fieldName').value     = currentProfile.full_name || displayName;
-      document.getElementById('fieldEmail').value    = currentProfile.email || currentUser.email || '';
-      document.getElementById('fieldPhone').value    = currentProfile.phone || '';
-      document.getElementById('fieldLocation').value = currentProfile.location || '';
-      if (currentProfile.pref_type)   document.getElementById('fieldPrefType').value   = currentProfile.pref_type;
-      if (currentProfile.group_size)  document.getElementById('fieldGroupSize').value  = currentProfile.group_size;
-      if (currentProfile.avatar_url)  setAvatar(currentProfile.avatar_url, initials);
-    } else {
-      document.getElementById('fieldName').value  = displayName;
-      document.getElementById('fieldEmail').value = currentUser.email || '';
-    }
-
-    // Load stats in parallel
-    loadStats();
-  }
-
-  async function loadStats() {
-    try {
-      const bookings = await window.SQ.listUserBookings();
-      document.getElementById('statBookings').textContent = bookings.length;
-    } catch(e) { document.getElementById('statBookings').textContent = '0'; }
-
-    try {
-      const saved = await window.SQ.listUserSavedDestinations(100);
-      document.getElementById('statSaved').textContent = saved.length;
-    } catch(e) { document.getElementById('statSaved').textContent = '0'; }
-
-    // Reviews from localStorage
-    try {
-      const reviews = JSON.parse(localStorage.getItem('sq_reviews') || '[]');
-      document.getElementById('statReviews').textContent = reviews.filter(r => r.mine).length;
-    } catch(e) { document.getElementById('statReviews').textContent = '0'; }
-  }
-
-  async function savePersonalInfo() {
-    const btn = document.getElementById('btnSaveInfo');
-    const name     = document.getElementById('fieldName').value.trim();
-    const phone    = document.getElementById('fieldPhone').value.trim();
-    const location = document.getElementById('fieldLocation').value.trim();
-
-    if (!name) { toast('Name cannot be empty.', 'error'); return; }
-
-    btn.disabled = true; btn.textContent = 'Saving…';
-
-    try {
-      await window.SQ.upsertProfile({
-        id:        currentUser.id,
-        email:     currentUser.email,
-        full_name: name,
-        phone:     phone,
-        location:  location
-      });
-
-      // Update session metadata locally
-      const session = window.SQ.getSession();
-      if (session?.user?.user_metadata) {
-        session.user.user_metadata.full_name = name;
-        window.SQ.saveSession(session);
-      }
-
-      // Update header
-      document.getElementById('headerName').textContent = name;
-      document.getElementById('sidebarName').textContent = name;
-      const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-      document.getElementById('sidebarAvatar').textContent = initials;
-
-      toast('Profile updated!', 'success');
-    } catch(e) {
-      toast('Could not save: ' + (e.message || 'Unknown error'), 'error');
-    }
-
-    btn.disabled = false; btn.textContent = 'Save Changes';
-  }
-
-  async function changePassword() {
-    const np = document.getElementById('fieldNewPass').value;
-    const cp = document.getElementById('fieldConfirmPass').value;
-    if (!np) { toast('Enter a new password.', 'error'); return; }
-    if (np !== cp) { toast('Passwords do not match.', 'error'); return; }
-    if (np.length < 6) { toast('Password must be at least 6 characters.', 'error'); return; }
-
-    try {
-      const token = window.SQ.getAccessToken();
-      const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
-        method: 'PUT',
-        headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: np })
-      });
-      if (!res.ok) throw new Error((await res.json()).message || 'Failed');
-      document.getElementById('fieldNewPass').value = '';
-      document.getElementById('fieldConfirmPass').value = '';
-      toast('Password updated!', 'success');
-    } catch(e) {
-      toast('Could not update password: ' + (e.message || 'Error'), 'error');
-    }
-  }
-
-  async function savePreferences() {
-    const prefType   = document.getElementById('fieldPrefType').value;
-    const groupSize  = document.getElementById('fieldGroupSize').value;
-    try {
-      await window.SQ.upsertProfile({
-        id:         currentUser.id,
-        email:      currentUser.email,
-        pref_type:  prefType,
-        group_size: groupSize
-      });
-      toast('Preferences saved!', 'success');
-    } catch(e) {
-      toast('Could not save preferences.', 'error');
-    }
-  }
-
-  async function confirmLogout() {
-    if (!confirm('Sign out of SafariQuest?')) return;
-    await window.SQ.signOut();
-    window.location.href = 'index.html';
-  }
-
-  // Avatar upload
-  document.getElementById('avatarInput').addEventListener('change', async function() {
-    const file = this.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-      const dataUrl = e.target.result;
-      setAvatar(dataUrl, '');
-
-      // Store locally
-      if (window.AvatarStore) window.AvatarStore.set(currentUser.email, dataUrl);
-
-      // Persist to Supabase profile
-      try {
-        await window.SQ.upsertProfile({
-          id:         currentUser.id,
-          email:      currentUser.email,
-          avatar_url: dataUrl
-        });
-        // Update session
-        const session = window.SQ.getSession();
-        if (session?.user) {
-          session.user.user_metadata = session.user.user_metadata || {};
-          session.user.user_metadata.avatar_url = dataUrl;
-          window.SQ.saveSession(session);
-        }
-        toast('Photo updated!', 'success');
-      } catch(e) {
-        toast('Photo saved locally.', '');
-      }
-    };
-    reader.readAsDataURL(file);
-  });
-
-  // Logout button in sidebar
-  document.getElementById('logoutBtn').addEventListener('click', async function() {
-    await window.SQ.signOut();
-    window.location.href = 'index.html';
-  });
-
-  // Init — wait for auth.js defer to finish, then load profile
-  document.addEventListener('DOMContentLoaded', function() {
-    // auth.js runs with defer so SQ is defined by now, but fetchUser is async.
-    // We use the session from localStorage directly (already done by page-protection.js).
-    // Give auth.js a tiny moment to set window.SQ then load.
-    if (window.SQ) {
-      loadProfile();
-    } else {
-      setTimeout(loadProfile, 100);
-    }
-  });
 </script>
 </body>
 </html>
