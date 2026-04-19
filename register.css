@@ -588,3 +588,68 @@ body {
 
 .toast.success { background: #276749; }
 .toast.error   { background: #9b2c2c; }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 900px) {
+  body {
+    flex-direction: column;
+    overflow-y: auto;
+    height: auto;
+  }
+  .left-panel {
+    width: 100%;
+    min-height: 250px;
+  }
+  .right-panel {
+    width: 100%;
+    padding: 2.5rem 2rem;
+    overflow-y: visible;
+  }
+  .form-container {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .right-panel {
+    padding: 2rem 16px;
+  }
+  .form-card {
+    padding: 1.5rem 1rem;
+  }
+  .social-row {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Tap targets and font sizing */
+  body, .input-wrapper input, .btn-primary, .btn-social, .checkbox-row label {
+    font-size: 16px;
+  }
+  .field-group label {
+    font-size: 0.85rem;
+  }
+  .input-wrapper input {
+    padding-top: 14px;
+    padding-bottom: 14px;
+    min-height: 48px;
+  }
+  .btn-primary, .btn-social {
+    padding: 14px;
+    min-height: 48px;
+  }
+  .login-link, .footer-links a, .secure-note {
+    font-size: 16px;
+  }
+  .form-container h2 {
+    font-size: 2.1rem;
+  }
+  .compass-icon, .pin-icon {
+    display: none;
+  }
+}

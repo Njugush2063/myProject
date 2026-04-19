@@ -417,9 +417,13 @@ nav .logo-img {
 /* ── SIMILAR GRID ── */
 .similar-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
 .sim-card {
+  display: block;            /* <a> is inline by default */
+  text-decoration: none;     /* no underline */
+  color: inherit;            /* don't turn text blue */
   border-radius: 14px; overflow: hidden;
   border: 1.5px solid #e8e4dc; background: #fff;
   transition: transform .25s, box-shadow .25s;
+  cursor: pointer;
 }
 .sim-card:hover { transform: translateY(-5px); box-shadow: 0 12px 32px rgba(0,0,0,.12); }
 .sim-img { height: 160px; background-size: cover; background-position: center; position: relative; background-color: #ccc; }

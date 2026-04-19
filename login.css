@@ -510,7 +510,9 @@ body {
    ============================================================ */
 @media (max-width: 900px) {
   .page-wrapper {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
   }
 
   .left-panel {
@@ -528,6 +530,8 @@ body {
 
   .right-panel {
     padding: 40px 24px;
+    flex: 1;
+    align-items: center;
   }
 }
 
@@ -537,7 +541,39 @@ body {
   }
 
   .right-panel {
-    padding: 32px 20px;
+    padding: 24px 16px;
+    align-items: center;
+  }
+  
+  .form-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .input-wrap input {
+    padding: 16px 14px;
+    font-size: 16px;
+    min-height: 48px;
+  }
+
+  .btn-login, .btn-social {
+    padding: 14px;
+    font-size: 16px;
+    min-height: 48px;
+  }
+
+  .field-group label {
+    font-size: 0.85rem;
+  }
+
+  .forgot-link, .remember-label, .signup-prompt {
+    font-size: 16px;
+  }
+
+  .form-header h1 {
+    font-size: 2rem;
   }
 }
 

@@ -254,20 +254,20 @@ function renderSimilar(similar) {
   }
 
   grid.innerHTML = similar.map(a => `
-    <div class="sim-card fade-in">
+    <a href="attraction-details.html?id=${a.slug}" class="sim-card fade-in">
       <div class="sim-img" style="background-image:url('${a.image_hero || ''}')">
         <span class="sim-badge ${(a.difficulty || '').toLowerCase()}">${a.difficulty || ''}</span>
       </div>
       <div class="sim-body">
         <div class="sim-name">${a.name}</div>
-        <div class="sim-loc">📍 ${a.county || ''} County</div>
+        <div class="sim-loc">📍 ${a.county || a.location || ''}</div>
         <div class="sim-row">
           <span class="sim-stars">★★★★★ ${a.rating || ''}</span>
           <span class="sim-price">KSh ${(a.price_min || 0).toLocaleString('en-KE')}–${(a.price_max || 0).toLocaleString('en-KE')}</span>
         </div>
-        <a href="attraction-details.html?id=${a.slug}" class="sim-link">Explore →</a>
+        <span class="sim-link">Explore →</span>
       </div>
-    </div>
+    </a>
   `).join('');
 
   const obs = new IntersectionObserver(entries => {

@@ -124,8 +124,8 @@
       <li><a href="contact.html">Contact</a></li>
     </ul>
     <div class="nav-auth">
-      <a href="login.html" class="btn-nav-login">Login</a>
-      <a href="register.html" class="btn-nav-register">Sign Up</a>
+      <a href="login.html" class="btn-nav-login nav-login">Login</a>
+      <a href="register.html" class="btn-nav-register nav-register">Sign Up</a>
     </div>
   </div>
 </nav>
@@ -234,6 +234,8 @@
         <li><a href="events.html">Events</a></li>
         <li><a href="about.html">About Us</a></li>
         <li><a href="contact.html">Contact</a></li>
+        <li><a href="terms.html">Terms</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
       </ul>
     </div>
     <div>
@@ -335,12 +337,25 @@ function openModal(id) {
   document.getElementById('modalHotelName').textContent = currentHotel.name + ' — KSh ' + currentHotel.pricePerNight.toLocaleString() + '/night';
   document.getElementById('mpesaBox').style.display = 'none';
   document.querySelector('.modal-actions').style.display = '';
+  // Reset confirm button
+  var confirmBtn = document.querySelector('.btn-confirm');
+  if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm & Pay'; }
   // Default dates
   var today = new Date();
   var tomorrow = new Date(today); tomorrow.setDate(today.getDate()+1);
   var fmt = function(d){ return d.toISOString().split('T')[0]; };
   document.getElementById('modalCheckIn').value  = fmt(today);
   document.getElementById('modalCheckOut').value = fmt(tomorrow);
+  // Pre-fill user details from session
+  if (window.SQ && window.SQ.isLoggedIn()) {
+    var user = window.SQ.getUser();
+    if (user) {
+      var nameEl = document.getElementById('modalName');
+      var emailEl = document.getElementById('modalEmail');
+      if (nameEl && !nameEl.value) nameEl.value = user.user_metadata && user.user_metadata.full_name ? user.user_metadata.full_name : (user.email ? user.email.split('@')[0] : '');
+      if (emailEl && !emailEl.value) emailEl.value = user.email || '';
+    }
+  }
   document.getElementById('bookingModal').classList.add('open');
 }
 
@@ -360,28 +375,68 @@ function confirmBooking() {
 
   var nights = Math.max(1, Math.ceil((new Date(checkOut) - new Date(checkIn)) / 86400000));
   var total  = nights * currentHotel.pricePerNight;
+  var bookingRef = 'SQ' + Math.floor(100000 + Math.random() * 900000);
 
-  var booking = {
-    id: 'SQ' + Math.floor(100000 + Math.random() * 900000),
-    attraction: currentHotel.name,
-    slug: currentHotel.id,
-    checkIn: checkIn,
-    checkOut: checkOut,
-    guests: guests,
-    nights: nights,
-    total: 'KSh ' + total.toLocaleString(),
-    status: 'Confirmed',
-    bookedAt: new Date().toISOString()
+  // Disable button while saving
+  var confirmBtn = document.querySelector('.btn-confirm');
+  if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Saving…'; }
+
+  // Build the row for Supabase user_bookings table
+  var supabaseRow = {
+    attraction_slug:     currentHotel.id,
+    attraction_name:     currentHotel.name,
+    attraction_location: currentHotel.city + ', Kenya',
+    booking_type:        'Hotel',
+    check_in:            checkIn,
+    check_out:           checkOut,
+    guests:              parseInt(guests) || 1,
+    total_price:         total,
+    status:              'confirmed',
+    payment_ref:         'MPesa:' + bookingRef,
+    image_url:           currentHotel.image,
+    special_requests:    ''
   };
 
-  var existing = [];
-  try { existing = JSON.parse(localStorage.getItem('sq_bookings') || '[]'); } catch(e){}
-  existing.unshift(booking);
-  localStorage.setItem('sq_bookings', JSON.stringify(existing));
+  // Try Supabase first, fall back to localStorage
+  function finishBooking() {
+    // Also save to localStorage as fallback
+    var localBooking = {
+      id: bookingRef,
+      attraction: currentHotel.name,
+      slug: currentHotel.id,
+      checkIn: checkIn,
+      checkOut: checkOut,
+      guests: guests,
+      nights: nights,
+      total: 'KSh ' + total.toLocaleString(),
+      status: 'confirmed',
+      bookedAt: new Date().toISOString()
+    };
+    var existing = [];
+    try { existing = JSON.parse(localStorage.getItem('sq_bookings') || '[]'); } catch(e){}
+    existing.unshift(localBooking);
+    localStorage.setItem('sq_bookings', JSON.stringify(existing));
 
-  document.getElementById('mpesaTxId').textContent = 'MP' + booking.id;
-  document.getElementById('mpesaBox').style.display = 'block';
-  document.querySelector('.modal-actions').style.display = 'none';
+    document.getElementById('mpesaTxId').textContent = 'MP' + bookingRef;
+    document.getElementById('mpesaBox').style.display = 'block';
+    document.querySelector('.modal-actions').style.display = 'none';
+  }
+
+  if (window.SQ && window.SQ.isLoggedIn()) {
+    // Get user_id from session
+    var user = window.SQ.getUser();
+    if (user && user.id) supabaseRow.user_id = user.id;
+
+    window.SQ.createUserBooking(supabaseRow)
+      .then(function() { finishBooking(); })
+      .catch(function(err) {
+        console.warn('Supabase booking failed, saving locally:', err);
+        finishBooking();
+      });
+  } else {
+    // Not logged in — save locally and prompt login
+    finishBooking();
+  }
 }
 
 document.getElementById('bookingModal').addEventListener('click', function(e){

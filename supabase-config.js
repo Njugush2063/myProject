@@ -1,29 +1,45 @@
 /* ══════════════════════════════════════════════════════════════════════
    supabase-config.js  —  SafariQuest Kenya
    Loaded as a regular <script> tag (NOT a module).
-   Exposes two globals:
+   IMPORTANT: auth.js must be loaded BEFORE this file — it sets
+   window.SQ_PUBLIC = { url, anon } which we reuse here.
+   Exposes globals:
      - getSportsDestinations(sport)  used by category.js
      - db.getAttraction(slug)        used by attraction-details.js
      - db.getSimilar(category, slug) used by attraction-details.js
 ══════════════════════════════════════════════════════════════════════ */
 
-/* Use var instead of const to prevent "already declared" errors
-   if this script is ever parsed more than once by the browser */
-var SUPABASE_URL  = 'https://cbyipmrozqsntojiartw.supabase.co';
-var SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieWlwbXJvenFzbnRvamlhcnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTkxNTQsImV4cCI6MjA4ODk3NTE1NH0.31TAhmUCV_Uh0W8FGnR2_TLCZDU4YBM1U5LMSMc5JZs';
-var SPORTS_TABLE  = 'sports_destinations';
-var ATTRACT_TABLE = 'attractions';
+/* ── Reuse credentials already set by auth.js to avoid const re-declaration ── */
+const _SQ_CFG_URL  = (window.SQ_PUBLIC && window.SQ_PUBLIC.url)
+  ? window.SQ_PUBLIC.url
+  : 'https://cbyipmrozqsntojiartw.supabase.co';
 
-/* ── tiny fetch helper ── */
+/* FIX: Use the proper JWT anon key (not the publishable key).
+   auth.js sets window.SQ_PUBLIC.anon to the correct eyJ... JWT.          */
+const _SQ_CFG_ANON = (window.SQ_PUBLIC && window.SQ_PUBLIC.anon)
+  ? window.SQ_PUBLIC.anon
+  : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNieWlwbXJvenFzbnRvamlhcnR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTkxNTQsImV4cCI6MjA4ODk3NTE1NH0.31TAhmUCV_Uh0W8FGnR2_TLCZDU4YBM1U5LMSMc5JZs';
+
+const SPORTS_TABLE  = 'sports_destinations';
+const ATTRACT_TABLE = 'attractions';
+
+/* ── fetch helper with proper JWT anon key ── */
 async function sbFetch(path) {
-  var res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+  const res = await fetch(`${_SQ_CFG_URL}/rest/v1/${path}`, {
     headers: {
-      'apikey':        SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'apikey':        _SQ_CFG_ANON,
+      'Authorization': `Bearer ${_SQ_CFG_ANON}`,
       'Content-Type':  'application/json',
     }
   });
-  if (!res.ok) throw new Error('Supabase ' + res.status + ': ' + res.statusText);
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    console.error(`[supabase-config] ${res.status} ${res.statusText} for path: ${path}`);
+    if (res.status === 401 || res.status === 403) {
+      console.error('[supabase-config] ⛔ Blocked — check your Supabase anon key and RLS policies for the attractions table.');
+    }
+    throw new Error(`Supabase ${res.status}: ${res.statusText}`);
+  }
   return res.json();
 }
 
@@ -33,8 +49,8 @@ async function sbFetch(path) {
 ══════════════════════════════════════════════════════════════════════ */
 window.getSportsDestinations = async function (sport) {
   try {
-    var data = await sbFetch(
-      SPORTS_TABLE + '?sport=eq.' + sport + '&order=featured.desc,rating.desc&limit=50'
+    const data = await sbFetch(
+      `${SPORTS_TABLE}?sport=eq.${encodeURIComponent(sport)}&order=featured.desc,rating.desc&limit=50`
     );
     return Array.isArray(data) ? data : [];
   } catch (err) {
@@ -45,36 +61,32 @@ window.getSportsDestinations = async function (sport) {
 
 /* ══════════════════════════════════════════════════════════════════════
    db  —  used by attraction-details.js
-   Falls back to local attractions-data.js if Supabase is unavailable.
 ══════════════════════════════════════════════════════════════════════ */
 window.db = {
 
   getAttractions: async function (options) {
     try {
       if (!options || typeof options === 'number') options = { limit: options || 20 };
-      var limit    = options.limit    || 20;
-      var order    = options.order    || 'rating.desc';
-      var category = options.category || null;
-      var path = ATTRACT_TABLE + '?order=' + order + '&limit=' + limit;
+      const limit    = options.limit    || 20;
+      const order    = options.order    || 'rating.desc';
+      const category = options.category || null;
+      let path = ATTRACT_TABLE + '?order=' + order + '&limit=' + limit;
       if (category) path += '&category=eq.' + encodeURIComponent(category);
-      var data = await sbFetch(path);
-      if (Array.isArray(data) && data.length > 0) return data;
-      /* Fallback to local data */
-      console.warn('[supabase-config] getAttractions empty — using local data');
-      return window.ATTRACTIONS_DATA || [];
+      const data = await sbFetch(path);
+      return Array.isArray(data) ? data : [];
     } catch (err) {
-      console.warn('[supabase-config] getAttractions failed:', err.message, '— using local data');
-      return window.ATTRACTIONS_DATA || [];
+      console.warn('[supabase-config] getAttractions failed:', err.message);
+      return [];
     }
   },
 
   getAttraction: async function (slug) {
     try {
-      var data = await sbFetch(
-        ATTRACT_TABLE + '?slug=eq.' + encodeURIComponent(slug) + '&limit=1'
+      const data = await sbFetch(
+        `${ATTRACT_TABLE}?slug=eq.${encodeURIComponent(slug)}&limit=1`
       );
       if (Array.isArray(data) && data.length > 0) return data[0];
-      /* Supabase returned empty — use local fallback */
+      // Supabase returned empty — use local fallback
       console.warn('[supabase-config] Supabase empty for slug:', slug, '— using local data');
       return window.getAttractionBySlug ? window.getAttractionBySlug(slug) : null;
     } catch (err) {
@@ -85,13 +97,11 @@ window.db = {
 
   getSimilar: async function (category, currentSlug) {
     try {
-      var data = await sbFetch(
-        ATTRACT_TABLE + '?category=eq.' + encodeURIComponent(category) +
-        '&slug=neq.' + encodeURIComponent(currentSlug) +
-        '&order=rating.desc&limit=4'
+      const data = await sbFetch(
+        `${ATTRACT_TABLE}?category=eq.${encodeURIComponent(category)}&slug=neq.${encodeURIComponent(currentSlug)}&order=rating.desc&limit=4`
       );
       if (Array.isArray(data) && data.length > 0) return data;
-      /* Fallback to local similar */
+      // Fallback to local similar
       return window.getSimilarAttractions ? window.getSimilarAttractions(category, currentSlug) : [];
     } catch (err) {
       console.warn('[supabase-config] getSimilar failed:', err.message);

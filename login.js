@@ -5,15 +5,15 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
-  const form        = document.getElementById('loginForm');
-  const emailInput  = document.getElementById('email');
-  const pwInput     = document.getElementById('password');
-  const emailError  = document.getElementById('emailError');
-  const pwError     = document.getElementById('passwordError');
+  const form = document.getElementById('loginForm');
+  const emailInput = document.getElementById('email');
+  const pwInput = document.getElementById('password');
+  const emailError = document.getElementById('emailError');
+  const pwError = document.getElementById('passwordError');
   const togglePwBtn = document.getElementById('togglePw');
-  const loginBtn    = document.getElementById('loginBtn');
-  const btnText     = loginBtn ? loginBtn.querySelector('.btn-text') : null;
-  const btnSpinner  = document.getElementById('btnSpinner');
+  const loginBtn = document.getElementById('loginBtn');
+  const btnText = loginBtn ? loginBtn.querySelector('.btn-text') : null;
+  const btnSpinner = document.getElementById('btnSpinner');
 
   /* ── Redirect if already logged in ── */
   if (Auth.isLoggedIn()) {
@@ -26,9 +26,9 @@ document.addEventListener('DOMContentLoaded', function () {
     togglePwBtn.addEventListener('click', function () {
       const isPassword = pwInput.type === 'password';
       pwInput.type = isPassword ? 'text' : 'password';
-      const eyeOpen   = togglePwBtn.querySelector('.eye-open');
+      const eyeOpen = togglePwBtn.querySelector('.eye-open');
       const eyeClosed = togglePwBtn.querySelector('.eye-closed');
-      if (eyeOpen)   eyeOpen.style.display   = isPassword ? 'none'  : 'block';
+      if (eyeOpen) eyeOpen.style.display = isPassword ? 'none' : 'block';
       if (eyeClosed) eyeClosed.style.display = isPassword ? 'block' : 'none';
     });
   }
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   if (emailInput) emailInput.addEventListener('input', () => clearFieldError(emailInput, emailError));
-  if (pwInput)    pwInput.addEventListener('input',    () => clearFieldError(pwInput, pwError));
+  if (pwInput) pwInput.addEventListener('input', () => clearFieldError(pwInput, pwError));
 
   function validateForm() {
     let ok = true;
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function setLoading(on) {
     if (!loginBtn) return;
     loginBtn.disabled = on;
-    if (btnText)    btnText.style.display    = on ? 'none'        : 'inline';
+    if (btnText) btnText.style.display = on ? 'none' : 'inline';
     if (btnSpinner) btnSpinner.style.display = on ? 'inline-flex' : 'none';
   }
 
@@ -152,7 +152,28 @@ document.addEventListener('DOMContentLoaded', function () {
         emailInput.focus();
         return;
       }
-      showToast('Password reset flow is coming soon.', 'success', 3000);
+      
+      setLoading(true);
+      try {
+        // Check if email exists in public.profiles table
+        const res = await fetch(`${window.SQ_PUBLIC.url}/rest/v1/profiles?email=eq.${encodeURIComponent(email)}&select=id`, {
+          headers: { 'apikey': window.SQ_PUBLIC.anon }
+        });
+        
+        if (res.ok) {
+          const rows = await res.json();
+          if (!rows || rows.length === 0) {
+            setLoading(false);
+            showToast('Account not found in our database. Please check your email or register.', 'error', 4000);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('Network error during email check', err);
+      }
+      
+      setLoading(false);
+      setTimeout(() => { window.location.href = 'forgot-password.html'; }, 500);
     });
   }
 
