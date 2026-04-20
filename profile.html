@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Profile — SafariQuest</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
     :root {
       --brand-dark: #0d1f2d;
@@ -20,20 +21,6 @@
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Sora', sans-serif; background: var(--brand-dark); color: var(--text-primary); min-height: 100vh; }
-
-    /* Nav */
-    nav {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 5%; height: 64px; background: var(--surface);
-      border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50;
-    }
-    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-    .nav-logo img { width: 34px; border-radius: 6px; }
-    .nav-logo span { font-family: 'DM Serif Display', serif; color: var(--brand-gold); font-size: 1.1rem; }
-    .nav-links a { color: var(--text-muted); text-decoration: none; margin-left: 24px; font-size: 0.85rem; transition: color 0.2s; }
-    .nav-links a:hover { color: var(--brand-gold); }
-    .nav-back { background: var(--surface-2); border: 1px solid var(--border); color: var(--text-muted); padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 0.82rem; transition: all 0.2s; }
-    .nav-back:hover { color: var(--text-primary); border-color: var(--brand-accent); }
 
     /* Cover */
     .cover {
@@ -143,19 +130,13 @@
     .toast.show { transform: translateY(0); opacity: 1; }
   </style>
 </head>
-<body>
+<body data-nav-active="">
 
-<nav>
-  <a href="index.html" class="nav-logo">
-    <img src="logo.jpeg" alt="SafariQuest" />
-    <span>SafariQuest</span>
-  </a>
-  <div class="nav-links">
-    <a href="index.html">Home</a>
-    <a href="destinations.html">Destinations</a>
-    <a href="login.html" style="color:var(--brand-gold)">Log Out</a>
-  </div>
-</nav>
+<div id="sq-nav-root"></div>
+
+
+
+
 
 <!-- Cover Photo -->
 <div class="cover">
@@ -398,5 +379,10 @@
     setTimeout(() => t.classList.remove('show'), 3000);
   }
 </script>
+<div id="sq-footer-root"></div>
+
+<script src="site-layout.js"></script>
+<script src="nav-auth.js"></script>
+
 </body>
 </html>

@@ -15,8 +15,13 @@
 
   <link rel="stylesheet" href="/style.css" />
   <link rel="stylesheet" href="/js/auth-ui.css" />
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-nav-active="">
+
+<div id="sq-nav-root"></div>
+
+
 
   <!-- Your nav / header here -->
 
@@ -124,5 +129,10 @@
       alert('Integrate your payment gateway here (e.g., Stripe, M-Pesa, Flutterwave).');
     });
   </script>
+<div id="sq-footer-root"></div>
+
+<script src="site-layout.js"></script>
+<script src="nav-auth.js"></script>
+
 </body>
 </html>

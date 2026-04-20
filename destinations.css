@@ -2,15 +2,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --orange: #E8541A;
-  --orange-light: #F47940;
-  --orange-pale: #FFF0E8;
-  --dark: #1A1A1A;
-  --gray: #6B6B6B;
-  --light-bg: #F5F3F0;
-  --white: #FFFFFF;
   --card-radius: 16px;
-  --shadow: 0 4px 24px rgba(0,0,0,0.08);
   --shadow-hover: 0 12px 40px rgba(0,0,0,0.15);
 }
 
@@ -23,59 +15,7 @@ body {
   overflow-x: hidden;
 }
 
-/* ── NAV ── */
-nav {
-  position: sticky; top: 0; z-index: 100;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 48px;
-  height: 68px;
-  background: rgba(255,255,255,0.92);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(0,0,0,0.06);
-}
-
-.logo {
-  display: flex; align-items: center; gap: 10px;
-  font-family: 'DM Sans', sans-serif;
-  font-weight: 700; font-size: 1.3rem;
-  color: var(--dark); text-decoration: none;
-}
-
-.logo-icon {
-  width: 36px; height: 36px;
-  background: var(--orange);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1rem;
-}
-
-.nav-links { display: flex; gap: 36px; list-style: none; }
-
-.nav-links a {
-  text-decoration: none; color: var(--gray);
-  font-weight: 500; font-size: 0.95rem;
-  transition: color .2s;
-}
-
-.nav-links a:hover { color: var(--dark); }
-
-.nav-actions { display: flex; gap: 12px; align-items: center; }
-
-.btn-outline {
-  padding: 9px 22px; border: 2px solid var(--orange);
-  color: var(--orange); font-weight: 600; font-size: 0.9rem;
-  border-radius: 8px; cursor: pointer; background: transparent;
-  transition: all .2s; font-family: inherit;
-}
-.btn-outline:hover { background: var(--orange); color: white; }
-
-.btn-fill {
-  padding: 9px 22px; background: var(--orange);
-  color: white; font-weight: 600; font-size: 0.9rem;
-  border: none; border-radius: 8px; cursor: pointer;
-  transition: background .2s; font-family: inherit;
-}
-.btn-fill:hover { background: #c44210; }
+/* Page chrome (navbar/footer) lives in styles.css + site-layout.js */
 
 /* ── HERO ── */
 .hero {
@@ -629,7 +569,6 @@ footer { background: #111; color: rgba(255,255,255,0.7); padding: 60px 80px 40px
 }
 
 @media (max-width: 768px) {
-  nav { padding: 0 20px; }
   section { padding: 60px 24px; }
   .types-section { padding: 60px 24px; }
   .hero-content { padding: 0 24px; }
@@ -640,54 +579,11 @@ footer { background: #111; color: rgba(255,255,255,0.7); padding: 60px 80px 40px
   .exp-grid { grid-template-columns: 1fr; }
   .guide-grid { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
-  .nav-links { display: none; }
   .cta-section { padding: 60px 24px; }
-  footer { padding: 48px 24px 32px; }
   .region-card { width: 260px; }
 }
 
-/* ── NAVBAR LOGO IMAGE & SLOGAN ONLY ── */
-.logo-img {
-  width: 36px !important;
-  height: 36px !important;
-  object-fit: cover !important;
-  object-position: 55% 50% !important;
-  border-radius: 50% !important;
-  flex-shrink: 0 !important;
-  display: inline-block !important;
-  box-shadow: 0 0 0 2px rgba(232,130,12,0.3);
-}
-.logo-text {
-  display: flex !important;
-  flex-direction: column !important;
-  justify-content: center !important;
-  gap: 1px !important;
-}
-.logo-name {
-  display: block !important;
-  font-family: 'Playfair Display', serif !important;
-  font-weight: 800 !important;
-  font-size: 1rem !important;
-  line-height: 1.15 !important;
-  white-space: nowrap !important;
-}
-.logo-slogan {
-  display: block !important;
-  font-size: 0.55rem !important;
-  font-weight: 500 !important;
-  font-style: italic !important;
-  letter-spacing: 0.8px !important;
-  color: #E8820C !important;
-  line-height: 1 !important;
-  white-space: nowrap !important;
-}
-/* For restaurant pages that use .nav-logo */
-.nav-logo {
-  display: flex !important;
-  align-items: center !important;
-  gap: 10px !important;
-}
-/* Hero slogan on index page */
+/* Hero slogan (destinations hero) */
 .hero-slogan {
   font-size: 0.8rem;
   font-weight: 400;

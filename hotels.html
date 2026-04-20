@@ -5,25 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Hotels & Accommodation — SafariQuest Kenya</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --green:#1a3c2e; --orange:#E8732A; --light:#f7f5f0; --white:#fff; --text:#333; --muted:#777; }
     body { font-family:'DM Sans',sans-serif; color:var(--text); background:var(--light); }
-
-    .navbar { position:sticky;top:0;z-index:100;background:var(--white);box-shadow:0 2px 12px rgba(0,0,0,.07); }
-    .nav-container { max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:68px; }
-    .nav-logo { display:flex;align-items:center;gap:10px;text-decoration:none; }
-    .logo-img { width:36px;height:36px;object-fit:cover;border-radius:50%;flex-shrink:0; }
-    .logo-name { font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--green);font-weight:800; }
-    .logo-slogan { font-size:.68rem;color:var(--muted);display:block; }
-    .nav-links { list-style:none;display:flex;gap:28px; }
-    .nav-links a { text-decoration:none;color:var(--text);font-size:.9rem;font-weight:500;transition:color .2s; }
-    .nav-links a:hover,.nav-links a.active { color:var(--orange); }
-    .nav-auth { display:flex;gap:10px; }
-    .btn-nav-login { padding:7px 18px;border:2px solid var(--green);border-radius:8px;color:var(--green);text-decoration:none;font-size:.85rem;font-weight:600; }
-    .btn-nav-login:hover { background:var(--green);color:var(--white); }
-    .btn-nav-register { padding:7px 18px;background:var(--orange);border-radius:8px;color:var(--white);text-decoration:none;font-size:.85rem;font-weight:600; }
 
     .hero { position:relative;height:320px;overflow:hidden;display:flex;align-items:center;justify-content:center;text-align:center; }
     .hero-bg { position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1400&q=85') center/cover no-repeat;filter:brightness(.4); }
@@ -66,69 +53,18 @@
     .empty-state { text-align:center;padding:60px 20px;color:var(--muted); }
     .empty-state .icon { font-size:3.5rem;margin-bottom:12px; }
 
-    .modal-backdrop { position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:9999;padding:20px; }
-    .modal-backdrop.open { display:flex; }
-    .modal { background:var(--white);border-radius:20px;max-width:420px;width:100%;padding:28px;animation:slideUp .3s ease; }
-    @keyframes slideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
-    .modal h3 { font-family:'Playfair Display',serif;color:var(--green);margin-bottom:4px;font-size:1.3rem; }
-    .modal label { display:block;font-size:.82rem;font-weight:600;color:#555;margin-bottom:4px;margin-top:12px; }
-    .modal input,.modal select { width:100%;padding:10px 12px;border:2px solid #e0e0e0;border-radius:9px;font-size:.9rem;font-family:inherit; }
-    .modal input:focus,.modal select:focus { outline:none;border-color:var(--orange); }
-    .modal-actions { display:flex;gap:10px;margin-top:20px; }
-    .btn-confirm { flex:1;padding:12px;background:var(--orange);color:var(--white);border:none;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:inherit; }
-    .btn-cancel  { flex:1;padding:12px;background:#f0f0f0;color:#555;border:none;border-radius:10px;font-size:.9rem;cursor:pointer;font-family:inherit; }
-    .mpesa-box { background:#e8f5e9;border-radius:10px;padding:14px;margin-top:14px;display:none;text-align:center; }
-    .mpesa-box .mpesa-title { font-weight:700;color:#2e7d32;margin-bottom:4px; }
-    .mpesa-box .mpesa-sub { font-size:.8rem;color:#555; }
-    .mpesa-box .tx-id { font-size:1.1rem;font-weight:800;letter-spacing:2px;color:#1b5e20;margin-top:8px; }
-
-    .footer { background:var(--green);color:rgba(255,255,255,.8);padding:40px 24px 20px; }
-    .footer-container { max-width:1200px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr;gap:32px;margin-bottom:28px; }
-    .footer h4 { color:var(--white);font-size:.95rem;margin-bottom:14px; }
-    .footer ul { list-style:none; }
-    .footer ul li { margin-bottom:8px; }
-    .footer ul a { color:rgba(255,255,255,.7);text-decoration:none;font-size:.88rem; }
-    .footer ul a:hover { color:var(--white); }
-    .footer-logo-block { display:flex;align-items:center;gap:10px; }
-    .footer-logo-img { width:38px;height:38px;object-fit:cover;border-radius:50%;flex-shrink:0; }
-    .footer-logo-text { display:flex;flex-direction:column;gap:1px; }
-    .footer-logo-slogan { font-size:.62rem;color:rgba(255,255,255,.7);font-style:italic;line-height:1.1; }
-    .footer-logo-name { font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--white);font-weight:800; }
-    .footer p { font-size:.85rem;line-height:1.6; }
-    .footer-bottom { border-top:1px solid rgba(255,255,255,.15);padding-top:16px;text-align:center;font-size:.8rem;color:rgba(255,255,255,.5); }
-
-    @media(max-width:768px){ .nav-links,.nav-auth{display:none;} .hero-title{font-size:1.8rem;} .footer-container{grid-template-columns:1fr;} }
+    @media(max-width:768px){ .hero-title{font-size:1.8rem;} }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="auth.js"></script>
-<script src="nav-auth.js"></script>
 </head>
-<body>
+<body data-nav-active="hotels">
 
-<nav class="navbar" id="navbar">
-  <div class="nav-container">
-    <a href="index.html" class="nav-logo">
-      <img src="logo.jpeg" alt="SafariQuest" class="logo-img"/>
-      <div class="logo-text">
-        <span class="logo-name">SafariQuest</span>
-        <span class="logo-slogan">Discover. Explore. Experience.</span>
-      </div>
-    </a>
-    <ul class="nav-links">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="destinations.html">Destinations</a></li>
-      <li><a href="hotels.html" class="active">Hotels</a></li>
-      <li><a href="restaurants.html">Restaurants</a></li>
-      <li><a href="events.html">Events</a></li>
-      <li><a href="about.html">About Us</a></li>
-      <li><a href="contact.html">Contact</a></li>
-    </ul>
-    <div class="nav-auth">
-      <a href="login.html" class="btn-nav-login nav-login">Login</a>
-      <a href="register.html" class="btn-nav-register nav-register">Sign Up</a>
-    </div>
-  </div>
-</nav>
+<div id="sq-nav-root"></div>
+
+
+
+
 
 <div class="hero">
   <div class="hero-bg"></div>
@@ -181,73 +117,9 @@
   <div class="hotels-grid" id="hotelsGrid"></div>
 </div>
 
-<!-- BOOKING MODAL -->
-<div class="modal-backdrop" id="bookingModal">
-  <div class="modal">
-    <h3>🏨 Reserve Your Room</h3>
-    <p id="modalHotelName" style="color:#E8732A;font-weight:600;margin-bottom:4px;font-size:.9rem"></p>
-    <label>Check-in Date</label>
-    <input type="date" id="modalCheckIn">
-    <label>Check-out Date</label>
-    <input type="date" id="modalCheckOut">
-    <label>Number of Guests</label>
-    <select id="modalGuests">
-      <option>1</option><option value="2" selected>2</option><option>3</option><option>4</option><option>5+</option>
-    </select>
-    <label>Your Name</label>
-    <input type="text" id="modalName" placeholder="Full name">
-    <label>Email</label>
-    <input type="email" id="modalEmail" placeholder="your@email.com">
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-confirm" onclick="confirmBooking()">Confirm & Pay</button>
-    </div>
-    <div class="mpesa-box" id="mpesaBox">
-      <div class="mpesa-title">🟢 M-Pesa Payment Request Sent</div>
-      <div class="mpesa-sub">Check your phone and enter your M-Pesa PIN to complete payment</div>
-      <div class="tx-id" id="mpesaTxId"></div>
-      <div style="margin-top:12px">
-        <a href="dashboard.html" style="display:inline-block;padding:8px 20px;background:#2e7d32;color:#fff;border-radius:8px;text-decoration:none;font-size:.82rem;font-weight:600">View My Bookings →</a>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- BOOKING MODAL - Removed, now redirects to booking.html -->
 
-<footer class="footer">
-  <div class="footer-container">
-    <div>
-      <div class="footer-logo-block">
-        <img src="logo.jpeg" alt="SafariQuest" class="footer-logo-img"/>
-        <div class="footer-logo-text">
-          <span class="footer-logo-name">SafariQuest</span>
-          <span class="footer-logo-slogan">Discover. Explore. Experience.</span>
-        </div>
-      </div>
-      <p style="margin-top:8px">Your gateway to Kenya's magic — from the savanna to the coast.</p>
-    </div>
-    <div>
-      <h4>Explore</h4>
-      <ul>
-        <li><a href="destinations.html">Destinations</a></li>
-        <li><a href="hotels.html">Hotels</a></li>
-        <li><a href="restaurants.html">Restaurants</a></li>
-        <li><a href="events.html">Events</a></li>
-        <li><a href="about.html">About Us</a></li>
-        <li><a href="contact.html">Contact</a></li>
-        <li><a href="terms.html">Terms</a></li>
-        <li><a href="privacy.html">Privacy</a></li>
-      </ul>
-    </div>
-    <div>
-      <h4>Contact</h4>
-      <p>📧 info@safariquest.com</p>
-      <p style="margin-top:6px">📍 Nairobi, Kenya</p>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p>© 2026 SafariQuest. All rights reserved.</p>
-  </div>
-</footer>
+
 
 <script>
 var HOTELS = [
@@ -334,120 +206,16 @@ function clearFilters() {
 function openModal(id) {
   currentHotel = HOTELS.find(function(h){ return h.id === id; });
   if (!currentHotel) return;
-  document.getElementById('modalHotelName').textContent = currentHotel.name + ' — KSh ' + currentHotel.pricePerNight.toLocaleString() + '/night';
-  document.getElementById('mpesaBox').style.display = 'none';
-  document.querySelector('.modal-actions').style.display = '';
-  // Reset confirm button
-  var confirmBtn = document.querySelector('.btn-confirm');
-  if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm & Pay'; }
-  // Default dates
-  var today = new Date();
-  var tomorrow = new Date(today); tomorrow.setDate(today.getDate()+1);
-  var fmt = function(d){ return d.toISOString().split('T')[0]; };
-  document.getElementById('modalCheckIn').value  = fmt(today);
-  document.getElementById('modalCheckOut').value = fmt(tomorrow);
-  // Pre-fill user details from session
-  if (window.SQ && window.SQ.isLoggedIn()) {
-    var user = window.SQ.getUser();
-    if (user) {
-      var nameEl = document.getElementById('modalName');
-      var emailEl = document.getElementById('modalEmail');
-      if (nameEl && !nameEl.value) nameEl.value = user.user_metadata && user.user_metadata.full_name ? user.user_metadata.full_name : (user.email ? user.email.split('@')[0] : '');
-      if (emailEl && !emailEl.value) emailEl.value = user.email || '';
-    }
-  }
-  document.getElementById('bookingModal').classList.add('open');
+  // Redirect to booking page with hotel slug
+  window.location.href = 'booking.html?destination=' + encodeURIComponent(id);
 }
-
-function closeModal() {
-  document.getElementById('bookingModal').classList.remove('open');
-  currentHotel = null;
-}
-
-function confirmBooking() {
-  var name    = document.getElementById('modalName').value.trim();
-  var email   = document.getElementById('modalEmail').value.trim();
-  var checkIn = document.getElementById('modalCheckIn').value;
-  var checkOut= document.getElementById('modalCheckOut').value;
-  var guests  = document.getElementById('modalGuests').value;
-  if (!name || !email || !checkIn || !checkOut) { alert('Please fill in all fields.'); return; }
-  if (checkIn >= checkOut) { alert('Check-out must be after check-in.'); return; }
-
-  var nights = Math.max(1, Math.ceil((new Date(checkOut) - new Date(checkIn)) / 86400000));
-  var total  = nights * currentHotel.pricePerNight;
-  var bookingRef = 'SQ' + Math.floor(100000 + Math.random() * 900000);
-
-  // Disable button while saving
-  var confirmBtn = document.querySelector('.btn-confirm');
-  if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Saving…'; }
-
-  // Build the row for Supabase user_bookings table
-  var supabaseRow = {
-    attraction_slug:     currentHotel.id,
-    attraction_name:     currentHotel.name,
-    attraction_location: currentHotel.city + ', Kenya',
-    booking_type:        'Hotel',
-    check_in:            checkIn,
-    check_out:           checkOut,
-    guests:              parseInt(guests) || 1,
-    total_price:         total,
-    status:              'confirmed',
-    payment_ref:         'MPesa:' + bookingRef,
-    image_url:           currentHotel.image,
-    special_requests:    ''
-  };
-
-  // Try Supabase first, fall back to localStorage
-  function finishBooking() {
-    // Also save to localStorage as fallback
-    var localBooking = {
-      id: bookingRef,
-      attraction: currentHotel.name,
-      slug: currentHotel.id,
-      checkIn: checkIn,
-      checkOut: checkOut,
-      guests: guests,
-      nights: nights,
-      total: 'KSh ' + total.toLocaleString(),
-      status: 'confirmed',
-      bookedAt: new Date().toISOString()
-    };
-    var existing = [];
-    try { existing = JSON.parse(localStorage.getItem('sq_bookings') || '[]'); } catch(e){}
-    existing.unshift(localBooking);
-    localStorage.setItem('sq_bookings', JSON.stringify(existing));
-
-    document.getElementById('mpesaTxId').textContent = 'MP' + bookingRef;
-    document.getElementById('mpesaBox').style.display = 'block';
-    document.querySelector('.modal-actions').style.display = 'none';
-  }
-
-  if (window.SQ && window.SQ.isLoggedIn()) {
-    // Get user_id from session
-    var user = window.SQ.getUser();
-    if (user && user.id) supabaseRow.user_id = user.id;
-
-    window.SQ.createUserBooking(supabaseRow)
-      .then(function() { finishBooking(); })
-      .catch(function(err) {
-        console.warn('Supabase booking failed, saving locally:', err);
-        finishBooking();
-      });
-  } else {
-    // Not logged in — save locally and prompt login
-    finishBooking();
-  }
-}
-
-document.getElementById('bookingModal').addEventListener('click', function(e){
-  if (e.target === this) closeModal();
-});
-
-window.addEventListener('scroll', function(){
-  document.getElementById('navbar').style.boxShadow = window.scrollY > 10 ? '0 4px 20px rgba(0,0,0,.12)' : '0 2px 12px rgba(0,0,0,.07)';
-});
 
 renderGrid();
 </script>
+<div id="sq-footer-root"></div>
+
+<script src="site-layout.js"></script>
+<script src="nav-auth.js"></script>
+
 </body>
 </html>

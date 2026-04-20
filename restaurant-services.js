@@ -1,26 +1,30 @@
 /* ============================================================
    RESTAURANT SERVICES & MENU — restaurant-services.js
-
-   DEPENDS ON: supabase-config.js (must load first in HTML)
-   Provides: SUPABASE_URL, SUPABASE_KEY, getRestaurant(), sbFetch()
+   On-premises geolocation gate + checkout redirect to bookings.html
+   DEPENDS ON: supabase-config.js, auth.js, supabase-client.js
    ============================================================ */
 
-/* ── Guard: catch missing supabase-config.js early ── */
-if (typeof SUPABASE_URL === 'undefined' || typeof SUPABASE_KEY === 'undefined') {
-  console.error(
-    '❌ supabase-config.js did not load. ' +
-    'Make sure <script src="supabase-config.js"></script> appears BEFORE ' +
-    '<script src="restaurant-services.js"></script> in your HTML.'
-  );
+if (typeof SUPABASE_URL === 'undefined') {
+  console.error('SUPABASE_URL missing — load auth.js / supabase-config before restaurant-services.js.');
 }
 
-/* ── Cart localStorage key (one per restaurant slug) ── */
+const PREMISES_RADIUS_M = 100;
+const GEO_OVERRIDE_KEY = slug => `sq_restaurant_geo_override_${slug || 'default'}`;
+
+/** Known venue coordinates (fallback when DB row has no lat/lng). */
+const PREMISES_BY_SLUG = {
+  'gilanis-nakuru': { lat: -0.3031, lng: 36.08, label: 'Gilanis Nakuru' },
+  'swahili-plate-nakuru': { lat: -0.284, lng: 36.071, label: 'Swahili Plate Nakuru' },
+  'carnivore-nairobi': { lat: -1.321, lng: 36.805, label: 'The Carnivore Nairobi' },
+};
+
+const FALLBACK_PREMISES = { lat: -0.3031, lng: 36.08, label: 'Restaurant premises' };
+
 function cartKey() {
   const slug = new URLSearchParams(window.location.search).get('id') || 'default';
   return `sq_cart_${slug}`;
 }
 
-/* ── Load cart from localStorage ── */
 function loadCartFromStorage() {
   try {
     const saved = localStorage.getItem(cartKey());
@@ -30,63 +34,351 @@ function loadCartFromStorage() {
     items.forEach(item => {
       const key = item.db_id || item.id;
       cart[key] = {
-        id:          item.db_id || item.id,
-        item_name:   item.name,
-        price:       item.price,
-        image:       item.image || '',
-        description: item.desc  || '',
-        qty:         item.qty,
-        available:   true,
-        _fromStorage: true
+        id: item.db_id || item.id,
+        item_name: item.name,
+        price: item.price,
+        image: item.image || '',
+        description: item.desc || '',
+        qty: item.qty,
+        available: true,
+        _fromStorage: true,
       };
     });
     return cart;
-  } catch (e) { return {}; }
+  } catch (e) {
+    return {};
+  }
 }
 
-/* ── Save cart to localStorage ── */
 function saveCartToStorage() {
   try {
-    const items = Object.values(window._cart).map(item => ({
-      id:    typeof item.id === 'number'
-               ? (item.item_name + '_' + item.price).toLowerCase().replace(/[^a-z0-9]/g, '_')
-               : item.id,
-      db_id: typeof item.id === 'number' ? item.id : null,
-      name:  item.item_name,
+    const items = Object.values(window._cart || {}).map(item => ({
+      id:
+        typeof item.id === 'number' && item.id < 0
+          ? String(item.id)
+          : typeof item.id === 'number'
+            ? (item.item_name + '_' + item.price).toLowerCase().replace(/[^a-z0-9]/g, '_')
+            : item.id,
+      db_id: typeof item.id === 'number' && item.id > 0 ? item.id : item.id,
+      name: item.item_name,
       price: item.price,
       image: item.image || '',
-      desc:  item.description || '',
-      qty:   item.qty
+      desc: item.description || '',
+      qty: item.qty,
     }));
     localStorage.setItem(cartKey(), JSON.stringify(items));
   } catch (e) {}
 }
 
-/* ============================================================
-   MAIN INIT
-   ============================================================ */
-document.addEventListener('DOMContentLoaded', async function () {
+function haversineM(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const toRad = d => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
-  /* ── Navbar scroll shadow ── */
+function getPremisesForSlug(slug, restaurant) {
+  if (restaurant && restaurant.latitude != null && restaurant.longitude != null) {
+    const lat = Number(restaurant.latitude);
+    const lng = Number(restaurant.longitude);
+    if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+      return { lat, lng, label: restaurant.name || slug };
+    }
+  }
+  const key = (slug || '').toLowerCase();
+  if (PREMISES_BY_SLUG[key]) return { ...PREMISES_BY_SLUG[key] };
+  return { ...FALLBACK_PREMISES, label: (restaurant && restaurant.name) || 'This restaurant' };
+}
+
+function loadGeoOverride(slug) {
+  try {
+    return sessionStorage.getItem(GEO_OVERRIDE_KEY(slug)) === '1';
+  } catch (_) {
+    return false;
+  }
+}
+
+function saveGeoOverride(slug, on) {
+  try {
+    if (on) sessionStorage.setItem(GEO_OVERRIDE_KEY(slug), '1');
+    else sessionStorage.removeItem(GEO_OVERRIDE_KEY(slug));
+  } catch (_) {}
+}
+
+function getOrderingUnlocked() {
+  if (loadGeoOverride(window._restaurantSlug)) return true;
+  return window._geoInside === true;
+}
+
+function setBodyGeoMode(mode) {
+  document.body.classList.remove(
+    'geo-checking',
+    'geo-inside',
+    'geo-outside',
+    'geo-denied',
+    'geo-error',
+    'geo-unavailable'
+  );
+  document.body.classList.add('geo-' + mode);
+}
+
+function updateLocBanner(mode, lines) {
+  const banner = document.getElementById('locBanner');
+  const title = document.getElementById('locTitle');
+  const sub = document.getElementById('locSub');
+  const spin = document.getElementById('locSpinner');
+  if (!banner || !title || !sub) return;
+
+  banner.className = 'loc-banner loc-banner--' + mode;
+  title.textContent = lines.title || '';
+  sub.textContent = lines.sub || '';
+  if (spin) spin.hidden = mode !== 'checking';
+}
+
+function requestDevicePosition(slug, premises) {
+  if (!navigator.geolocation) {
+    window._geoInside = false;
+    setBodyGeoMode('unavailable');
+    updateLocBanner('error', {
+      title: 'Location not available on this device',
+      sub: 'Use the demo toggle if you are at the restaurant, or open this page on a phone with GPS.',
+    });
+    onGeoStateChanged();
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const d = haversineM(pos.coords.latitude, pos.coords.longitude, premises.lat, premises.lng);
+      window._geoDistanceM = d;
+      const inside = d <= PREMISES_RADIUS_M;
+      window._geoInside = inside;
+      if (inside) {
+        setBodyGeoMode('inside');
+        updateLocBanner('inside', {
+          title: 'Inside — You can order now',
+          sub: 'You are within ' + PREMISES_RADIUS_M + 'm of ' + premises.label + '.',
+        });
+      } else {
+        setBodyGeoMode('outside');
+        const dist =
+          d < 1000 ? Math.round(d) + 'm' : (d / 1000).toFixed(1) + 'km';
+        updateLocBanner('outside', {
+          title: 'Outside — Please visit us to order',
+          sub:
+            'You are about ' +
+            dist +
+            ' from ' +
+            premises.label +
+            '. Orders can only be placed on site (within ' +
+            PREMISES_RADIUS_M +
+            'm).',
+        });
+      }
+      onGeoStateChanged();
+    },
+    err => {
+      window._geoInside = false;
+      if (err.code === 1) {
+        setBodyGeoMode('denied');
+        updateLocBanner('denied', {
+          title: 'Location permission needed',
+          sub:
+            'Allow location to verify you are inside ' +
+            premises.label +
+            ', or use the demo toggle for presentations.',
+        });
+      } else {
+        setBodyGeoMode('error');
+        updateLocBanner('error', {
+          title: 'Could not read your location',
+          sub: err.message || 'Try again or use the demo toggle if you are already on site.',
+        });
+      }
+      onGeoStateChanged();
+    },
+    { enableHighAccuracy: true, maximumAge: 0, timeout: 14000 }
+  );
+}
+
+function startGeolocation(slug, premises) {
+  window._restaurantSlug = slug;
+  window._premises = premises;
+  window._geoInside = null;
+  setBodyGeoMode('checking');
+  updateLocBanner('checking', {
+    title: 'Location status: Checking…',
+    sub: 'We use a one-time device position to confirm you are within ' + PREMISES_RADIUS_M + 'm of the venue.',
+  });
+
+  const ov = document.getElementById('locDemoOverride');
+  if (ov) {
+    ov.checked = loadGeoOverride(slug);
+    ov.onchange = () => {
+      saveGeoOverride(slug, ov.checked);
+      if (ov.checked) {
+        window._geoInside = true;
+        setBodyGeoMode('inside');
+        updateLocBanner('inside', {
+          title: 'Inside — You can order now',
+          sub: 'Demo override is on. Turn it off to test real GPS.',
+        });
+        onGeoStateChanged();
+        return;
+      }
+      window._geoInside = null;
+      setBodyGeoMode('checking');
+      updateLocBanner('checking', {
+        title: 'Location status: Checking…',
+        sub: 'Re-checking your position…',
+      });
+      requestDevicePosition(slug, premises);
+    };
+    if (ov.checked) {
+      window._geoInside = true;
+      setBodyGeoMode('inside');
+      updateLocBanner('inside', {
+        title: 'Inside — You can order now',
+        sub: 'Demo override is active.',
+      });
+      onGeoStateChanged();
+      return;
+    }
+  }
+
+  requestDevicePosition(slug, premises);
+}
+
+function onGeoStateChanged() {
+  if (window._allItems && window._allItems.length) {
+    const cat = window._activeTabCategory || 'All';
+    const items =
+      cat === 'All' || !window._categories ? window._allItems : window._categories[cat] || window._allItems;
+    renderItems(items);
+  }
+  updateCartSidebar();
+  updateCheckoutFloater();
+}
+
+function buildSampleMenu(slug) {
+  const rs = slug || 'demo';
+  const img = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80';
+  return [
+    {
+      id: -101,
+      restaurant_slug: rs,
+      category: 'Starters',
+      item_name: 'Swahili Soup Bowl',
+      description: 'Spiced coastal broth with coconut cream and fresh herbs.',
+      price: 450,
+      popular: true,
+      available: true,
+      image: img,
+    },
+    {
+      id: -102,
+      restaurant_slug: rs,
+      category: 'Starters',
+      item_name: 'Samosas Trio',
+      description: 'Beef, lentil, and vegetable samosas with tamarind dip.',
+      price: 380,
+      popular: false,
+      available: true,
+      image: img,
+    },
+    {
+      id: -201,
+      restaurant_slug: rs,
+      category: 'Mains',
+      item_name: 'Nyama Choma Platter',
+      description: 'Grilled goat and beef with kachumbari, ugali, and greens.',
+      price: 1850,
+      popular: true,
+      available: true,
+      image: img,
+    },
+    {
+      id: -202,
+      restaurant_slug: rs,
+      category: 'Mains',
+      item_name: 'Pizza Margherita',
+      description: 'Wood-fired crust, San Marzano tomato, mozzarella, basil.',
+      price: 1200,
+      popular: false,
+      available: true,
+      image: img,
+    },
+    {
+      id: -203,
+      restaurant_slug: rs,
+      category: 'Mains',
+      item_name: 'Grilled Tilapia',
+      description: 'Whole fish with lemon butter, seasonal vegetables.',
+      price: 1450,
+      popular: false,
+      available: true,
+      image: img,
+    },
+    {
+      id: -301,
+      restaurant_slug: rs,
+      category: 'Drinks',
+      item_name: 'Fresh Passion Juice',
+      description: 'Chilled, no added sugar.',
+      price: 220,
+      popular: false,
+      available: true,
+      image: img,
+    },
+    {
+      id: -302,
+      restaurant_slug: rs,
+      category: 'Drinks',
+      item_name: 'Dawa Cocktail',
+      description: 'Honey, lime, vodka — Kenya’s classic.',
+      price: 650,
+      popular: true,
+      available: true,
+      image: img,
+    },
+    {
+      id: -401,
+      restaurant_slug: rs,
+      category: 'Desserts',
+      item_name: 'Mango Coconut Panna Cotta',
+      description: 'Light, tropical finish.',
+      price: 520,
+      popular: false,
+      available: true,
+      image: img,
+    },
+  ];
+}
+
+document.addEventListener('DOMContentLoaded', async function () {
   const navbar = document.getElementById('navbar');
   window.addEventListener('scroll', () => {
     navbar.classList.toggle('scrolled', window.scrollY > 40);
   });
 
-  /* ── Read slug from URL ── */
   const params = new URLSearchParams(window.location.search);
-  const slug   = params.get('id');
+  const slug = params.get('id');
 
   if (!slug) {
     document.getElementById('heroTitle').textContent = 'Restaurant not found';
-    document.getElementById('heroDesc').textContent  = 'No restaurant ID was provided in the URL.';
+    document.getElementById('heroDesc').textContent = 'No restaurant ID was provided in the URL.';
+    const lb = document.getElementById('locBanner');
+    if (lb) lb.style.display = 'none';
     return;
   }
 
-  /* ── Update back link ── */
   document.getElementById('backLink').href = `restaurant-details.html?id=${slug}`;
 
-  /* ── Fetch restaurant info (uses getRestaurant from supabase-config.js) ── */
   let restaurant = null;
   try {
     restaurant = await getRestaurant(slug);
@@ -99,29 +391,27 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (restaurant.image_hero) {
       document.getElementById('heroBg').style.backgroundImage = `url('${restaurant.image_hero}')`;
     }
-    document.getElementById('heroTitle').textContent    = restaurant.name;
-    document.getElementById('heroCuisine').textContent  = restaurant.cuisine  || '';
-    document.getElementById('heroCity').textContent     = `📍 ${restaurant.city || ''}`;
-    document.getElementById('heroDesc').textContent     = restaurant.description
+    document.getElementById('heroTitle').textContent = restaurant.name;
+    document.getElementById('heroCuisine').textContent = restaurant.cuisine || '';
+    document.getElementById('heroCity').textContent = `📍 ${restaurant.city || ''}`;
+    document.getElementById('heroDesc').textContent = restaurant.description
       ? restaurant.description.substring(0, 120) + '…'
       : 'Explore our full menu and services below.';
     window._restaurantName = restaurant.name;
   } else {
-    /* Restaurant row missing from DB — show a helpful message but keep going
-       so menu items can still render if the menus table has rows */
-    document.getElementById('heroDesc').textContent =
-      'Explore our full menu and services below.';
+    document.getElementById('heroDesc').textContent = 'Explore our full menu and services below.';
+    window._restaurantName = slug;
   }
 
-  /* ── Pre-load cart from storage before items arrive ── */
+  const premises = getPremisesForSlug(slug, restaurant);
+  startGeolocation(slug, premises);
+
   window._cart = loadCartFromStorage();
   updateCartSidebar();
 
-  /* ── Fetch menu items ── */
   showSkeletons();
   let allItems = [];
   try {
-    /* Uses sbFetch from supabase-config.js — no need to repeat headers here */
     allItems = await sbFetch(
       `restaurant_menus?restaurant_slug=eq.${encodeURIComponent(slug)}&order=category.asc,popular.desc&select=*`
     );
@@ -129,36 +419,27 @@ document.addEventListener('DOMContentLoaded', async function () {
     console.error('Menu fetch error:', e.message);
   }
 
-  /* ── Guard: Supabase sometimes returns an error object instead of array ── */
   if (!Array.isArray(allItems)) {
     console.warn('Unexpected menu response:', allItems);
     allItems = [];
   }
 
   if (allItems.length === 0) {
-    document.getElementById('menuGrid').innerHTML  = '';
-    document.getElementById('menuEmpty').style.display = 'block';
-    document.getElementById('tabsScroll').innerHTML =
-      '<span style="padding:16px;color:#8C7B6B;font-size:0.85rem">No menu items yet.</span>';
-    return;
+    allItems = buildSampleMenu(slug);
+    window._usingSampleMenu = true;
   }
 
   window._allItems = allItems;
 
-  /* ── Merge storage cart with live DB items ── */
   const mergedCart = {};
   Object.values(window._cart).forEach(stored => {
     const live = allItems.find(i => i.id === stored.id || i.item_name === stored.item_name);
-    if (live) {
-      mergedCart[live.id] = { ...live, qty: stored.qty };
-    } else {
-      mergedCart[stored.id] = stored;
-    }
+    if (live) mergedCart[live.id] = { ...live, qty: stored.qty };
+    else mergedCart[stored.id] = stored;
   });
   window._cart = mergedCart;
   updateCartSidebar();
 
-  /* ── Group items by category ── */
   const categories = {};
   allItems.forEach(item => {
     const cat = item.category || 'Other';
@@ -167,67 +448,63 @@ document.addEventListener('DOMContentLoaded', async function () {
   });
   window._categories = categories;
 
-  /* ── Category emoji map ── */
   const catIcons = {
-    'Starters':               '🥗',
-    'Mains':                  '🍽️',
-    'Desserts':               '🍮',
-    'Drinks':                 '🥂',
-    'Events & Private Dining':'🎉',
-    'Rooms':                  '🛏️',
-    'Spa & Wellness':         '💆',
-    'Sides':                  '🥘',
-    'Breakfast':              '🍳',
-    'Lunch':                  '☀️',
-    'Dinner':                 '🌙',
-    'Seafood':                '🦐',
-    'BBQ':                    '🔥',
-    'Other':                  '🍴'
+    Starters: '🥗',
+    Mains: '🍽️',
+    Desserts: '🍮',
+    Drinks: '🥂',
+    'Events & Private Dining': '🎉',
+    Rooms: '🛏️',
+    'Spa & Wellness': '💆',
+    Sides: '🥘',
+    Breakfast: '🍳',
+    Lunch: '☀️',
+    Dinner: '🌙',
+    Seafood: '🦐',
+    BBQ: '🔥',
+    Other: '🍴',
   };
 
-  /* ── Build category tabs ── */
-  const tabsEl  = document.getElementById('tabsScroll');
+  const tabsEl = document.getElementById('tabsScroll');
   const catKeys = ['All', ...Object.keys(categories)];
 
-  tabsEl.innerHTML = catKeys.map((cat, i) => {
-    const count = cat === 'All' ? allItems.length : categories[cat].length;
-    const icon  = cat === 'All' ? '🍴' : (catIcons[cat] || '🍽️');
-    return `
-      <button class="tab-btn ${i === 0 ? 'active' : ''}"
-              onclick="switchTab('${cat}', this)">
+  tabsEl.innerHTML = catKeys
+    .map((cat, i) => {
+      const count = cat === 'All' ? allItems.length : categories[cat].length;
+      const icon = cat === 'All' ? '🍴' : catIcons[cat] || '🍽️';
+      return `
+      <button type="button" class="tab-btn ${i === 0 ? 'active' : ''}"
+              onclick='switchTab(${JSON.stringify(cat)}, this)'>
         <span class="tab-icon">${icon}</span>
         ${cat}
         <span class="tab-count">${count}</span>
       </button>`;
-  }).join('');
+    })
+    .join('');
 
-  /* ── Render all items initially ── */
+  window._activeTabCategory = 'All';
   renderItems(allItems);
 
-}); // end DOMContentLoaded
+  const paySidebar = document.getElementById('proceedPaymentBtn');
+  const payFloater = document.getElementById('floaterPayBtn');
+  if (paySidebar) paySidebar.addEventListener('click', proceedToPayment);
+  if (payFloater) payFloater.addEventListener('click', proceedToPayment);
+});
 
-
-/* ============================================================
-   TABS
-   ============================================================ */
 window.switchTab = function (cat, el) {
+  window._activeTabCategory = cat;
   document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  const items = cat === 'All' ? window._allItems : (window._categories[cat] || []);
+  const items = cat === 'All' ? window._allItems : window._categories[cat] || [];
   document.getElementById('menuCatTitle').textContent = cat === 'All' ? 'All Items' : cat;
   renderItems(items);
 };
 
-
-/* ============================================================
-   RENDER MENU ITEMS
-   ============================================================ */
 function renderItems(items) {
-  const grid  = document.getElementById('menuGrid');
+  const grid = document.getElementById('menuGrid');
   const empty = document.getElementById('menuEmpty');
 
-  document.getElementById('menuCatCount').textContent =
-    `${items.length} item${items.length !== 1 ? 's' : ''}`;
+  document.getElementById('menuCatCount').textContent = `${items.length} item${items.length !== 1 ? 's' : ''}`;
 
   if (!items.length) {
     grid.innerHTML = '';
@@ -238,26 +515,35 @@ function renderItems(items) {
   grid.innerHTML = items.map(item => buildCard(item)).join('');
 }
 
-/* ── Build a single menu card ── */
+function lockedTooltip() {
+  return 'Available only inside the restaurant.';
+}
+
 function buildCard(item) {
+  const unlocked = getOrderingUnlocked();
   const inCart = window._cart && window._cart[item.id] ? window._cart[item.id].qty : 0;
 
-  const priceStr = item.price === 0
-    ? '<span class="menu-card-price free">Complimentary</span>'
-    : `<span class="menu-card-price">KSh ${Number(item.price).toLocaleString('en-KE')}</span>`;
+  const priceStr =
+    item.price === 0
+      ? '<span class="menu-card-price free">Complimentary</span>'
+      : `<span class="menu-card-price">KSh ${Number(item.price).toLocaleString('en-KE')}</span>`;
 
-  const control = item.available
-    ? (inCart > 0
-        ? `<div class="qty-control">
-             <button class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
+  let control;
+  if (!item.available) {
+    control = `<button class="btn-add-first" type="button" disabled>Unavailable</button>`;
+  } else if (!unlocked) {
+    control = `<button class="btn-add-first" type="button" disabled title="${lockedTooltip()}">🔒 Order on premises</button>`;
+  } else if (inCart > 0) {
+    control = `<div class="qty-control">
+             <button type="button" class="qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
              <span class="qty-num" id="qty-${item.id}">${inCart}</span>
-             <button class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
-           </div>`
-        : `<button class="btn-add-first" onclick="addToCart(${item.id})">+ Add</button>`)
-    : `<button class="btn-add-first" disabled>Unavailable</button>`;
+             <button type="button" class="qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
+           </div>`;
+  } else {
+    control = `<button type="button" class="btn-add-first" onclick="addToCart(${item.id})">+ Add to order</button>`;
+  }
 
-  const fallbackImg =
-    'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80';
+  const fallbackImg = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80';
 
   return `
     <div class="menu-card" id="card-${item.id}">
@@ -268,8 +554,8 @@ function buildCard(item) {
              loading="lazy"
              onerror="this.src='${fallbackImg}'"/>
         <div class="menu-card-badges">
-          ${item.popular   ? '<span class="badge-popular">⭐ Popular</span>'        : ''}
-          ${!item.available? '<span class="badge-unavailable">Sold Out</span>' : ''}
+          ${item.popular ? '<span class="badge-popular">⭐ Popular</span>' : ''}
+          ${!item.available ? '<span class="badge-unavailable">Sold Out</span>' : ''}
         </div>
       </div>
       <div class="menu-card-body">
@@ -283,11 +569,8 @@ function buildCard(item) {
     </div>`;
 }
 
-
-/* ============================================================
-   CART OPERATIONS
-   ============================================================ */
 window.addToCart = function (id) {
+  if (!getOrderingUnlocked()) return;
   const item = window._allItems.find(i => i.id === id);
   if (!item) return;
   if (!window._cart[id]) window._cart[id] = { ...item, qty: 0 };
@@ -298,6 +581,7 @@ window.addToCart = function (id) {
 };
 
 window.changeQty = function (id, delta) {
+  if (!getOrderingUnlocked()) return;
   if (!window._cart[id]) return;
   window._cart[id].qty = Math.max(0, window._cart[id].qty + delta);
   if (window._cart[id].qty === 0) delete window._cart[id];
@@ -306,101 +590,55 @@ window.changeQty = function (id, delta) {
   updateCartSidebar();
 };
 
-/* Refresh just the footer controls of a single card */
 function refreshCard(id) {
   const card = document.getElementById(`card-${id}`);
   if (!card) return;
-  const item   = window._allItems.find(i => i.id === id);
+  const item = window._allItems.find(i => i.id === id);
   if (!item) return;
-  const inCart = window._cart[id] ? window._cart[id].qty : 0;
   const footer = card.querySelector('.menu-card-footer');
   if (!footer) return;
 
-  const priceStr = item.price === 0
-    ? '<span class="menu-card-price free">Complimentary</span>'
-    : `<span class="menu-card-price">KSh ${Number(item.price).toLocaleString('en-KE')}</span>`;
+  const unlocked = getOrderingUnlocked();
+  const inCart = window._cart[id] ? window._cart[id].qty : 0;
 
-  const control = inCart > 0
-    ? `<div class="qty-control">
-         <button class="qty-btn" onclick="changeQty(${id}, -1)">−</button>
+  const priceStr =
+    item.price === 0
+      ? '<span class="menu-card-price free">Complimentary</span>'
+      : `<span class="menu-card-price">KSh ${Number(item.price).toLocaleString('en-KE')}</span>`;
+
+  let control;
+  if (!item.available) {
+    control = `<button class="btn-add-first" type="button" disabled>Unavailable</button>`;
+  } else if (!unlocked) {
+    control = `<button class="btn-add-first" type="button" disabled title="${lockedTooltip()}">🔒 Order on premises</button>`;
+  } else if (inCart > 0) {
+    control = `<div class="qty-control">
+         <button type="button" class="qty-btn" onclick="changeQty(${id}, -1)">−</button>
          <span class="qty-num" id="qty-${id}">${inCart}</span>
-         <button class="qty-btn" onclick="changeQty(${id}, 1)">+</button>
-       </div>`
-    : `<button class="btn-add-first" onclick="addToCart(${id})">+ Add</button>`;
+         <button type="button" class="qty-btn" onclick="changeQty(${id}, 1)">+</button>
+       </div>`;
+  } else {
+    control = `<button type="button" class="btn-add-first" onclick="addToCart(${id})">+ Add to order</button>`;
+  }
 
   footer.innerHTML = priceStr + control;
 }
 
-
-/* ============================================================
-   CART SIDEBAR
-   ============================================================ */
-function updateCartSidebar() {
-  const cartItems  = Object.values(window._cart || {});
-  const total      = cartItems.reduce((sum, i) => sum + i.price * i.qty, 0);
-  const count      = cartItems.reduce((sum, i) => sum + i.qty, 0);
-
-  const cartEmptyEl  = document.getElementById('cartEmpty');
-  const cartItemsEl  = document.getElementById('cartItems');
-  const cartFooterEl = document.getElementById('cartFooter');
-  const specialWrap  = document.getElementById('specialWrap');
-  const fabCart      = document.getElementById('fabCart');
-
-  if (cartItems.length === 0) {
-    cartEmptyEl.style.display  = 'block';
-    cartItemsEl.style.display  = 'none';
-    cartFooterEl.style.display = 'none';
-    if (specialWrap) specialWrap.style.display = 'none';
-    if (fabCart) fabCart.classList.remove('has-items');
+window.proceedToPayment = function () {
+  if (!getOrderingUnlocked()) {
+    alert('You need to be inside the restaurant (or use the demo toggle) to continue to payment.');
+    return;
+  }
+  const cartItems = Object.values(window._cart || {});
+  if (!cartItems.length) {
+    alert('Your cart is empty.');
     return;
   }
 
-  cartEmptyEl.style.display  = 'none';
-  cartItemsEl.style.display  = 'block';
-  cartFooterEl.style.display = 'block';
-  if (specialWrap) specialWrap.style.display = 'block';
-  if (fabCart) fabCart.classList.add('has-items');
-
-  const fallbackImg =
-    'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80';
-
-  cartItemsEl.innerHTML = cartItems.map(item => `
-    <div class="cart-item">
-      <img class="cart-item-img"
-           src="${item.image || fallbackImg}"
-           alt="${item.item_name}"
-           onerror="this.src='${fallbackImg}'"/>
-      <div class="cart-item-info">
-        <div class="cart-item-name">${item.item_name}</div>
-        <div class="cart-item-price">KSh ${(item.price * item.qty).toLocaleString('en-KE')}</div>
-      </div>
-      <div class="cart-item-qty">
-        <button class="cart-qty-btn" onclick="changeQty(${item.id}, -1)">−</button>
-        <span  class="cart-item-count">${item.qty}</span>
-        <button class="cart-qty-btn" onclick="changeQty(${item.id}, 1)">+</button>
-      </div>
-      <button class="cart-item-remove" onclick="changeQty(${item.id}, -${item.qty})">✕</button>
-    </div>`).join('');
-
-  document.getElementById('cartSubtotal').textContent = `KSh ${total.toLocaleString('en-KE')}`;
-  document.getElementById('cartTotal').textContent    = `KSh ${total.toLocaleString('en-KE')}`;
-  if (document.getElementById('fabCount')) document.getElementById('fabCount').textContent = count;
-  if (document.getElementById('fabTotal')) document.getElementById('fabTotal').textContent =
-    `KSh ${total.toLocaleString('en-KE')}`;
-}
-
-
-/* ============================================================
-   PLACE ORDER
-   ============================================================ */
-window.placeOrder = async function () {
-  const cartItems = Object.values(window._cart || {});
-  if (!cartItems.length) { alert('Your cart is empty.'); return; }
-
-  const tableNumber        = document.getElementById('tableNumber').value.trim();
-  const customerName       = document.getElementById('customerName').value.trim();
-  const customerPhone      = document.getElementById('customerPhone').value.trim();
-  const specialInstructions= document.getElementById('specialInstructions').value.trim();
+  const tableNumber = document.getElementById('tableNumber').value.trim();
+  const customerName = document.getElementById('customerName').value.trim();
+  const customerPhone = document.getElementById('customerPhone').value.trim();
+  const specialInstructions = document.getElementById('specialInstructions').value.trim();
 
   if (!tableNumber) {
     alert('Please enter your table number.');
@@ -413,96 +651,132 @@ window.placeOrder = async function () {
     return;
   }
 
-  const slug  = new URLSearchParams(window.location.search).get('id');
+  const slug = new URLSearchParams(window.location.search).get('id');
   const total = cartItems.reduce((sum, i) => sum + i.price * i.qty, 0);
 
-  const btn = document.getElementById('placeOrderBtn');
-  btn.disabled    = true;
-  btn.textContent = '⏳ Placing Order…';
+  const payload = {
+    type: 'restaurant_order',
+    restaurantSlug: slug,
+    restaurantName: window._restaurantName || slug,
+    tableNumber,
+    customerName,
+    customerPhone: customerPhone || null,
+    specialInstructions: specialInstructions || null,
+    items: cartItems.map(i => ({
+      id: i.id,
+      name: i.item_name,
+      price: i.price,
+      qty: i.qty,
+      subtotal: i.price * i.qty,
+    })),
+    totalAmount: total,
+    createdAt: new Date().toISOString(),
+  };
 
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
-      method: 'POST',
-      headers: {
-        apikey:         SUPABASE_KEY,
-        Authorization:  `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        Prefer:         'return=representation'
-      },
-      body: JSON.stringify({
-        restaurant_slug:      slug,
-        restaurant_name:      window._restaurantName || slug,
-        table_number:         tableNumber,
-        customer_name:        customerName,
-        customer_phone:       customerPhone || null,
-        items:                cartItems.map(i => ({
-                                id:       i.id,
-                                name:     i.item_name,
-                                price:    i.price,
-                                qty:      i.qty,
-                                subtotal: i.price * i.qty
-                              })),
-        special_instructions: specialInstructions || null,
-        total_amount:         total,
-        status:               'pending'
-      })
-    });
-
-    if (!res.ok) {
-      const errText = await res.text().catch(() => res.statusText);
-      throw new Error(`Order failed (${res.status}): ${errText}`);
-    }
-
-    showSuccessModal(cartItems, total, tableNumber, customerName);
-
-    /* Clear cart */
-    window._cart = {};
-    saveCartToStorage();
-    updateCartSidebar();
-    document.getElementById('tableNumber').value        = '';
-    document.getElementById('customerName').value       = '';
-    document.getElementById('customerPhone').value      = '';
-    document.getElementById('specialInstructions').value= '';
-    window._allItems.forEach(item => refreshCard(item.id));
-
-  } catch (err) {
-    console.error('Order error:', err);
-    alert(`Could not place order: ${err.message}`);
-  } finally {
-    btn.disabled    = false;
-    btn.textContent = '🍽️ Place Order';
+    localStorage.setItem('sq_pending_restaurant_order', JSON.stringify(payload));
+  } catch (e) {
+    alert('Could not save your order for checkout.');
+    return;
   }
+
+  window.location.href = 'bookings.html?checkout=restaurant';
 };
 
+function updateCartSidebar() {
+  const cartItems = Object.values(window._cart || {});
+  const total = cartItems.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const count = cartItems.reduce((sum, i) => sum + i.qty, 0);
+  const unlocked = getOrderingUnlocked();
 
-/* ============================================================
-   SUCCESS MODAL
-   ============================================================ */
-function showSuccessModal(items, total, table, name) {
-  document.getElementById('modalSummary').innerHTML =
-    items.map(i => `
-      <div class="modal-summary-item">
-        <span>${i.qty}× ${i.item_name}</span>
-        <span>KSh ${(i.price * i.qty).toLocaleString('en-KE')}</span>
-      </div>`).join('') +
-    `<div class="modal-summary-total">
-       <span>Total</span>
-       <span>KSh ${total.toLocaleString('en-KE')}</span>
-     </div>`;
+  const cartEmptyEl = document.getElementById('cartEmpty');
+  const cartItemsEl = document.getElementById('cartItems');
+  const cartFooterEl = document.getElementById('cartFooter');
+  const specialWrap = document.getElementById('specialWrap');
+  const fabCart = document.getElementById('fabCart');
 
-  document.getElementById('modalMessage').textContent =
-    `Thank you, ${name}! Your order for Table ${table} has been sent to the kitchen.`;
-  document.getElementById('successModal').style.display = 'flex';
+  ['tableNumber', 'customerName', 'customerPhone', 'specialInstructions'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = !unlocked;
+  });
+
+  if (cartItems.length === 0) {
+    cartEmptyEl.style.display = 'block';
+    cartItemsEl.style.display = 'none';
+    cartFooterEl.style.display = 'none';
+    if (specialWrap) specialWrap.style.display = 'none';
+    if (fabCart) fabCart.classList.remove('has-items');
+    updateCheckoutFloater();
+    return;
+  }
+
+  cartEmptyEl.style.display = 'none';
+  cartItemsEl.style.display = 'block';
+  cartFooterEl.style.display = 'block';
+  if (specialWrap) specialWrap.style.display = 'block';
+  if (fabCart) fabCart.classList.add('has-items');
+
+  const fallbackImg = 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80';
+
+  cartItemsEl.innerHTML = cartItems
+    .map(item => {
+      const qtyDisabled = !unlocked ? 'disabled' : '';
+      return `
+    <div class="cart-item">
+      <img class="cart-item-img"
+           src="${item.image || fallbackImg}"
+           alt="${item.item_name}"
+           onerror="this.src='${fallbackImg}'"/>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.item_name}</div>
+        <div class="cart-item-price">KSh ${(item.price * item.qty).toLocaleString('en-KE')}</div>
+      </div>
+      <div class="cart-item-qty">
+        <button type="button" class="cart-qty-btn" ${qtyDisabled} onclick="changeQty(${item.id}, -1)">−</button>
+        <span  class="cart-item-count">${item.qty}</span>
+        <button type="button" class="cart-qty-btn" ${qtyDisabled} onclick="changeQty(${item.id}, 1)">+</button>
+      </div>
+      <button type="button" class="cart-item-remove" ${qtyDisabled} onclick="changeQty(${item.id}, -${item.qty})">✕</button>
+    </div>`;
+    })
+    .join('');
+
+  document.getElementById('cartSubtotal').textContent = `KSh ${total.toLocaleString('en-KE')}`;
+  document.getElementById('cartTotal').textContent = `KSh ${total.toLocaleString('en-KE')}`;
+  if (document.getElementById('fabCount')) document.getElementById('fabCount').textContent = count;
+  if (document.getElementById('fabTotal'))
+    document.getElementById('fabTotal').textContent = `KSh ${total.toLocaleString('en-KE')}`;
+
+  const btn = document.getElementById('proceedPaymentBtn');
+  if (btn) btn.disabled = !unlocked;
+
+  updateCheckoutFloater();
 }
 
-window.closeModal = function () {
-  document.getElementById('successModal').style.display = 'none';
-};
+function updateCheckoutFloater() {
+  const floater = document.getElementById('checkoutFloater');
+  const btn = document.getElementById('floaterPayBtn');
+  if (!floater || !btn) return;
+  const cartItems = Object.values(window._cart || {});
+  const total = cartItems.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const count = cartItems.reduce((sum, i) => sum + i.qty, 0);
+  const unlocked = getOrderingUnlocked();
 
+  const fabCart = document.getElementById('fabCart');
 
-/* ============================================================
-   HELPERS
-   ============================================================ */
+  if (!count) {
+    floater.hidden = true;
+    if (fabCart) fabCart.classList.remove('fab-behind-checkout');
+    return;
+  }
+  floater.hidden = false;
+  if (fabCart) fabCart.classList.add('fab-behind-checkout');
+  document.getElementById('floaterCount').textContent = String(count);
+  document.getElementById('floaterTotal').textContent = `KSh ${total.toLocaleString('en-KE')}`;
+  btn.disabled = !unlocked;
+  btn.title = unlocked ? '' : lockedTooltip();
+}
+
 window.clearCart = function () {
   if (!Object.keys(window._cart || {}).length) return;
   if (!confirm('Clear your entire cart?')) return;
@@ -517,13 +791,21 @@ window.toggleMobileCart = function () {
   if (card) card.style.display = card.style.display === 'block' ? 'none' : 'block';
 };
 
+window.closeModal = function () {
+  document.getElementById('successModal').style.display = 'none';
+};
+
 function showSkeletons() {
-  document.getElementById('menuGrid').innerHTML = Array(6).fill(`
+  document.getElementById('menuGrid').innerHTML = Array(6)
+    .fill(
+      `
     <div class="skeleton-card">
       <div class="skeleton-img"></div>
       <div class="skeleton-body">
         <div class="skeleton-line"></div>
         <div class="skeleton-line short"></div>
       </div>
-    </div>`).join('');
+    </div>`
+    )
+    .join('');
 }

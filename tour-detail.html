@@ -17,8 +17,13 @@
 
   <link rel="stylesheet" href="/style.css" />
   <link rel="stylesheet" href="/js/auth-ui.css" />
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body data-nav-active="">
+
+<div id="sq-nav-root"></div>
+
+
 
   <!-- ── Your existing header / nav ── -->
   <!-- auth.js will swap login/register buttons for the avatar menu automatically -->
@@ -113,5 +118,10 @@
       window.location.href = `/payment.html?${params}`;
     }
   </script>
+<div id="sq-footer-root"></div>
+
+<script src="site-layout.js"></script>
+<script src="nav-auth.js"></script>
+
 </body>
 </html>

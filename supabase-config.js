@@ -107,6 +107,36 @@ window.db = {
       console.warn('[supabase-config] getSimilar failed:', err.message);
       return window.getSimilarAttractions ? window.getSimilarAttractions(category, currentSlug) : [];
     }
+  },
+
+  /* ── Fetch entry/service fees for a destination ─────────────────────────
+     Queries the attraction_fees table. Falls back gracefully to [] if
+     the table is not yet created or the query returns nothing.             */
+  getAttractionFees: async function (slug) {
+    try {
+      const data = await sbFetch(
+        `attraction_fees?attraction_slug=eq.${encodeURIComponent(slug)}&order=sort_order.asc,fee_type.asc`
+      );
+      if (Array.isArray(data) && data.length > 0) return data;
+      return [];
+    } catch (err) {
+      console.warn('[supabase-config] getAttractionFees failed (table may not exist yet):', err.message);
+      return [];
+    }
+  },
+
+  /* ── Fetch accommodations for a destination ──────────────────────────── */
+  getAccommodations: async function (slug) {
+    try {
+      const data = await sbFetch(
+        `accommodations?attraction_slug=eq.${encodeURIComponent(slug)}&order=featured.desc,stars.desc&limit=12`
+      );
+      if (Array.isArray(data) && data.length > 0) return data;
+      return [];
+    } catch (err) {
+      console.warn('[supabase-config] getAccommodations failed (table may not exist yet):', err.message);
+      return [];
+    }
   }
 
 };

@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Saved Places — SafariQuest</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="auth-ui.css" />
   <script src="auth.js" defer></script>
   <script src="page-protection.js" defer></script>
@@ -25,25 +26,6 @@
     }
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); min-height:100vh; }
-
-    /* ── NAV ── */
-    nav {
-      background:var(--green); padding:0 2rem; display:flex; align-items:center;
-      justify-content:space-between; height:68px; position:sticky; top:0; z-index:100;
-      box-shadow:0 2px 12px rgba(0,0,0,0.2);
-    }
-    .nav-brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:var(--white); }
-    .nav-brand img { height:36px; width:36px; border-radius:50%; object-fit:cover; }
-    .nav-brand span { font-family:'Playfair Display',serif; font-size:1.2rem; font-weight:600; }
-    .nav-links { display:flex; list-style:none; gap:1.4rem; align-items:center; }
-    .nav-links a { color:rgba(255,255,255,0.8); text-decoration:none; font-size:0.88rem; font-weight:500; transition:color 0.2s; }
-    .nav-links a:hover { color:var(--gold-light); }
-    .nav-links a.active { color:var(--gold-light); border-bottom:2px solid var(--gold-light); padding-bottom:2px; }
-    .nav-auth { display:flex; align-items:center; gap:0.6rem; }
-    .btn-login { color:rgba(255,255,255,0.85); text-decoration:none; font-size:0.88rem; font-weight:500; padding:7px 16px; border-radius:8px; border:1.5px solid rgba(255,255,255,0.35); transition:all 0.2s; }
-    .btn-login:hover { background:rgba(255,255,255,0.1); color:var(--white); }
-    .btn-register { background:var(--gold); color:var(--white); text-decoration:none; font-size:0.88rem; font-weight:600; padding:7px 16px; border-radius:8px; transition:background 0.2s; }
-    .btn-register:hover { background:#b8821f; }
 
     /* ── HERO ── */
     .page-hero {
@@ -153,47 +135,14 @@
     .btn-save-modal { background:var(--green); color:var(--white); }
     .close-modal { float:right; background:none; border:none; font-size:1.4rem; cursor:pointer; color:var(--muted); }
 
-    /* ── FOOTER ── */
-    footer { background:var(--green); color:rgba(255,255,255,0.8); padding:3rem 2rem 2rem; font-size:0.88rem; }
-    .footer-inner { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:2fr 1fr 1fr; gap:2.5rem; margin-bottom:2.5rem; }
-    .footer-brand { display:flex; align-items:center; gap:10px; margin-bottom:0.8rem; }
-    .footer-brand img { height:36px; width:36px; border-radius:50%; object-fit:cover; }
-    .footer-brand span { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:600; color:var(--white); }
-    .footer-desc { color:rgba(255,255,255,0.65); font-size:0.85rem; line-height:1.7; max-width:300px; }
-    .footer-col h4 { color:var(--white); font-size:0.88rem; font-weight:600; margin-bottom:1rem; text-transform:uppercase; letter-spacing:0.06em; }
-    .footer-col ul { list-style:none; }
-    .footer-col ul li { margin-bottom:0.5rem; }
-    .footer-col ul li a { color:rgba(255,255,255,0.65); text-decoration:none; font-size:0.85rem; transition:color 0.2s; }
-    .footer-col ul li a:hover { color:var(--gold-light); }
-    .footer-contact-item { display:flex; gap:8px; margin-bottom:0.5rem; font-size:0.85rem; color:rgba(255,255,255,0.65); }
-    .footer-bottom { max-width:1100px; margin:0 auto; padding-top:1.5rem; border-top:1px solid rgba(255,255,255,0.12); display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:rgba(255,255,255,0.5); }
-    .footer-bottom strong { color:var(--white); }
-
-    @media(max-width:600px) { .nav-links{display:none} .nav-auth .btn-login{display:none} .saved-grid{grid-template-columns:1fr} .footer-inner{grid-template-columns:1fr;gap:1.5rem} }
+    @media(max-width:600px) { .saved-grid{grid-template-columns:1fr} }
   </style>
 </head>
-<body>
+<body data-nav-active="">
 
-<!-- NAV -->
-<nav>
-  <a href="index.html" class="nav-brand">
-    <img src="logo.jpeg" alt="SafariQuest" onerror="this.style.display='none'" />
-    <span>SafariQuest</span>
-  </a>
-  <ul class="nav-links">
-    <li><a href="index.html">Home</a></li>
-    <li><a href="destinations.html">Destinations</a></li>
-    <li><a href="hotels.html">Hotels</a></li>
-    <li><a href="restaurants.html">Restaurants</a></li>
-    <li><a href="events.html">Events</a></li>
-    <li><a href="about.html">About Us</a></li>
-    <li><a href="contact.html">Contact</a></li>
-  </ul>
-  <div class="nav-auth">
-    <a href="login.html" class="btn-login nav-login">Login</a>
-    <a href="register.html" class="btn-register nav-register">Register</a>
-  </div>
-</nav>
+<div id="sq-nav-root"></div>
+
+
 
 <!-- HERO -->
 <div class="page-hero">
@@ -238,41 +187,7 @@
 </div>
 
 <!-- FOOTER -->
-<footer>
-  <div class="footer-inner">
-    <div>
-      <div class="footer-brand">
-        <img src="logo.jpeg" alt="SafariQuest" onerror="this.style.display='none'" />
-        <span>SafariQuest</span>
-      </div>
-      <p class="footer-desc">Your premier destination for discovering and booking authentic Kenyan travel experiences. Connecting travelers with unforgettable adventures.</p>
-    </div>
-    <div class="footer-col">
-      <h4>Explore</h4>
-      <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="destinations.html">Destinations</a></li>
-        <li><a href="hotels.html">Hotels</a></li>
-        <li><a href="restaurants.html">Restaurants</a></li>
-        <li><a href="events.html">Events</a></li>
-        <li><a href="about.html">About Us</a></li>
-        <li><a href="contact.html">Contact</a></li>
-        <li><a href="terms.html">Terms</a></li>
-        <li><a href="privacy.html">Privacy</a></li>
-      </ul>
-    </div>
-    <div class="footer-col">
-      <h4>Contact Info</h4>
-      <div class="footer-contact-item">📧 info@safariquest.com</div>
-      <div class="footer-contact-item">📞 +254 798 595 394</div>
-      <div class="footer-contact-item">📍 Nairobi, Kenya</div>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <span>© 2026 <strong>SafariQuest</strong>. All rights reserved.</span>
-    <span><em>Discover. Explore. Experience.</em></span>
-  </div>
-</footer>
+
 
 <script>
   let savedItems = [];
@@ -431,5 +346,10 @@
   // Wait for auth.js (defer) to finish before loading data
   document.addEventListener('DOMContentLoaded', function() { init(); });
 </script>
+<div id="sq-footer-root"></div>
+
+<script src="site-layout.js"></script>
+<script src="nav-auth.js"></script>
+
 </body>
 </html>

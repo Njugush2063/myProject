@@ -5,6 +5,23 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
+  function safeNextRedirect() {
+    const raw = new URLSearchParams(window.location.search).get('next');
+    if (!raw) return null;
+    let u;
+    try { u = decodeURIComponent(raw); } catch (_) { return null; }
+    if (u.startsWith('http://') || u.startsWith('https://')) {
+      try {
+        const parsed = new URL(u);
+        if (parsed.origin !== window.location.origin) return null;
+        return parsed.pathname + parsed.search + parsed.hash;
+      } catch (_) { return null; }
+    }
+    if (u.startsWith('/')) return u;
+    if (/^[a-z0-9_.-]+\.html(\?|$)/i.test(u)) return u;
+    return null;
+  }
+
   const form = document.getElementById('loginForm');
   const emailInput = document.getElementById('email');
   const pwInput = document.getElementById('password');
@@ -17,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ── Redirect if already logged in ── */
   if (Auth.isLoggedIn()) {
-    window.location.href = 'dashboard.html';
+    window.location.href = safeNextRedirect() || 'dashboard.html';
     return;
   }
 
@@ -115,7 +132,8 @@ document.addEventListener('DOMContentLoaded', function () {
           Auth.getUser()?.email?.split('@')[0] ||
           'Traveller';
         showToast('Welcome back, ' + name + '! Redirecting...', 'success');
-        setTimeout(() => { window.location.href = 'dashboard.html'; }, 1000);
+        const dest = safeNextRedirect() || 'dashboard.html';
+        setTimeout(() => { window.location.href = dest; }, 1000);
 
       } catch (err) {
         console.error('Login error:', err);

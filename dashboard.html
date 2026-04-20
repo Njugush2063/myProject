@@ -5,14 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SafariQuest — Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="auth-ui.css">
   <link rel="stylesheet" href="dashboard.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="auth.js" defer></script>
   <script src="page-protection.js" defer></script>
 </head>
-<body>
+<body data-nav-active="">
+
+<div id="sq-nav-root"></div>
+
+
 
   <!-- Mobile sidebar overlay -->
   <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
@@ -444,6 +449,8 @@
   </div><!-- /.main -->
 
   <script src="dashboard.js"></script>
+
+<script src="nav-auth.js"></script>
+
 </body>
-</html></body>
 </html>

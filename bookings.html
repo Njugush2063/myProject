@@ -6,344 +6,15 @@
   <title>My Bookings — SafariQuest</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="auth-ui.css" />
+  <link rel="stylesheet" href="bookings-page.css" />
   <script src="auth.js" defer></script>
   <script src="page-protection.js" defer></script>
-  <style>
-    :root {
-      --green: #1a4731;
-      --green-mid: #2d6a4f;
-      --gold: #c9932a;
-      --gold-light: #f4c56a;
-      --cream: #fdf8f0;
-      --warm-grey: #f5f0e8;
-      --text: #1c1c1c;
-      --muted: #6b7280;
-      --white: #ffffff;
-      --shadow: 0 4px 24px rgba(0,0,0,0.08);
-      --radius: 14px;
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--cream);
-      color: var(--text);
-      min-height: 100vh;
-    }
-
-    /* ── NAV ── */
-    nav {
-      background: var(--green);
-      padding: 0 2rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 68px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.2);
-    }
-    .nav-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      color: var(--white);
-    }
-    .nav-brand img { height: 36px; width: 36px; border-radius: 50%; object-fit: cover; }
-    .nav-brand span { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 600; }
-
-    .nav-links {
-      display: flex;
-      list-style: none;
-      gap: 1.4rem;
-      align-items: center;
-    }
-    .nav-links a {
-      color: rgba(255,255,255,0.8);
-      text-decoration: none;
-      font-size: 0.88rem;
-      font-weight: 500;
-      transition: color 0.2s;
-    }
-    .nav-links a:hover { color: var(--gold-light); }
-    .nav-links a.active {
-      color: var(--gold-light);
-      border-bottom: 2px solid var(--gold-light);
-      padding-bottom: 2px;
-    }
-
-    .nav-auth {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-    .btn-login {
-      color: rgba(255,255,255,0.85);
-      text-decoration: none;
-      font-size: 0.88rem;
-      font-weight: 500;
-      padding: 7px 16px;
-      border-radius: 8px;
-      border: 1.5px solid rgba(255,255,255,0.35);
-      transition: all 0.2s;
-    }
-    .btn-login:hover { background: rgba(255,255,255,0.1); color: var(--white); }
-    .btn-register {
-      background: var(--gold);
-      color: var(--white);
-      text-decoration: none;
-      font-size: 0.88rem;
-      font-weight: 600;
-      padding: 7px 16px;
-      border-radius: 8px;
-      transition: background 0.2s;
-    }
-    .btn-register:hover { background: #b8821f; }
-
-    /* ── PAGE HERO ── */
-    .page-hero {
-      background: linear-gradient(135deg, var(--green) 0%, var(--green-mid) 60%, #1b5e38 100%);
-      padding: 3.5rem 2rem 3rem;
-      color: var(--white);
-      position: relative;
-      overflow: hidden;
-    }
-    .page-hero::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: url('https://images.unsplash.com/photo-1516426122078-c23e76319801?w=1400&q=60') center/cover no-repeat;
-      opacity: 0.12;
-    }
-    .page-hero-inner { max-width: 1100px; margin: 0 auto; position: relative; }
-    .page-hero h1 { font-family: 'Playfair Display', serif; font-size: 2.4rem; margin-bottom: 0.5rem; }
-    .page-hero p { color: rgba(255,255,255,0.78); font-size: 1rem; }
-
-    /* ── CONTENT ── */
-    .content { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
-
-    /* ── TABS ── */
-    .tabs {
-      display: flex;
-      gap: 0.4rem;
-      background: var(--white);
-      padding: 6px;
-      border-radius: 12px;
-      box-shadow: var(--shadow);
-      margin-bottom: 2rem;
-      width: fit-content;
-    }
-    .tab-btn {
-      padding: 9px 22px;
-      border: none;
-      border-radius: 8px;
-      background: transparent;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 500;
-      cursor: pointer;
-      color: var(--muted);
-      transition: all 0.2s;
-    }
-    .tab-btn.active { background: var(--green); color: var(--white); }
-    .tab-btn:hover:not(.active) { background: var(--warm-grey); color: var(--text); }
-
-    /* ── STATS ── */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-    .stat-card {
-      background: var(--white);
-      border-radius: var(--radius);
-      padding: 1.2rem 1.4rem;
-      box-shadow: var(--shadow);
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-    .stat-icon {
-      font-size: 1.8rem;
-      width: 48px; height: 48px;
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-    }
-    .stat-icon.green { background: rgba(45,106,79,0.12); }
-    .stat-icon.gold  { background: rgba(201,147,42,0.12); }
-    .stat-icon.blue  { background: rgba(59,130,246,0.1); }
-    .stat-icon.red   { background: rgba(239,68,68,0.1); }
-    .stat-label { font-size: 0.78rem; color: var(--muted); font-weight: 500; }
-    .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--text); line-height: 1.2; }
-
-    /* ── BOOKINGS ── */
-    .bookings-grid { display: flex; flex-direction: column; gap: 1.2rem; }
-
-    .booking-card {
-      background: var(--white);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      display: grid;
-      grid-template-columns: 200px 1fr auto;
-      transition: transform 0.2s, box-shadow 0.2s;
-      animation: fadeUp 0.4s ease both;
-    }
-    .booking-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .booking-img { width: 200px; height: 140px; object-fit: cover; }
-
-    .booking-info { padding: 1.2rem 1.4rem; }
-    .booking-type { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; color: var(--gold); margin-bottom: 4px; }
-    .booking-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 600; margin-bottom: 6px; }
-    .booking-meta {
-      display: flex; flex-wrap: wrap; gap: 0.8rem;
-      font-size: 0.82rem; color: var(--muted); margin-bottom: 10px;
-    }
-    .booking-meta span { display: flex; align-items: center; gap: 4px; }
-    .booking-amount { font-size: 1.1rem; font-weight: 700; color: var(--green); }
-
-    .booking-actions {
-      padding: 1.2rem 1.4rem;
-      display: flex; flex-direction: column;
-      align-items: flex-end; justify-content: space-between;
-      min-width: 140px;
-    }
-    .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-    .status-confirmed { background: rgba(34,197,94,0.12); color: #16a34a; }
-    .status-pending   { background: rgba(234,179,8,0.12);  color: #ca8a04; }
-    .status-cancelled { background: rgba(239,68,68,0.1);   color: #dc2626; }
-    .status-completed { background: rgba(59,130,246,0.1);  color: #2563eb; }
-
-    .action-btns { display: flex; flex-direction: column; gap: 8px; }
-    .btn-sm {
-      padding: 7px 14px; border-radius: 8px; font-size: 0.8rem;
-      font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; text-align: center;
-    }
-    .btn-primary { background: var(--green); color: var(--white); }
-    .btn-primary:hover { background: var(--green-mid); }
-    .btn-outline { background: transparent; color: var(--green); border: 1.5px solid var(--green); }
-    .btn-outline:hover { background: var(--green); color: var(--white); }
-    .btn-danger { background: transparent; color: #dc2626; border: 1.5px solid #dc2626; }
-    .btn-danger:hover { background: #dc2626; color: var(--white); }
-
-    /* ── EMPTY STATE ── */
-    .empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); }
-    .empty-state .emoji { font-size: 3.5rem; margin-bottom: 1rem; display: block; }
-    .empty-state h3 { font-size: 1.2rem; color: var(--text); margin-bottom: 0.5rem; }
-
-    /* ── SECTION HEADER ── */
-    .section-header {
-      display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.2rem;
-    }
-    .section-header h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; }
-    .filter-row { display: flex; gap: 0.6rem; }
-    .filter-select {
-      padding: 7px 12px; border-radius: 8px; border: 1.5px solid #e5e7eb;
-      font-family: 'DM Sans', sans-serif; font-size: 0.83rem;
-      background: var(--white); color: var(--text); cursor: pointer;
-    }
-
-    /* ── MODAL ── */
-    .modal-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.5); z-index: 200;
-      align-items: center; justify-content: center;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: var(--white); border-radius: var(--radius); padding: 2rem;
-      width: 90%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-      animation: fadeUp 0.3s ease;
-    }
-    .modal h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 1rem; }
-    .modal-detail {
-      display: flex; justify-content: space-between;
-      padding: 0.7rem 0; border-bottom: 1px solid #f3f4f6; font-size: 0.9rem;
-    }
-    .modal-detail:last-of-type { border-bottom: none; }
-    .modal-detail .label { color: var(--muted); }
-    .modal-detail .value { font-weight: 600; }
-    .modal-footer { display: flex; gap: 0.8rem; margin-top: 1.5rem; }
-    .modal-footer button { flex: 1; }
-    .close-modal { float: right; background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--muted); }
-
-    /* ── FOOTER ── */
-    footer {
-      background: var(--green);
-      color: rgba(255,255,255,0.8);
-      padding: 3rem 2rem 2rem;
-      font-size: 0.88rem;
-    }
-    .footer-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr;
-      gap: 2.5rem;
-      margin-bottom: 2.5rem;
-    }
-    .footer-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 0.8rem; }
-    .footer-brand img { height: 36px; width: 36px; border-radius: 50%; object-fit: cover; }
-    .footer-brand span { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 600; color: var(--white); }
-    .footer-desc { color: rgba(255,255,255,0.65); font-size: 0.85rem; line-height: 1.7; max-width: 300px; }
-    .footer-col h4 { color: var(--white); font-size: 0.88rem; font-weight: 600; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.06em; }
-    .footer-col ul { list-style: none; }
-    .footer-col ul li { margin-bottom: 0.5rem; }
-    .footer-col ul li a { color: rgba(255,255,255,0.65); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
-    .footer-col ul li a:hover { color: var(--gold-light); }
-    .footer-contact-item { display: flex; gap: 8px; margin-bottom: 0.5rem; font-size: 0.85rem; color: rgba(255,255,255,0.65); }
-    .footer-bottom {
-      max-width: 1100px; margin: 0 auto;
-      padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.12);
-      display: flex; justify-content: space-between; align-items: center;
-      font-size: 0.8rem; color: rgba(255,255,255,0.5);
-    }
-    .footer-bottom strong { color: var(--white); }
-
-    @media (max-width: 700px) {
-      .booking-card { grid-template-columns: 1fr; }
-      .booking-img { width: 100%; height: 180px; }
-      .booking-actions { flex-direction: row; align-items: center; padding-top: 0; }
-      .nav-links { display: none; }
-      .nav-auth .btn-login { display: none; }
-      .footer-inner { grid-template-columns: 1fr; gap: 1.5rem; }
-    }
-  </style>
 </head>
-<body>
+<body class="page-bookings">
 
-<!-- NAV -->
-<nav>
-  <a href="index.html" class="nav-brand">
-    <img src="logo.jpeg" alt="SafariQuest" onerror="this.style.display='none'" />
-    <span>SafariQuest</span>
-  </a>
-  <ul class="nav-links">
-    <li><a href="index.html">Home</a></li>
-    <li><a href="destinations.html">Destinations</a></li>
-    <li><a href="hotels.html">Hotels</a></li>
-    <li><a href="restaurants.html">Restaurants</a></li>
-    <li><a href="events.html">Events</a></li>
-    <li><a href="about.html">About Us</a></li>
-    <li><a href="contact.html">Contact</a></li>
-  </ul>
-  <div class="nav-auth">
-    <a href="login.html" class="btn-login nav-login">Login</a>
-    <a href="register.html" class="btn-register nav-register">Register</a>
-  </div>
-</nav>
+<div id="sq-nav-root"></div>
 
 <!-- HERO -->
 <div class="page-hero">
@@ -355,6 +26,28 @@
 
 <!-- CONTENT -->
 <div class="content">
+
+  <div class="rq-checkout" id="restaurantOrderCheckout" hidden>
+    <h2>🍽️ Restaurant order</h2>
+    <p class="sub" id="rqRestaurantLine"></p>
+    <ul class="rq-lines" id="rqLines"></ul>
+    <div class="rq-total"><span>Total due</span><span id="rqTotal"></span></div>
+    <div class="rq-field">
+      <label for="rqPaymentMethod">Payment method (prototype)</label>
+      <select id="rqPaymentMethod">
+        <option value="cash">Pay at table (cash / card)</option>
+        <option value="mpesa">M-Pesa (link after confirmation)</option>
+      </select>
+    </div>
+    <div class="rq-field">
+      <label for="rqPaymentNote">Notes for the venue (optional)</label>
+      <input type="text" id="rqPaymentNote" placeholder="e.g. Allergy: nuts" maxlength="200" />
+    </div>
+    <div class="rq-actions">
+      <button type="button" class="rq-btn-primary" id="rqConfirmBtn">Confirm order</button>
+      <button type="button" class="rq-btn-ghost" id="rqDismissBtn">Cancel and clear</button>
+    </div>
+  </div>
 
   <!-- STATS -->
   <div class="stats-row">
@@ -424,44 +117,70 @@
   </div>
 </div>
 
-<!-- FOOTER -->
-<footer>
-  <div class="footer-inner">
-    <div>
-      <div class="footer-brand">
-        <img src="logo.jpeg" alt="SafariQuest" onerror="this.style.display='none'" />
-        <span>SafariQuest</span>
-      </div>
-      <p class="footer-desc">Your premier destination for discovering and booking authentic Kenyan travel experiences. Connecting travelers with unforgettable adventures.</p>
-    </div>
-    <div class="footer-col">
-      <h4>Explore</h4>
-      <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="destinations.html">Destinations</a></li>
-        <li><a href="hotels.html">Hotels</a></li>
-        <li><a href="restaurants.html">Restaurants</a></li>
-        <li><a href="events.html">Events</a></li>
-        <li><a href="about.html">About Us</a></li>
-        <li><a href="contact.html">Contact</a></li>
-        <li><a href="terms.html">Terms</a></li>
-        <li><a href="privacy.html">Privacy</a></li>
-      </ul>
-    </div>
-    <div class="footer-col">
-      <h4>Contact Info</h4>
-      <div class="footer-contact-item">📧 info@safariquest.com</div>
-      <div class="footer-contact-item">📞 +254 798 595 394</div>
-      <div class="footer-contact-item">📍 Nairobi, Kenya</div>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <span>© 2026 <strong>SafariQuest</strong>. All rights reserved.</span>
-    <span><em>Discover. Explore. Experience.</em></span>
-  </div>
-</footer>
+<div id="sq-footer-root"></div>
+
+<script src="site-layout.js"></script>
+<script src="nav-auth.js"></script>
 
 <script>
+  (function initRestaurantOrderCheckout() {
+    const LS_KEY = 'sq_pending_restaurant_order';
+    const panel = document.getElementById('restaurantOrderCheckout');
+    if (!panel) return;
+    let order = null;
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) order = JSON.parse(raw);
+    } catch (_) {}
+    if (!order || order.type !== 'restaurant_order') return;
+
+    panel.hidden = false;
+    document.getElementById('rqRestaurantLine').textContent =
+      (order.restaurantName || 'Restaurant') +
+      (order.tableNumber ? ' · Table ' + order.tableNumber : '') +
+      ' · ' +
+      (order.customerName || 'Guest');
+    const ul = document.getElementById('rqLines');
+    ul.innerHTML = (order.items || [])
+      .map(function (it) {
+        return (
+          '<li><span>' +
+          (it.qty || 0) +
+          '× ' +
+          (it.name || '') +
+          '</span><span>KES ' +
+          Number(it.subtotal != null ? it.subtotal : (it.price || 0) * (it.qty || 0)).toLocaleString() +
+          '</span></li>'
+        );
+      })
+      .join('');
+    document.getElementById('rqTotal').textContent =
+      'KES ' + Number(order.totalAmount || 0).toLocaleString();
+
+    document.getElementById('rqConfirmBtn').addEventListener('click', function () {
+      const method = document.getElementById('rqPaymentMethod').value;
+      const note = (document.getElementById('rqPaymentNote').value || '').trim();
+      alert(
+        'Prototype: your order is recorded.\nPayment: ' +
+          (method === 'mpesa' ? 'M-Pesa (connect gateway later)' : 'Pay at table') +
+          (note ? '\nNote: ' + note : '')
+      );
+      try {
+        localStorage.removeItem(LS_KEY);
+        const slug = order.restaurantSlug || 'restaurant';
+        localStorage.removeItem('sq_cart_' + slug);
+      } catch (_) {}
+      panel.hidden = true;
+    });
+    document.getElementById('rqDismissBtn').addEventListener('click', function () {
+      if (!confirm('Discard this restaurant checkout draft?')) return;
+      try {
+        localStorage.removeItem(LS_KEY);
+      } catch (_) {}
+      panel.hidden = true;
+    });
+  })();
+
   let currentFilter = 'all';
   let currentBookings = [];
 
@@ -528,7 +247,9 @@
   }
 
   function updateStats() {
-    const confirmed = currentBookings.filter(b => b.status === 'confirmed').length;
+    const confirmed = currentBookings.filter(b =>
+      b.status === 'confirmed' || b.status === 'paid' || b.status === 'pending_payment'
+    ).length;
     const completed = currentBookings.filter(b => b.status === 'completed').length;
     const spent = currentBookings.filter(b => b.status !== 'cancelled').reduce((s, b) => s + b.amount, 0);
     document.getElementById('totalCount').textContent = currentBookings.length;
@@ -568,10 +289,10 @@
           <div class="booking-amount">KES ${b.amount.toLocaleString()}</div>
         </div>
         <div class="booking-actions">
-          <span class="status-badge status-${b.status}">${capitalize(b.status)}</span>
+          <span class="status-badge status-${b.status}">${formatStatus(b.status)}</span>
           <div class="action-btns">
             <button class="btn-sm btn-primary" onclick='viewDetails(${JSON.stringify(b).replace(/'/g,"&#39;")})'>View Details</button>
-            ${b.status === 'confirmed' ? `<button class="btn-sm btn-outline" onclick="cancelBooking('${b.id}')">Cancel</button>` : ''}
+            ${b.status === 'confirmed' || b.status === 'pending_payment' ? `<button class="btn-sm btn-outline" onclick="cancelBooking('${b.id}')">Cancel</button>` : ''}
             ${b.status === 'completed' ? `<a href="reviews.html?ref=${b.id}" class="btn-sm btn-outline" style="text-decoration:none;display:block">★ Review</a>` : ''}
           </div>
         </div>
@@ -605,7 +326,7 @@
       <div class="modal-detail"><span class="label">Guests</span><span class="value">${b.guests}</span></div>
       <div class="modal-detail"><span class="label">Total Paid</span><span class="value" style="color:var(--green)">KES ${b.amount.toLocaleString()}</span></div>
       <div class="modal-detail"><span class="label">Payment Ref</span><span class="value">${b.ref}</span></div>
-      <div class="modal-detail"><span class="label">Status</span><span class="value"><span class="status-badge status-${b.status}">${capitalize(b.status)}</span></span></div>
+      <div class="modal-detail"><span class="label">Status</span><span class="value"><span class="status-badge status-${b.status}">${formatStatus(b.status)}</span></span></div>
     `;
     document.getElementById('detailModal').classList.add('open');
   }
@@ -642,6 +363,10 @@
     return new Date(d).toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' });
   }
   function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function formatStatus(s) {
+    if (!s) return '';
+    return capitalize(String(s).replace(/_/g, ' '));
+  }
 
   document.getElementById('detailModal').addEventListener('click', e => {
     if (e.target === document.getElementById('detailModal')) closeModal();

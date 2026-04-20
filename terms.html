@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Terms of Service — SafariQuest</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
     :root {
       --brand-dark: #0d1f2d;
@@ -19,17 +20,6 @@
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Sora', sans-serif; background: var(--brand-dark); color: var(--text-primary); min-height: 100vh; }
-
-    nav {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 5%; height: 64px; background: var(--surface);
-      border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50;
-    }
-    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-    .nav-logo img { width: 34px; border-radius: 6px; }
-    .nav-logo span { font-family: 'DM Serif Display', serif; color: var(--brand-gold); font-size: 1.1rem; }
-    .nav-links a { color: var(--text-muted); text-decoration: none; margin-left: 24px; font-size: 0.85rem; transition: color 0.2s; }
-    .nav-links a:hover { color: var(--brand-gold); }
 
     .hero {
       background: linear-gradient(135deg, var(--surface) 0%, #0d2b1a 100%);
@@ -49,7 +39,7 @@
     @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } .toc { display: none; } }
 
     /* TOC */
-    .toc { position: sticky; top: 80px; height: fit-content; }
+    .toc { position: sticky; top: 90px; height: fit-content; }
     .toc-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-muted); margin-bottom: 14px; }
     .toc-list { list-style: none; }
     .toc-list li a {
@@ -91,26 +81,15 @@
     .accept-btn { background: linear-gradient(135deg, var(--brand-accent), var(--brand-gold)); color: #fff; border: none; padding: 11px 28px; border-radius: 10px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity 0.2s; white-space: nowrap; }
     .accept-btn:hover { opacity: 0.9; }
 
-    /* Footer */
-    footer { background: var(--surface); border-top: 1px solid var(--border); padding: 28px 5%; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
-    footer p { font-size: 0.8rem; color: var(--text-muted); }
-    footer nav a { color: var(--text-muted); text-decoration: none; margin-left: 20px; font-size: 0.8rem; }
-    footer nav a:hover { color: var(--brand-gold); }
   </style>
 </head>
-<body>
+<body data-nav-active="">
 
-<nav>
-  <a href="index.html" class="nav-logo">
-    <img src="logo.jpeg" alt="SafariQuest" />
-    <span>SafariQuest</span>
-  </a>
-  <div class="nav-links">
-    <a href="index.html">Home</a>
-    <a href="privacy-policy.html">Privacy Policy</a>
-    <a href="register.html">Sign Up</a>
-  </div>
-</nav>
+<div id="sq-nav-root"></div>
+
+
+
+
 
 <div class="hero">
   <div class="hero-eyebrow">Legal</div>
@@ -297,14 +276,7 @@
   <button class="accept-btn" onclick="this.textContent='✓ Accepted'; this.style.opacity='0.7'; this.disabled=true;">I Agree to These Terms</button>
 </div>
 
-<footer>
-  <p>© 2026 SafariQuest. All rights reserved. &nbsp;·&nbsp; Nairobi, Kenya</p>
-  <nav>
-    <a href="index.html">Home</a>
-    <a href="privacy-policy.html">Privacy Policy</a>
-    <a href="contact.html">Contact</a>
-  </nav>
-</footer>
+
 
 <script>
   // Highlight active TOC item on scroll
@@ -320,5 +292,10 @@
   }, { threshold: 0.3 });
   sections.forEach(s => observer.observe(s));
 </script>
+<div id="sq-footer-root"></div>
+
+<script src="site-layout.js"></script>
+<script src="nav-auth.js"></script>
+
 </body>
 </html>

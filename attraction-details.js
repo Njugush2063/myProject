@@ -118,6 +118,49 @@ document.addEventListener('DOMContentLoaded', async function attractionDetailsMa
   initShare(attraction, toast);
   initNewsletter(toast);
 
+  /* ══════════════════════════════════════
+     6. FETCH & RENDER ENTRY FEES
+  ══════════════════════════════════════ */
+  fetchAndRenderFees(attraction);
+
+  /* ══════════════════════════════════════
+     7. RENDER ACTIVITIES
+  ══════════════════════════════════════ */
+  renderActivities(attraction);
+
+  /* ══════════════════════════════════════
+     8. RENDER AVAILABLE SERVICES
+  ══════════════════════════════════════ */
+  renderServices(attraction);
+
+  /* ══════════════════════════════════════
+     9. WIRE ACCOMMODATION BUTTON
+  ══════════════════════════════════════ */
+  const accomBtn = document.getElementById('accommodationBtn');
+  if (accomBtn) {
+    accomBtn.addEventListener('click', () => {
+      window.location.href = `accommodation.html?id=${encodeURIComponent(slug)}`;
+    });
+  }
+
+  /* ══════════════════════════════════════
+     10. WIRE SIDEBAR BUTTONS
+  ══════════════════════════════════════ */
+  const sidebarBookBtn = document.getElementById('sidebar-book-btn');
+  if (sidebarBookBtn) {
+    sidebarBookBtn.href = `booking.html?destination=${encodeURIComponent(slug)}`;
+  }
+
+  const sidebarAccomBtn = document.getElementById('sidebar-accom-btn');
+  if (sidebarAccomBtn) {
+    sidebarAccomBtn.href = `accommodation.html?id=${encodeURIComponent(slug)}`;
+  }
+
+  /* ══════════════════════════════════════
+     11. RENDER ACCOMMODATION PREVIEW
+  ══════════════════════════════════════ */
+  renderAccomPreview(slug, attraction.name);
+
 });
 
 /* ────────────────────────────────────────
@@ -241,6 +284,268 @@ function populatePage(a) {
 
   /* FIX: removed dead set('display-price') and set('sidebar-rating') calls —
      those element IDs do not exist in the HTML */
+}
+
+/* ────────────────────────────────────────
+   FETCH & RENDER ENTRY FEES (Card Style)
+   Tries Supabase attraction_fees table; falls back to sensible defaults
+   derived from the attraction's price_min.
+──────────────────────────────────────── */
+async function fetchAndRenderFees(attraction) {
+  const slug      = attraction.slug;
+  const sfList    = document.getElementById('sidebar-fees-list');
+
+  /* Default fees computed from priceMin when Supabase table is absent */
+  function buildDefaultFees(a) {
+    const base = a.price_min || a.price_from || 0;
+    return [
+      { 
+        fee_type: 'Kenya Citizen',  
+        amount_ksh: Math.round(base * 0.1) || 430,  
+        notes: 'Kenya citizens',
+        flag: '🇰🇪'
+      },
+      { 
+        fee_type: 'East African Resident',      
+        amount_ksh: Math.round(base * 0.5) || 2150, 
+        notes: 'East African residents',
+        flag: '🌍'
+      },
+      { 
+        fee_type: 'International Visitor',  
+        amount_ksh: Math.round(base * 1.5) || 6460,  
+        notes: '≈ $52 International visitors',
+        flag: '✈️'
+      },
+      { 
+        fee_type: 'Child (Under 12)',      
+        amount_ksh: Math.round(base * 0.375) || 1615, 
+        notes: '≈ $13 Children under 12 (non-resident)',
+        flag: '👶'
+      },
+    ];
+  }
+
+  let fees = [];
+  try {
+    fees = await db.getAttractionFees(slug);
+  } catch (_) {}
+
+  if (!fees || fees.length === 0) {
+    fees = buildDefaultFees(attraction);
+  }
+
+  /* ── Populate the sidebar fees panel only ── */
+  if (sfList) {
+    sfList.innerHTML = fees.map(f => `
+      <div class="sf-row">
+        <span class="sf-type">${f.flag || '🎟️'} ${f.fee_type || '—'}</span>
+        <span class="sf-amount">KSh ${(f.amount_ksh || 0).toLocaleString('en-KE')}</span>
+      </div>
+    `).join('');
+  }
+}
+
+/* ────────────────────────────────────────
+   RENDER ACTIVITIES & SERVICES
+   Shows activities available at the destination with pricing
+──────────────────────────────────────── */
+function renderActivities(attraction) {
+  const grid = document.getElementById('activities-grid');
+  if (!grid) return;
+
+  const cat = (attraction.category || '').toLowerCase();
+  const slug = attraction.slug || '';
+  
+  /* Default activities by category */
+  const activityDefaults = {
+    safari: [
+      { icon: '🚙', name: 'Full-Day Game Drive', desc: 'All-day guided drive with expert naturalist', price: 'KSh 3,000' },
+      { icon: '🦅', name: 'Bird Watching Tour', desc: 'Expert ornithologist-led birding walk', price: 'KSh 2,000' },
+      { icon: '🌅', name: 'Sunrise Safari', desc: 'Early morning game drive to catch wildlife at dawn', price: 'KSh 2,500' },
+      { icon: '📸', name: 'Photography Safari', desc: 'Specialized tour for wildlife photography enthusiasts', price: 'KSh 4,000' },
+      { icon: '🌙', name: 'Night Game Drive', desc: 'Spot nocturnal animals with spotlight', price: 'KSh 3,500' },
+      { icon: '🏕️', name: 'Bush Camping', desc: 'Overnight camping experience in the wild', price: 'KSh 5,000' },
+    ],
+    beach: [
+      { icon: '🤿', name: 'Snorkeling Tour', desc: 'Explore coral reefs and marine life', price: 'KSh 2,500' },
+      { icon: '🏄', name: 'Water Sports Package', desc: 'Jet ski, kayaking, and paddleboarding', price: 'KSh 4,000' },
+      { icon: '🐠', name: 'Scuba Diving', desc: 'PADI-certified diving with equipment', price: 'KSh 6,000' },
+      { icon: '⛵', name: 'Dhow Sunset Cruise', desc: 'Traditional sailing boat sunset experience', price: 'KSh 3,000' },
+      { icon: '🐬', name: 'Dolphin Watching', desc: 'Boat trip to see dolphins in their habitat', price: 'KSh 3,500' },
+      { icon: '🏖️', name: 'Beach Massage', desc: 'Relaxing massage by the ocean', price: 'KSh 2,000' },
+    ],
+    mountain: [
+      { icon: '🏔️', name: 'Guided Summit Trek', desc: 'Multi-day trek to the peak with porters', price: 'KSh 15,000' },
+      { icon: '⛰️', name: 'Day Hike', desc: 'Scenic day hike with packed lunch', price: 'KSh 2,500' },
+      { icon: '🧗', name: 'Rock Climbing', desc: 'Technical climbing with certified guide', price: 'KSh 4,000' },
+      { icon: '🔦', name: 'Equipment Rental', desc: 'Hiking boots, poles, and gear rental', price: 'KSh 1,500' },
+      { icon: '🌡️', name: 'Acclimatization Walk', desc: 'Gentle walk to adjust to altitude', price: 'Free' },
+      { icon: '📷', name: 'Scenic Viewpoint Tour', desc: 'Visit the best photo spots', price: 'KSh 1,000' },
+    ],
+    cultural: [
+      { icon: '🏛️', name: 'Museum Tour', desc: 'Guided tour of historical exhibits', price: 'KSh 1,500' },
+      { icon: '🎭', name: 'Cultural Performance', desc: 'Traditional dance and music show', price: 'KSh 2,000' },
+      { icon: '🛖', name: 'Village Visit', desc: 'Experience local community life', price: 'KSh 2,500' },
+      { icon: '🍲', name: 'Cooking Class', desc: 'Learn to prepare traditional dishes', price: 'KSh 3,000' },
+      { icon: '🛒', name: 'Artisan Market Tour', desc: 'Shop for handmade crafts with guide', price: 'KSh 1,000' },
+      { icon: '📚', name: 'Heritage Walk', desc: 'Walking tour of historical sites', price: 'KSh 1,500' },
+    ],
+  };
+
+  /* Amboseli-specific activities */
+  if (slug === 'amboseli') {
+    grid.innerHTML = `
+      <div class="activity-card">
+        <div class="activity-icon">🚙</div>
+        <div class="activity-info">
+          <div class="activity-name">Full-Day Game Drive</div>
+          <div class="activity-desc">All-day guided drive with Kilimanjaro backdrop</div>
+          <div class="activity-price">KSh 3,000</div>
+        </div>
+      </div>
+      <div class="activity-card">
+        <div class="activity-icon">🦅</div>
+        <div class="activity-info">
+          <div class="activity-name">Bird Watching Tour</div>
+          <div class="activity-desc">Expert ornithologist-led birding walk</div>
+          <div class="activity-price">KSh 2,000</div>
+        </div>
+      </div>
+      <div class="activity-card">
+        <div class="activity-icon">⛰️</div>
+        <div class="activity-info">
+          <div class="activity-name">Observation Hill Walk</div>
+          <div class="activity-desc">Self-guided walk to the park viewpoint hill</div>
+          <div class="activity-price">Free</div>
+        </div>
+      </div>
+      <div class="activity-card">
+        <div class="activity-icon">🐘</div>
+        <div class="activity-info">
+          <div class="activity-name">Elephant Research Visit</div>
+          <div class="activity-desc">Behind-the-scenes with Amboseli elephant researchers</div>
+          <div class="activity-price">KSh 3,500</div>
+        </div>
+      </div>
+      <div class="activity-card">
+        <div class="activity-icon">🌿</div>
+        <div class="activity-info">
+          <div class="activity-name">Swamp Nature Walk</div>
+          <div class="activity-desc">Guided walk through Enkongo Narok swamp</div>
+          <div class="activity-price">KSh 2,500</div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  /* Use category defaults for other destinations */
+  const defaultKey = Object.keys(activityDefaults).find(k => cat.includes(k)) || 'safari';
+  const activities = activityDefaults[defaultKey].slice(0, 6);
+
+  grid.innerHTML = activities.map(a => `
+    <div class="activity-card">
+      <div class="activity-icon">${a.icon}</div>
+      <div class="activity-info">
+        <div class="activity-name">${a.name}</div>
+        <div class="activity-desc">${a.desc}</div>
+        <div class="activity-price">${a.price}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ────────────────────────────────────────
+   RENDER AVAILABLE SERVICES
+   Uses attraction.services / attraction.facilities field from Supabase,
+   or generates a contextual default set based on the category.
+──────────────────────────────────────── */
+function renderServices(attraction) {
+  const grid = document.getElementById('services-grid');
+  if (!grid) return;
+
+  /* Parse services field — Supabase may return JSON string or array */
+  let services = attraction.services || attraction.facilities;
+  if (typeof services === 'string') {
+    try { services = JSON.parse(services); } catch { services = null; }
+  }
+
+  /* Default services by category */
+  const cat = (attraction.category || '').toLowerCase();
+  const defaults = {
+    safari: [
+      { icon: '🚙', label: 'Game Drives' },
+      { icon: '🏕️', label: 'Camping Sites' },
+      { icon: '🍽️', label: 'Picnic Areas' },
+      { icon: '🚻', label: 'Restrooms' },
+      { icon: '👮', label: 'Park Rangers' },
+      { icon: '🔭', label: 'Observation Decks' },
+      { icon: '🛒', label: 'Curio Shops' },
+      { icon: '📶', label: 'Visitor Centre' },
+    ],
+    beach: [
+      { icon: '🏄', label: 'Water Sports' },
+      { icon: '🤿', label: 'Snorkelling & Diving' },
+      { icon: '🏖️', label: 'Beach Chairs & Umbrellas' },
+      { icon: '🍹', label: 'Beach Bars' },
+      { icon: '🚿', label: 'Shower Facilities' },
+      { icon: '🐠', label: 'Marine Tours' },
+      { icon: '🚑', label: 'First Aid Post' },
+      { icon: '🅿️', label: 'Secure Parking' },
+    ],
+    mountain: [
+      { icon: '🏔️', label: 'Guided Hiking' },
+      { icon: '🏕️', label: 'Camping Huts' },
+      { icon: '🧗', label: 'Rock Climbing' },
+      { icon: '🔦', label: 'Equipment Hire' },
+      { icon: '🌡️', label: 'Acclimatisation Support' },
+      { icon: '🚒', label: 'Mountain Rescue' },
+      { icon: '📷', label: 'Scenic Viewpoints' },
+      { icon: '🧊', label: 'Glacier Tours' },
+    ],
+    cultural: [
+      { icon: '🏛️', label: 'Museum & Exhibits' },
+      { icon: '🎭', label: 'Cultural Performances' },
+      { icon: '🛖', label: 'Village Tours' },
+      { icon: '🍲', label: 'Traditional Cuisine' },
+      { icon: '🛒', label: 'Artisan Market' },
+      { icon: '📸', label: 'Guided Tours' },
+      { icon: '📚', label: 'Library & Archives' },
+      { icon: '♿', label: 'Accessibility Support' },
+    ],
+    adventure: [
+      { icon: '🚵', label: 'Cycling Trails' },
+      { icon: '🧗', label: 'Rock Climbing' },
+      { icon: '🏊', label: 'Hot Springs' },
+      { icon: '🛶', label: 'Canoe Hire' },
+      { icon: '🔦', label: 'Equipment Rental' },
+      { icon: '📷', label: 'Guided Hikes' },
+      { icon: '🅿️', label: 'Secure Parking' },
+      { icon: '🍽️', label: 'Picnic Spots' },
+    ],
+  };
+
+  const defaultKey = Object.keys(defaults).find(k => cat.includes(k)) || 'safari';
+
+  /* Use Supabase data if available and it is an array of objects with icon+label */
+  let items = null;
+  if (Array.isArray(services) && services.length > 0) {
+    if (typeof services[0] === 'string') {
+      /* Plain string array — wrap in objects */
+      items = services.map(s => ({ icon: '✅', label: s }));
+    } else if (services[0].label || services[0].name) {
+      items = services.map(s => ({ icon: s.icon || '✅', label: s.label || s.name }));
+    }
+  }
+  if (!items) items = defaults[defaultKey];
+
+  grid.innerHTML = items.map(s => `
+    <div class="service-item">
+      <span class="service-icon">${s.icon}</span>
+      <span class="service-label">${s.label}</span>
+    </div>
+  `).join('');
 }
 
 /* ────────────────────────────────────────
@@ -717,4 +1022,401 @@ function showBookingConfirmation(booking) {
   modal.addEventListener('click', function(e) {
     if (e.target === modal) modal.remove();
   });
+}
+
+/* ════════════════════════════════════════════════
+   ACCOMMODATION PREVIEW
+   Renders up to 3 top accommodation cards inline on
+   the attraction-details page, linking to the full
+   accommodation.html?id=<slug> page.
+════════════════════════════════════════════════ */
+
+const ACCOM_PREVIEW_DB = {
+  'maasai-mara': [
+    {
+      name: 'Mara Serena Safari Lodge',
+      type: 'Lodge',
+      stars: 5,
+      featured: true,
+      price_per_night: 52000,
+      amenities: ['Pool', 'Full Board', 'Game Drives', 'Spa'],
+      image_url: 'https://images.unsplash.com/photo-1599642884710-83507be2e1cc?w=800&q=80',
+    },
+    {
+      name: 'Sarova Mara Game Camp',
+      type: 'Tented Camp',
+      stars: 4,
+      featured: false,
+      price_per_night: 35000,
+      amenities: ['En-suite Tents', 'Full Board', 'Bush Walks'],
+      image_url: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=80',
+    },
+    {
+      name: 'Mara Budget Camp',
+      type: 'Budget',
+      stars: 2,
+      featured: false,
+      price_per_night: 6500,
+      amenities: ['Breakfast Included', 'Secure Parking'],
+      image_url: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80',
+    },
+  ],
+  'amboseli': [
+    {
+      name: 'Amboseli Serena Safari Lodge',
+      type: 'Lodge',
+      stars: 5,
+      featured: true,
+      price_per_night: 48000,
+      amenities: ['Pool', 'Kilimanjaro Views', 'Spa', 'Wi-Fi'],
+      image_url: 'https://images.unsplash.com/photo-1602002418082-a4443e081dd1?w=800&q=80',
+    },
+    {
+      name: 'Ol Tukai Lodge',
+      type: 'Lodge',
+      stars: 4,
+      featured: false,
+      price_per_night: 30000,
+      amenities: ['Pool', 'Restaurant', 'Elephant Viewing'],
+      image_url: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=800&q=80',
+    },
+    {
+      name: 'Satao Elerai Camp',
+      type: 'Tented Camp',
+      stars: 4,
+      featured: true,
+      price_per_night: 25000,
+      amenities: ['Private Conservancy', 'Night Drives'],
+      image_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+    },
+  ],
+  'diani-beach': [
+    {
+      name: 'Baobab Beach Resort & Spa',
+      type: 'Hotel',
+      stars: 5,
+      featured: true,
+      price_per_night: 38000,
+      amenities: ['Beachfront', 'Pool', 'Spa', 'Water Sports'],
+      image_url: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80',
+    },
+    {
+      name: 'The Sands at Chale Island',
+      type: 'Luxury',
+      stars: 5,
+      featured: true,
+      price_per_night: 55000,
+      amenities: ['Private Island', 'All-inclusive', 'Snorkelling'],
+      image_url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80',
+    },
+    {
+      name: 'Diani Reef Beach Resort',
+      type: 'Hotel',
+      stars: 4,
+      featured: false,
+      price_per_night: 22000,
+      amenities: ['Beachfront', 'Dive Centre', 'Bar'],
+      image_url: 'https://images.unsplash.com/photo-1596436889106-be35e843f974?w=800&q=80',
+    },
+  ],
+  'mount-kenya': [
+    {
+      name: 'Fairmont Mount Kenya Safari Club',
+      type: 'Hotel',
+      stars: 5,
+      featured: true,
+      price_per_night: 62000,
+      amenities: ['Equator View', 'Pool', 'Spa', 'Golf'],
+      image_url: 'https://images.unsplash.com/photo-1586861203927-800a5acdcc4d?w=800&q=80',
+    },
+    {
+      name: 'Serena Mountain Lodge',
+      type: 'Lodge',
+      stars: 4,
+      featured: true,
+      price_per_night: 28000,
+      amenities: ['Waterhole Views', 'Full Board', 'Guided Hikes'],
+      image_url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80',
+    },
+    {
+      name: 'Mount Kenya Hostel',
+      type: 'Budget',
+      stars: 2,
+      featured: false,
+      price_per_night: 3500,
+      amenities: ['Dorm & Private Rooms', 'Meals on Request'],
+      image_url: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&q=80',
+    },
+  ],
+  'lamu-old-town': [
+    {
+      name: 'Peponi Hotel',
+      type: 'Hotel',
+      stars: 5,
+      featured: true,
+      price_per_night: 42000,
+      amenities: ['Seafront', 'Swimming Pool', 'Restaurant', 'Dhow Trips'],
+      image_url: 'https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?w=800&q=80',
+    },
+    {
+      name: 'Lamu House Hotel',
+      type: 'Hotel',
+      stars: 4,
+      featured: false,
+      price_per_night: 25000,
+      amenities: ['Rooftop Terrace', 'Traditional Architecture', 'Wi-Fi'],
+      image_url: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80',
+    },
+    {
+      name: 'Lamu Budget Guesthouse',
+      type: 'Budget',
+      stars: 2,
+      featured: false,
+      price_per_night: 5000,
+      amenities: ['Breakfast', 'Fan Rooms', 'Courtyard'],
+      image_url: 'https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&q=80',
+    },
+  ],
+  'nairobi-national-park': [
+    {
+      name: 'Nairobi Tented Camp',
+      type: 'Tented Camp',
+      stars: 4,
+      featured: true,
+      price_per_night: 18000,
+      amenities: ['Park Views', 'Full Board', 'Game Drives', 'Wi-Fi'],
+      image_url: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=80',
+    },
+    {
+      name: 'Emara Ole-Sereni',
+      type: 'Hotel',
+      stars: 5,
+      featured: true,
+      price_per_night: 35000,
+      amenities: ['Park-facing Rooms', 'Pool', 'Spa', 'Fine Dining'],
+      image_url: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&q=80',
+    },
+    {
+      name: 'Nairobi Budget Inn',
+      type: 'Budget',
+      stars: 2,
+      featured: false,
+      price_per_night: 4000,
+      amenities: ['Breakfast', 'Airport Shuttle', 'Wi-Fi'],
+      image_url: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&q=80',
+    },
+  ],
+  'lake-nakuru': [
+    {
+      name: 'Sarova Lion Hill Game Lodge',
+      type: 'Lodge',
+      stars: 4,
+      featured: true,
+      price_per_night: 28000,
+      amenities: ['Lake Views', 'Pool', 'Full Board', 'Flamingo Sightings'],
+      image_url: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=80',
+    },
+    {
+      name: 'Lake Nakuru Lodge',
+      type: 'Lodge',
+      stars: 3,
+      featured: false,
+      price_per_night: 16000,
+      amenities: ['Restaurant', 'Bar', 'Game Drives', 'Wi-Fi'],
+      image_url: 'https://images.unsplash.com/photo-1535941339077-2dd1c7963098?w=800&q=80',
+    },
+    {
+      name: 'Flamingo Hill Tented Camp',
+      type: 'Tented Camp',
+      stars: 4,
+      featured: true,
+      price_per_night: 22000,
+      amenities: ['Tented Suites', 'Full Board', 'Flamingo Walks'],
+      image_url: 'https://images.unsplash.com/photo-1529083891485-9c1c49d3c4e6?w=800&q=80',
+    },
+  ],
+  'tsavo': [
+    {
+      name: 'Voyager Ziwani Camp',
+      type: 'Tented Camp',
+      stars: 4,
+      featured: true,
+      price_per_night: 30000,
+      amenities: ['River Views', 'Full Board', 'Night Drives', 'Bush Breakfast'],
+      image_url: 'https://images.unsplash.com/photo-1535941339077-2dd1c7963098?w=800&q=80',
+    },
+    {
+      name: 'Satao Camp',
+      type: 'Tented Camp',
+      stars: 4,
+      featured: false,
+      price_per_night: 24000,
+      amenities: ['Waterhole Views', 'All Meals', 'Red Elephant Sightings'],
+      image_url: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=80',
+    },
+    {
+      name: 'Tsavo Budget Bandas',
+      type: 'Budget',
+      stars: 2,
+      featured: false,
+      price_per_night: 5500,
+      amenities: ['Self-catering', 'Secure Parking', 'Firewood'],
+      image_url: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800&q=80',
+    },
+  ],
+  'samburu': [
+    {
+      name: 'Samburu Intrepids Camp',
+      type: 'Tented Camp',
+      stars: 5,
+      featured: true,
+      price_per_night: 55000,
+      amenities: ['Riverfront', 'Full Board', 'Game Drives', 'Samburu Cultural Visits'],
+      image_url: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?w=800&q=80',
+    },
+    {
+      name: 'Saruni Samburu',
+      type: 'Lodge',
+      stars: 5,
+      featured: true,
+      price_per_night: 68000,
+      amenities: ['Hilltop Views', 'Private Pool', 'Walking Safaris', 'Spa'],
+      image_url: 'https://images.unsplash.com/photo-1602002418082-a4443e081dd1?w=800&q=80',
+    },
+    {
+      name: 'Samburu Simba Lodge',
+      type: 'Lodge',
+      stars: 3,
+      featured: false,
+      price_per_night: 14000,
+      amenities: ['Restaurant', 'Bar', 'Game Drives', 'Wi-Fi'],
+      image_url: 'https://images.unsplash.com/photo-1612099197788-bde7f41d9710?w=800&q=80',
+    },
+  ],
+  'hell-gate': [
+    {
+      name: 'Enashipai Resort & Spa',
+      type: 'Hotel',
+      stars: 5,
+      featured: true,
+      price_per_night: 32000,
+      amenities: ['Spa', 'Pool', 'Lake Naivasha Views', 'Fine Dining'],
+      image_url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800&q=80',
+    },
+    {
+      name: 'Crater Lake Tented Camp',
+      type: 'Tented Camp',
+      stars: 4,
+      featured: false,
+      price_per_night: 20000,
+      amenities: ['Crater Views', 'Full Board', 'Cycling', 'Guided Gorge Hikes'],
+      image_url: 'https://images.unsplash.com/photo-1529083891485-9c1c49d3c4e6?w=800&q=80',
+    },
+    {
+      name: 'Hell\'s Gate Budget Campsite',
+      type: 'Budget',
+      stars: 2,
+      featured: false,
+      price_per_night: 3000,
+      amenities: ['Camping', 'Ablution Blocks', 'Firewood'],
+      image_url: 'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=800&q=80',
+    },
+  ],
+};
+
+function renderAccomPreview(slug, attractionName) {
+  const grid    = document.getElementById('accom-preview-grid');
+  const link    = document.getElementById('accom-preview-link');
+  const ctaBtn  = document.getElementById('accom-preview-cta');
+  const accomUrl = `accommodation.html?id=${encodeURIComponent(slug)}`;
+
+  /* Wire up the "View All" links */
+  if (link)   link.href   = accomUrl;
+  if (ctaBtn) ctaBtn.href = accomUrl;
+
+  if (!grid) return;
+
+  /* Get preview data — try Supabase first, fall back to local DB */
+  const localData = ACCOM_PREVIEW_DB[slug] || buildGenericAccomPreview(slug, attractionName);
+  const items = localData.slice(0, 3);
+
+  if (!items || items.length === 0) {
+    grid.innerHTML = '<p style="color:#999;font-size:.9rem">Accommodation details coming soon.</p>';
+    return;
+  }
+
+  grid.innerHTML = items.map(a => {
+    const stars   = parseInt(a.stars || 3, 10);
+    const starStr = Array.from({ length: 5 }, (_, i) => i < stars ? '★' : '☆').join('');
+    const price   = a.price_per_night || a.price_min || 0;
+    const imgStyle = a.image_url
+      ? `background-image:url('${a.image_url}')`
+      : 'background:linear-gradient(135deg,#1a2e3b,#2a4a5e)';
+    const ams = (a.amenities || []).slice(0, 3);
+    const feat = a.featured
+      ? '<span class="apc-featured">⭐ Featured</span>'
+      : '';
+
+    return `
+      <div class="apc-card">
+        <div class="apc-img" style="${imgStyle}">
+          <span class="apc-type-badge">${a.type || 'Lodge'}</span>
+          ${feat}
+          <div class="apc-stars">${starStr}</div>
+        </div>
+        <div class="apc-body">
+          <div class="apc-name">${a.name}</div>
+          <div class="apc-amenities">
+            ${ams.map(am => `<span class="apc-am">${am}</span>`).join('')}
+          </div>
+          <div class="apc-footer">
+            <div class="apc-price-wrap">
+              <span class="apc-price-from">From</span>
+              <span class="apc-price-val">KSh ${price.toLocaleString('en-KE')}</span>
+              <span class="apc-price-night">/night</span>
+            </div>
+            <a href="${accomUrl}" class="apc-book-btn">
+              Book
+              <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function buildGenericAccomPreview(slug, attractionName) {
+  const name = attractionName || slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  return [
+    {
+      name: `${name} Safari Lodge`,
+      type: 'Lodge',
+      stars: 4,
+      featured: true,
+      price_per_night: 22000,
+      amenities: ['Full Board', 'Game Drives', 'Pool'],
+      image_url: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=800&q=80',
+    },
+    {
+      name: `${name} Tented Camp`,
+      type: 'Tented Camp',
+      stars: 3,
+      featured: false,
+      price_per_night: 14000,
+      amenities: ['En-suite Tent', 'All Meals', 'Guided Walks'],
+      image_url: 'https://images.unsplash.com/photo-1529083891485-9c1c49d3c4e6?w=800&q=80',
+    },
+    {
+      name: 'Budget Guesthouse',
+      type: 'Budget',
+      stars: 2,
+      featured: false,
+      price_per_night: 4500,
+      amenities: ['Breakfast', 'Wi-Fi', 'Parking'],
+      image_url: 'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&q=80',
+    },
+  ];
 }

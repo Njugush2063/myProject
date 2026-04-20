@@ -394,28 +394,6 @@ function initSlideshow() {
 }
 
 /* ─────────────────────────────────────────
-   MOBILE HAMBURGER MENU
-───────────────────────────────────────── */
-function initHamburger() {
-  const btn   = document.getElementById('navHamburger');
-  const links = document.getElementById('navLinks');
-  if (!btn || !links) return;
-
-  btn.addEventListener('click', () => {
-    links.classList.toggle('open');
-    btn.classList.toggle('active');
-  });
-
-  /* Close when a link is clicked */
-  links.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => {
-      links.classList.remove('open');
-      btn.classList.remove('active');
-    });
-  });
-}
-
-/* ─────────────────────────────────────────
    SMOOTH SCROLL
 ───────────────────────────────────────── */
 function initSmoothScroll() {
@@ -427,19 +405,6 @@ function initSmoothScroll() {
         target.scrollIntoView({ behavior: 'smooth' });
       }
     });
-  });
-}
-
-/* ─────────────────────────────────────────
-   NAVBAR SCROLL SHADOW
-───────────────────────────────────────── */
-function initNavbarScroll() {
-  const nav = document.querySelector('nav');
-  if (!nav) return;
-  window.addEventListener('scroll', () => {
-    nav.style.boxShadow = window.scrollY > 10
-      ? '0 4px 24px rgba(0,0,0,0.14)'
-      : '0 2px 12px rgba(0,0,0,0.07)';
   });
 }
 
@@ -478,8 +443,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   await renderDestinations();
   await renderEvents();
   initSmoothScroll();
-  initNavbarScroll();
-  initHamburger();
   initScrollReveal();
   initSearch();
 });

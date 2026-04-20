@@ -6,7 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Destinations — SafariQuest Kenya</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="category.css"/>
   <style>
     .sport-tabs-bar {
@@ -176,34 +177,14 @@
     }
   </style>
 </head>
-<body>
+<body data-nav-active="destinations">
+
+<div id="sq-nav-root"></div>
+
+
 
 <!-- NAVBAR -->
-<nav class="navbar" id="navbar">
-  <div class="nav-container">
-    <a href="index.html" class="nav-logo">
-      <img src="logo.jpeg" alt="SafariQuest" class="logo-img"/>
-      <div class="nav-logo-text">
-        <span class="logo-name">SafariQuest</span>
-        <span class="logo-slogan">Discover. Explore. Experience.</span>
-      </div>
-    </a>
-    <ul class="nav-links">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="destinations.html" class="active">Destinations</a></li>
-      <li><a href="hotels.html">Hotels</a></li>
-      <li><a href="restaurants.html">Restaurants</a></li>
-      <li><a href="events.html">Events</a></li>
-      <li><a href="about.html">About Us</a></li>
-      <li><a href="contact.html">Contact</a></li>
-    </ul>
-    <div class="nav-cta">
-      <a href="login.html" class="btn-nav-login">Login</a>
-      <a href="register.html" class="btn-nav-register">Sign Up</a>
-    </div>
-    <button class="nav-toggle" id="navToggle">☰</button>
-  </div>
-</nav>
+
 
 <!-- HERO -->
 <section class="cat-hero" id="catHero">
@@ -268,39 +249,7 @@
 </div>
 
 <!-- FOOTER -->
-<footer class="footer">
-  <div class="footer-container">
-    <div class="footer-brand">
-      <div class="footer-logo-block">
-        <img src="logo.jpeg" alt="SafariQuest" class="footer-logo-img"/>
-        <div class="footer-logo-text">
-          <span class="footer-logo-name">SafariQuest</span>
-          <span class="footer-logo-slogan">Discover. Explore. Experience.</span>
-        </div>
-      </div>
-      <p>Your gateway to Kenya's magic — from the savanna to the coast.</p>
-    </div>
-    <div class="footer-links">
-      <h4>Explore</h4>
-      <ul>
-        <li><a href="destinations.html">Destinations</a></li>
-        <li><a href="restaurants.html">Restaurants</a></li>
-        <li><a href="about.html">About Us</a></li>
-        <li><a href="contact.html">Contact</a></li>
-        <li><a href="terms.html">Terms</a></li>
-        <li><a href="privacy.html">Privacy</a></li>
-      </ul>
-    </div>
-    <div class="footer-contact">
-      <h4>Contact</h4>
-      <p>📧 info@safariquest.com</p>
-      <p>📍 Nairobi, Kenya</p>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p>© 2026 SafariQuest Kenya. All rights reserved.</p>
-  </div>
-</footer>
+
 
 <!-- SCRIPTS: CDN Supabase first, then config, then page logic -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -308,6 +257,11 @@
 <script src="supabase-config.js"></script>
 <script src="destinations.js"></script>
 <script src="category.js"></script>
+
+<div id="sq-footer-root"></div>
+
+<script src="site-layout.js"></script>
+<script src="nav-auth.js"></script>
 
 </body>
 </html>
