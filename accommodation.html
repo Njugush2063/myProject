@@ -12,6 +12,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="accommodation.css">
+  <link rel="stylesheet" href="mpesa-modal.css">
 </head>
 
 <body data-nav-active="destinations">
@@ -98,11 +99,91 @@
   <!-- ── TOAST ── -->
   <div class="toast" id="toast"></div>
 
+  <!-- M-Pesa Payment Modal -->
+  <div id="mpesa-overlay" class="mpesa-overlay" role="dialog" aria-modal="true" aria-label="M-Pesa Payment">
+    <div class="mpesa-modal">
+      <div class="mpesa-header">
+        <div class="mpesa-header-left">
+          <div class="mpesa-logo-wrap">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/320px-M-PESA_LOGO-01.svg.png" alt="M-Pesa" />
+          </div>
+          <div>
+            <p class="mpesa-header-title">Pay with M-Pesa</p>
+            <p class="mpesa-header-sub">Secure mobile payment</p>
+          </div>
+        </div>
+        <button class="mpesa-close-btn" onclick="closeMpesaModal()" aria-label="Close">✕</button>
+      </div>
+      <div class="mpesa-body">
+        <div id="mpesa-step-1" class="mpesa-step active">
+          <div class="mpesa-booking-banner">
+            <span class="mpesa-booking-icon">🏨</span>
+            <div>
+              <span class="mpesa-booking-name" id="mpesa-booking-name">Your booking</span>
+              <span class="mpesa-booking-amount" id="mpesa-booking-amount">KSh 0 / night</span>
+            </div>
+          </div>
+          <div class="mpesa-field">
+            <label class="mpesa-label" for="mpesa-phone">M-Pesa Phone Number</label>
+            <input id="mpesa-phone" class="mpesa-input" type="tel" placeholder="07XX XXX XXX" maxlength="13" inputmode="numeric" />
+            <span class="mpesa-hint">Safaricom number that will receive the payment prompt</span>
+          </div>
+          <div class="mpesa-field">
+            <label class="mpesa-label" for="mpesa-amount">Amount (KSh)</label>
+            <input id="mpesa-amount" class="mpesa-input" type="number" readonly />
+            <span class="mpesa-hint">Amount to be charged to your M-Pesa account</span>
+          </div>
+          <button id="mpesa-pay-btn" class="mpesa-pay-btn" onclick="submitMpesaPayment()">
+            <span id="mpesa-btn-text">Send Payment Request</span>
+            <div id="mpesa-spinner" class="mpesa-spinner"></div>
+          </button>
+        </div>
+        <div id="mpesa-step-2" class="mpesa-step">
+          <div class="mpesa-waiting">
+            <span class="mpesa-phone-icon">📱</span>
+            <h3>Check Your Phone</h3>
+            <p>A payment prompt has been sent to <strong id="mpesa-confirm-phone"></strong>.</p>
+            <p>Enter your M-Pesa PIN to pay <strong id="mpesa-confirm-amount"></strong>.</p>
+            <div class="mpesa-progress-track">
+              <div class="mpesa-progress-bar"></div>
+            </div>
+            <p class="mpesa-countdown">Waiting for confirmation… (<span id="mpesa-countdown-val">60</span>s remaining)</p>
+          </div>
+        </div>
+        <div id="mpesa-step-3" class="mpesa-step">
+          <div class="mpesa-result">
+            <span class="mpesa-result-icon">✅</span>
+            <h3>Payment Confirmed!</h3>
+            <p>Your booking has been confirmed. Check your M-Pesa messages for confirmation.</p>
+            <div class="mpesa-receipt-box">
+              <div>
+                <span class="mpesa-receipt-label">M-Pesa Receipt</span>
+                <span class="mpesa-receipt-num" id="mpesa-receipt-num">—</span>
+              </div>
+              <span style="font-size:1.4rem;">🧾</span>
+            </div>
+            <button class="mpesa-done-btn" onclick="closeMpesaModal()">Done — Back to Browsing</button>
+          </div>
+        </div>
+        <div id="mpesa-step-4" class="mpesa-step">
+          <div class="mpesa-result">
+            <span class="mpesa-result-icon">❌</span>
+            <h3>Payment Failed</h3>
+            <p id="mpesa-fail-reason" class="mpesa-fail-reason">The payment was cancelled or failed. Please try again.</p>
+            <button class="mpesa-retry-btn" onclick="retryMpesaPayment()">Try Again</button>
+            <button class="mpesa-cancel-btn" onclick="closeMpesaModal()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="site-layout.js"></script>
   <script src="auth.js"></script>
   <script src="nav-auth.js"></script>
   <script src="attractions-data.js"></script>
   <script src="supabase-config.js"></script>
+  <script src="mpesa.js"></script>
   <script src="accommodation.js"></script>
 </body>
 

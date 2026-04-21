@@ -308,12 +308,12 @@ document.addEventListener('DOMContentLoaded', async function () {
               <div class="accom-price-value">KSh ${Number(price).toLocaleString('en-KE')}</div>
               <div class="accom-price-night">per night</div>
             </div>
-            <a href="booking.html?destination=${encodeURIComponent(slug)}" class="accom-book-btn">
-              Book Now
+            <button onclick="openMpesaModal({ bookingId: '${a.id || a.name}', bookingType: 'accommodation', amount: ${price}, name: '${(a.name || 'Accommodation').replace(/'/g, "\\'")}' })" class="accom-book-btn">
+              Pay with M-Pesa
               <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <polyline points="9 18 15 12 9 6"/>
               </svg>
-            </a>
+            </button>
           </div>
         </div>
       </div>`;
