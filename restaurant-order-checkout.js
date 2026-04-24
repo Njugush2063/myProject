@@ -146,7 +146,7 @@
 
   // Initiate M-Pesa STK push
   async function initiateMpesaStkPush(phone, amount, orderReference) {
-    const backendUrl = getMpesaBackendUrl();
+    const backendUrl = 'https://cbyipmrozqsntojiartw.supabase.co/functions/v1';
     if (!backendUrl) {
       throw new Error('M-Pesa backend URL not configured. Set it with: localStorage.setItem("sq_mpesa_backend_url", "http://localhost:3000")');
     }
