@@ -57,38 +57,8 @@ const destinations = [
 ];
 
 /* ─────────────────────────────────────────
-   DATA: EVENTS
+   DATA: EVENTS — now fetched from Supabase
 ───────────────────────────────────────── */
-const events = [
-  {
-    title:    'Lamu Cultural Festival',
-    date:     'March 15–17, 2026',
-    location: 'Lamu Island',
-    desc:     'Experience traditional Swahili culture with dhow races, donkey races, and local cuisine.',
-    img:      'https://images.unsplash.com/photo-1541532713592-79a0317b272b?w=500&q=80'
-  },
-  {
-    title:    'Nairobi Music Festival',
-    date:     'April 8–10, 2026',
-    location: 'Nairobi',
-    desc:     'Three days of incredible music featuring local and international artists.',
-    img:      'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=500&q=80'
-  },
-  {
-    title:    'Maasai Mara Migration',
-    date:     'July – September',
-    location: 'Maasai Mara',
-    desc:     'Witness the greatest wildlife show on earth — the Great Wildebeest Migration.',
-    img:      'https://images.unsplash.com/photo-1534177616072-ef7dc120449d?w=500&q=80'
-  },
-  {
-    title:    'Mombasa Carnival',
-    date:     'December 20–25, 2026',
-    location: 'Mombasa',
-    desc:     'Coastal celebration with street parades, music, dance, and authentic cuisine.',
-    img:      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=500&q=80'
-  }
-];
 
 /* ─────────────────────────────────────────
    HELPERS
@@ -291,11 +261,16 @@ function initSearch() {
 }
 
 /* ─────────────────────────────────────────
-   RENDER: EVENT CARDS
+   RENDER: EVENT CARDS — fetched from Supabase
 ───────────────────────────────────────── */
 async function renderEvents() {
   const grid = document.getElementById('eventsGrid');
   if (!grid) return;
+
+  /* Show loading skeleton */
+  grid.innerHTML = Array(4).fill(
+    '<div class="event-card" style="opacity:0.4;pointer-events:none;"><div class="event-img-wrap" style="background:#e0e0e0;height:200px;border-radius:8px;"></div></div>'
+  ).join('');
 
   let data = [];
   try {
@@ -303,14 +278,17 @@ async function renderEvents() {
       data = await window.getEvents(4);
     }
   } catch (e) {
-    console.warn('[script.js] Supabase events failed, using fallback:', e.message);
+    console.warn('[script.js] Supabase events failed:', e.message);
   }
 
-  /* Fall back to hardcoded events if Supabase returned nothing */
-  const items = (data && data.length > 0) ? data : events;
+  /* If no events from Supabase, show empty state */
+  if (!data || data.length === 0) {
+    grid.innerHTML = '<p style="text-align:center;color:#aaa;grid-column:1/-1;">No upcoming events at the moment.</p>';
+    return;
+  }
 
   grid.innerHTML = '';
-  items.forEach(event => {
+  data.forEach(event => {
     const title    = event.title || event.name || 'Event';
     const date     = event.date  || event.event_date || '';
     const location = event.location || event.city || '';
