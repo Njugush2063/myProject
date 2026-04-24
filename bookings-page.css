@@ -89,6 +89,44 @@ body.page-bookings {
   border: 1.5px solid #e5e7eb;
   font-family: inherit;
   font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+.rq-field input:focus,
+.rq-field select:focus {
+  outline: none;
+  border-color: var(--bp-accent);
+}
+.rq-field small {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+#rqMpesaPhoneField {
+  animation: slideDown 0.3s ease;
+}
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 100px;
+    margin-bottom: 0.85rem;
+  }
+}
+#rqStatusMessage {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  margin-top: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .rq-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 1rem; }
 .rq-btn-primary {
