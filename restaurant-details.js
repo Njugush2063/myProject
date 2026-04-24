@@ -270,16 +270,11 @@ function populatePage(r) {
   set('heroCuisine', r.cuisine);
   set('heroCity', `📍 ${r.city}`);
   set('heroTitle', r.name);
-
-  if (r.price_per_person_min && r.price_per_person_max) {
-    set('heroPriceRange', `KSh ${r.price_per_person_min.toLocaleString('en-KE')} – KSh ${r.price_per_person_max.toLocaleString('en-KE')} per person`);
-  } else {
-    set('heroPriceRange', r.price_range || '—');
-  }
+  set('heroPriceRange', '');
   set('heroHours', r.opening_hours || 'See details');
 
   set('stripCuisine', r.cuisine);
-  set('stripPrice', r.price_range);
+  set('stripPrice', '');
   set('stripLocation', `${r.city}, Kenya`);
   set('stripHours', r.opening_hours ? r.opening_hours.split('|')[0].trim() : '—');
 
@@ -291,13 +286,9 @@ function populatePage(r) {
 /* ── Populate Sidebar ── */
 function populateSidebar(r) {
   const priceEl = document.getElementById('sidebarPriceKsh');
-  if (r.price_per_person_min && r.price_per_person_max) {
-    priceEl.innerHTML = `KSh ${r.price_per_person_min.toLocaleString('en-KE')} – ${r.price_per_person_max.toLocaleString('en-KE')}`;
-  } else {
-    priceEl.textContent = r.price_range || '—';
-  }
+  if (priceEl) priceEl.textContent = '';
   set('sidebarCuisine', r.cuisine);
-  set('sidebarPriceRange', buildPriceSymbol(r.price_level));
+  set('sidebarPriceRange', '');
   set('sidebarHours', r.opening_hours ? r.opening_hours.split('|')[0].trim() : '—');
   set('sidebarLocation', `${r.city}, Kenya`);
 }
@@ -567,11 +558,7 @@ function renderSimilar(restaurants) {
 }
 
 /* ── Price helpers ── */
-function buildPriceSymbol(level) {
-  let s = '';
-  for (let i = 1; i <= 4; i++) s += i <= level ? 'KSh ' : '<span style="opacity:.3">KSh </span>';
-  return s;
-}
+
 
 /* ── Guests counter ── */
 let guests = 2;

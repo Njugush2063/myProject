@@ -255,6 +255,15 @@
     el.hidden = !text;
   }
 
+  function validatePhone(phone) {
+    const cleaned = phone.replace(/\s+/g, '').replace(/^\+/, '').replace(/^0/, '254');
+    return /^2547\d{8}$|^2541\d{8}$/.test(cleaned);
+  }
+
+  function normalizePhone(phone) {
+    return phone.replace(/\s+/g, '').replace(/^\+/, '').replace(/^0/, '254');
+  }
+
   async function doPay() {
     const backend = mpesaBackendUrl();
     if (!backend) {
@@ -263,6 +272,19 @@
     }
     if (!currentBookingId || !lastTotals) return;
     const phone = (qs('mpesa_phone').value || '').trim();
+    
+    if (!phone) {
+      showMsg('Please enter your M-Pesa phone number.', 'err');
+      qs('mpesa_phone').focus();
+      return;
+    }
+
+    if (!validatePhone(phone)) {
+      showMsg('Please enter a valid Safaricom number (07xx or 01xx).', 'err');
+      qs('mpesa_phone').focus();
+      return;
+    }
+
     if (!window.MpesaHelper || !window.MpesaHelper.initiateStkPush) {
       alert('M-Pesa helper not loaded.');
       return;
@@ -270,18 +292,18 @@
 
     const payBtn = qs('btn-pay');
     payBtn.disabled = true;
-    showMsg('Sending payment prompt to your phone…', 'info');
+    showMsg('Your order has been received. Sending payment prompt to ' + phone + '…', 'info');
 
     try {
       const data = await window.MpesaHelper.initiateStkPush({
         backendUrl: backend,
-        phone: phone,
+        phone: normalizePhone(phone),
         amount: lastTotals.total,
         bookingId: currentBookingId,
         description: 'SafariQuest: ' + (selected && selected.name ? selected.name : 'Tour'),
       });
 
-      showMsg(data.responseDescription || 'Check your phone and enter your M-Pesa PIN.', 'info');
+      showMsg('Payment prompt sent! Please check your phone and enter your M-Pesa PIN to complete the payment.', 'info');
 
       window.MpesaHelper.pollPaymentStatus({
         backendUrl: backend,
@@ -299,7 +321,7 @@
           window.location.href = 'thank-you.html?' + q;
         },
         onFailed: function (reason) {
-          showMsg(reason || 'Payment failed.', 'err');
+          showMsg(reason || 'Payment failed. Please try again.', 'err');
           payBtn.disabled = false;
         },
         onTimeout: function () {

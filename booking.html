@@ -228,12 +228,15 @@
         Amount: <strong id="pay-total-line">—</strong>
       </p>
       <div class="field">
-        <label for="mpesa_phone">M-Pesa phone</label>
-        <input type="tel" id="mpesa_phone" placeholder="07XX XXX XXX" autocomplete="tel" />
+        <label for="mpesa_phone">M-Pesa phone number</label>
+        <input type="tel" id="mpesa_phone" placeholder="0712 345 678 or 0112 345 678" autocomplete="tel" />
+        <p style="font-size:0.8rem;color:var(--muted);margin-top:0.4rem;">
+          Enter your Safaricom M-Pesa number. You'll receive a prompt to enter your PIN.
+        </p>
       </div>
       <div class="actions">
         <button type="button" class="btn btn-outline" id="btn-back-2">Back</button>
-        <button type="button" class="btn btn-gold" id="btn-pay">Pay with M-Pesa</button>
+        <button type="button" class="btn btn-gold" id="btn-pay">Confirm and Pay</button>
       </div>
       <div id="pay-message" class="pay-message" hidden></div>
     </div>

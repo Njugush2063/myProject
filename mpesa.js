@@ -86,6 +86,9 @@
       return;
     }
 
+    // Show confirmation that order is received
+    _toast('Your order has been received. Sending payment prompt to ' + rawPhone + '…');
+
     // Disable button / show spinner
     const btn     = _el('mpesa-pay-btn');
     const spinner = _el('mpesa-spinner');
@@ -127,6 +130,7 @@
       _el('mpesa-confirm-amount').textContent =
         'KSh ' + Number(currentBooking.amount).toLocaleString('en-KE');
 
+      _toast('Payment prompt sent! Please check your phone and enter your M-Pesa PIN to complete the payment.');
       _showStep(2);
       _startCountdown(60);
       _startPolling(currentCheckoutId);

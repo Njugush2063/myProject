@@ -77,7 +77,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
   /* ── Build Card HTML ── */
   function buildCard(r) {
-    const priceSymbol = buildPriceSymbol(r.price_level);
     const desc      = r.description || '';
     const shortDesc = desc.length > 110 ? desc.substring(0, 110) + '…' : desc;
     const image     = r.image_hero || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80';
@@ -98,22 +97,10 @@ document.addEventListener('DOMContentLoaded', async function () {
           <div class="rest-card-name">${name}</div>
           <div class="rest-card-desc">${shortDesc}</div>
           <div class="rest-card-footer">
-            <div class="rest-card-price">${priceSymbol}</div>
             <div class="rest-card-cta">View Restaurant →</div>
           </div>
         </div>
       </a>`;
-  }
-
-  /* ── Price Symbol ── */
-  function buildPriceSymbol(level) {
-    const labels = ['', 'Budget', 'Mid-range', 'Upscale', 'Fine Dining'];
-    const lvl = level || 0;
-    let html = '';
-    for (let i = 1; i <= 4; i++) {
-      html += `<span class="price-symbol ${i <= lvl ? '' : 'dimmed'}">KSh</span> `;
-    }
-    return html + `<span style="font-size:0.76rem;color:#999;margin-left:4px">${labels[lvl] || ''}</span>`;
   }
 
   /* ── Skeleton loaders ── */
@@ -125,29 +112,23 @@ document.addEventListener('DOMContentLoaded', async function () {
   /* ── Apply all filters ── */
   window.applyFilters = function () {
     const cuisine = document.getElementById('cuisineFilter').value;
-    const price   = document.getElementById('priceFilter').value;
     const sort    = document.getElementById('sortFilter').value;
     const search  = document.getElementById('searchInput').value.toLowerCase().trim();
 
     filtered = allRestaurants.filter(r => {
       const matchCity    = activeCity === 'all' || r.city === activeCity;
       const matchCuisine = cuisine === 'all' || (r.cuisine || '').toLowerCase().includes(cuisine.toLowerCase());
-      const matchPrice   = price === 'all' || String(r.price_level) === price;
       const matchSearch  = !search ||
         (r.name        || '').toLowerCase().includes(search) ||
         (r.city        || '').toLowerCase().includes(search) ||
         (r.cuisine     || '').toLowerCase().includes(search) ||
         (r.description || '').toLowerCase().includes(search) ||
         (r.tags && r.tags.some(t => t.toLowerCase().includes(search)));
-      return matchCity && matchCuisine && matchPrice && matchSearch;
+      return matchCity && matchCuisine && matchSearch;
     });
 
     if (sort === 'name') {
       filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-    } else if (sort === 'price-asc') {
-      filtered.sort((a, b) => (a.price_level || 0) - (b.price_level || 0));
-    } else if (sort === 'price-desc') {
-      filtered.sort((a, b) => (b.price_level || 0) - (a.price_level || 0));
     } else {
       filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
     }
